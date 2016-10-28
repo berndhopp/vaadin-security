@@ -1,6 +1,5 @@
 package org.vaadin.security.impl;
 
-import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.UI;
 
@@ -21,17 +20,17 @@ public class SecureViewChangeListener implements ViewChangeListener {
 
     public boolean beforeViewChange(ViewChangeEvent event) {
 
-        if (!(event.getNewView() instanceof SecureView)) {
+        if (event.getNewView() instanceof SecureView) {
+            boolean canAccess = ((SecureView) event.getNewView()).canAccess(event.getParameters());
+
+            if (!canAccess) {
+                UI.getCurrent().getNavigator().navigateTo(permissionDeniedTarget);
+            }
+
+            return canAccess;
+        } else {
             return true;
         }
-
-        boolean canAccess = ((SecureView) event.getNewView()).canAccess(event.getParameters());
-
-        if (!canAccess) {
-            UI.getCurrent().getNavigator().navigateTo(permissionDeniedTarget);
-        }
-
-        return canAccess;
     }
 
     public void afterViewChange(ViewChangeEvent event) {
