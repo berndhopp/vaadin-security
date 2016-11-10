@@ -8,11 +8,20 @@ import org.vaadin.security.annotation.Restricted;
 import org.vaadin.security.api.PermissionEvaluator;
 import org.vaadin.security.api.SecureView;
 
+/**
+ * Attach to a {@link com.vaadin.navigator.Navigator} to have view-navigation checked for permissions.
+ * {@link SecureViewChangeListener} will prevent navigation to {@link View}s that are not accessible by
+ * their {@link Restricted} annotation or {@link SecureView#canAccess(String)}.
+ */
 public class SecureViewChangeListener implements ViewChangeListener {
 
     private final String permissionDeniedTarget;
     private final PermissionEvaluator permissionEvaluator;
 
+    /**
+     * @param permissionDeniedTarget will be navigated to if a view is inaccessible, see {@link com.vaadin.navigator.Navigator#navigateTo(String)}
+     * @param permissionEvaluator the {@link PermissionEvaluator} to be used to evaluate {@link Restricted#value()}
+     */
     public SecureViewChangeListener(String permissionDeniedTarget, PermissionEvaluator permissionEvaluator) {
         if(permissionDeniedTarget == null) throw new IllegalArgumentException("permissionDeniedTarget cannot be null or empty");
         if(permissionEvaluator == null) throw new IllegalArgumentException("permissionEvaluator cannot be null");

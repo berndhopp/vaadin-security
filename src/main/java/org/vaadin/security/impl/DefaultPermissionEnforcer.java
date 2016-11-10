@@ -9,12 +9,19 @@ import org.vaadin.security.api.PermissionEvaluator;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * a default implementation of {@link PermissionEnforcer} which can be used independent of a DI-Framework like
+ * Spring, Guice or Java CDI.
+ */
 public class DefaultPermissionEnforcer implements PermissionEnforcer{
 
     private final PermissionEvaluator permissionEvaluator;
 
     private final class RestrictedComponentsSet extends HashMap<Component, String> {}
 
+    /**
+     * @param permissionEvaluator the {@link PermissionEvaluator} to be used
+     */
     public DefaultPermissionEnforcer(PermissionEvaluator permissionEvaluator){
         if(permissionEvaluator == null) throw new IllegalArgumentException("permissionEvaluator cannot be null");
         this.permissionEvaluator = permissionEvaluator;
