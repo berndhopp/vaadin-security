@@ -12,8 +12,10 @@ import org.vaadin.security.api.SecureView;
  * Attach to a {@link com.vaadin.navigator.Navigator} to have view-navigation checked for permissions.
  * {@link SecureViewChangeListener} will prevent navigation to {@link View}s that are not accessible by
  * their {@link Restricted} annotation or {@link SecureView#canAccess(String)}.
+ * SecureViewChangeListener instances will be created and attached to your navigator automatically
+ * by DI-framework integration ( VaadinSpring, GuiceVaadin ).
  */
-public class SecureViewChangeListener implements ViewChangeListener {
+public abstract class SecureViewChangeListener implements ViewChangeListener {
 
     private final String permissionDeniedTarget;
     private final PermissionEvaluator permissionEvaluator;
