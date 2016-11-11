@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.vaadin</groupId>
     <artifactId>security</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <properties>
         <vaadin.version>[7.6.0,)</vaadin.version>
         <servlet-api.version>[2.5,)</servlet-api.version>
@@ -58,7 +58,6 @@
                             <Implementation-Title>${Implementation-Title}</Implementation-Title>
                             <!-- Package format version - do not change -->
                             <Vaadin-Package-Version>1</Vaadin-Package-Version>
-
                             <Vaadin-License-Title>${Vaadin-License-Title}</Vaadin-License-Title>
                         </manifestEntries>
                     </archive>
