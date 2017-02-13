@@ -1,14 +1,15 @@
 package org.vaadin.security.annotation;
 
 import com.vaadin.ui.Component;
+import org.vaadin.security.api.Binder.Bind;
 
 import java.lang.annotation.*;
 
 /**
  * This annotation binds vaadin-security to Dependency-Injection frameworks like Spring, Guice or Java CDI.
- * It may be attached to a {@link com.vaadin.ui.Component}, effectively calling
+ * It may be attached to a {@link Component}, effectively calling
  * {@link org.vaadin.security.api.Binder#bind(Component...)} with the annotated component instance and
- * {@link org.vaadin.security.api.Binder.Bind#to(Object...)} with {@link Restricted#value()}.
+ * {@link Bind#to(Object...)} with {@link Restricted#value()}.
  *
  * the following snippets of code are interchargeable.
  *
@@ -25,8 +26,8 @@ import java.lang.annotation.*;
  *     <code>
  *          class AdminOnlyButton extends Button {
  *               @Inject // or @Autowired in case you use Spring
- *               AdminOnlyButton(Applier permissionEnforcer){
- *                   permissionEnforcer.bind(this).to("administrator_only");
+ *               AdminOnlyButton(Binder binder){
+ *                   binder.bind(this).to("administrator_only");
  *               }
  *          }
  *     </code>
