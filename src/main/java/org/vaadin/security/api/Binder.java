@@ -21,6 +21,6 @@ public interface Binder {
     }
 
     interface BindTerminate {
-        Binder and();
+        Binder then();
     }
 }
