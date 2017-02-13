@@ -12,15 +12,11 @@ public interface Binder {
     Unbind unbindView(View... view);
 
     interface Bind {
-        BindTerminate to(Object... permission);
+        Binder to(Object... permission);
     }
 
     interface Unbind {
-        BindTerminate from(Object... permissions);
-        BindTerminate fromAll();
-    }
-
-    interface BindTerminate {
-        Binder then();
+        Binder from(Object... permissions);
+        Binder fromAll();
     }
 }
