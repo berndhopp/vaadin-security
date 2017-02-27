@@ -29,15 +29,29 @@ public class AuthorizationEngine implements Binder, Applier {
     private final EvaluatorPool evaluatorPool;
     final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
     final Multimap<View, Object> viewsToPermissions = HashMultimap.create();
-    private final Object2BooleanMap<Component> componentsToLastKnownVisibilityState = new Object2BooleanOpenHashMap<>();
+    private final Object2BooleanMap<Component> componentsToLastKnownVisibilityState;
+    private final boolean allowManualSettingOfVisibility;
 
     public AuthorizationEngine(EvaluatorPool evaluatorPool){
-        this.evaluatorPool = checkNotNull(evaluatorPool);
+        this(evaluatorPool, false);
     }
 
-    static boolean setUp = false;
+    public AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility){
+        this.allowManualSettingOfVisibility = allowManualSettingOfVisibility;
+        this.evaluatorPool = checkNotNull(evaluatorPool);
+
+        componentsToLastKnownVisibilityState = allowManualSettingOfVisibility
+                ? null
+                : new Object2BooleanOpenHashMap<>();
+    }
+
+    private static boolean setUp = false;
 
     public static void setUp(Supplier<EvaluatorPool> evaluatorPoolSupplier){
+        setUp(evaluatorPoolSupplier, false);
+    }
+
+    public static void setUp(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
         checkState(!setUp, "setUp() cannot be called more than once");
 
         checkNotNull(evaluatorPoolSupplier);
@@ -45,7 +59,7 @@ public class AuthorizationEngine implements Binder, Applier {
         VaadinService.getCurrent().addSessionInitListener(
             (SessionInitListener) event -> {
                 final EvaluatorPool evaluatorPool = checkNotNull(evaluatorPoolSupplier.get());
-                AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool);
+                AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool, allowManualSettingOfVisibility);
                 event.getSession().setAttribute(Binder.class, authorizationEngine);
                 event.getSession().setAttribute(Applier.class, authorizationEngine);
             }
@@ -124,7 +138,7 @@ public class AuthorizationEngine implements Binder, Applier {
                 final Collection<Object> permissions = entry.getValue();
                 final Component component = entry.getKey();
 
-                if (componentsToLastKnownVisibilityState.containsKey(component)) {
+                if (!allowManualSettingOfVisibility && componentsToLastKnownVisibilityState.containsKey(component)) {
                     checkState(
                             componentsToLastKnownVisibilityState.getBoolean(component) == component.isVisible(),
                             "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
@@ -136,7 +150,9 @@ public class AuthorizationEngine implements Binder, Applier {
                 final boolean newVisibility = evaluateAndCache(permissions, grantCache);
                 component.setVisible(newVisibility);
 
-                componentsToLastKnownVisibilityState.put(component, newVisibility);
+                if(!allowManualSettingOfVisibility){
+                    componentsToLastKnownVisibilityState.put(component, newVisibility);
+                }
             }
 
             reEvaluateCurrentViewAccess();
@@ -153,7 +169,7 @@ public class AuthorizationEngine implements Binder, Applier {
 
         synchronized (this) {
             for (Component component : components) {
-                if (componentsToLastKnownVisibilityState.containsKey(component)) {
+                if (!allowManualSettingOfVisibility && componentsToLastKnownVisibilityState.containsKey(component)) {
                     checkState(
                             componentsToLastKnownVisibilityState.getBoolean(component) == component.isVisible(),
                             "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
@@ -166,7 +182,9 @@ public class AuthorizationEngine implements Binder, Applier {
 
                 boolean newVisibility = permissions == null || evaluateAndCache(permissions, grantCache);
 
-                componentsToLastKnownVisibilityState.put(component, newVisibility);
+                if(!allowManualSettingOfVisibility){
+                    componentsToLastKnownVisibilityState.put(component, newVisibility);
+                }
 
                 component.setVisible(newVisibility);
             }
