@@ -222,8 +222,9 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
     }
 
     Navigator getNavigator(){
-        final UI ui = checkNotNull(UI.getCurrent());
-        return ui.getNavigator();
+        final UI ui = UI.getCurrent();
+
+        return ui == null ? null : ui.getNavigator();
     }
 
     private boolean beforeViewChangeCalled = false;
