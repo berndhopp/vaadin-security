@@ -227,8 +227,6 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         return ui == null ? null : ui.getNavigator();
     }
 
-    private boolean beforeViewChangeCalled = false;
-
     private void reEvaluateCurrentViewAccess() {
         final Navigator navigator = getNavigator();
 
@@ -238,18 +236,10 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         }
 
         navigator.navigateTo(navigator.getState());
-
-        checkState(
-            beforeViewChangeCalled,
-            "please attach the NavigationGuard to your navigator's ViewChangeListeners after navigator creation " +
-            "with 'navigator.addViewChangeListener(VaadinSession.getCurrent().getAttribute(NavigationGuard.class));'"
-        );
     }
 
     @Override
     public boolean beforeViewChange(ViewChangeEvent event) {
-        beforeViewChangeCalled = true;
-
         final View newView = event.getNewView();
 
         final Collection<Object> neededPermissions = Optional
