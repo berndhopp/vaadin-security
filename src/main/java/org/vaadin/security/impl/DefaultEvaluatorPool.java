@@ -11,9 +11,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class DefaultEvaluatorPool implements EvaluatorPool {
 
-    private final Set<Evaluator<?>> evaluators;
+    private final Set<Evaluator> evaluators;
 
-    public DefaultEvaluatorPool(Set<Evaluator<?>> evaluators) {
+    public DefaultEvaluatorPool(Set<Evaluator> evaluators) {
         checkNotNull(evaluators);
         checkArgument(!evaluators.isEmpty());
         this.evaluators = evaluators;

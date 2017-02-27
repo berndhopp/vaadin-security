@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class EvaluatorPoolTest {
 
     static EvaluatorPool createEvaluatorPool(boolean withInt, boolean withString, boolean withObject) {
-        Set<Evaluator<?>> evaluators = new HashSet<>();
+        Set<Evaluator> evaluators = new HashSet<>();
 
         if (withInt) {
             evaluators.add(Evaluators.integerEvaluator);
@@ -40,7 +40,7 @@ public class EvaluatorPoolTest {
 
     @Test
     public void inheritance_matching_should_work() {
-        ImmutableSet<Evaluator<?>> evaluators = ImmutableSet.of(Evaluators.fooEvaluator);
+        ImmutableSet<Evaluator> evaluators = ImmutableSet.of(Evaluators.fooEvaluator);
 
         EvaluatorPool evaluatorPool = new DefaultEvaluatorPool(evaluators);
 
