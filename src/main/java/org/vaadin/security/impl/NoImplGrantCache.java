@@ -9,7 +9,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class NoImplGrantCache implements Object2BooleanMap<Object> {
+class NoImplGrantCache implements Object2BooleanMap<Object> {
 
     static final Object2BooleanMap<Object> INSTANCE = new NoImplGrantCache();
 
