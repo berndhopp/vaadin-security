@@ -4,16 +4,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
-import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import org.vaadin.security.api.Applier;
-import org.vaadin.security.api.Binder;
-import org.vaadin.security.api.Evaluator;
-import org.vaadin.security.api.EvaluatorPool;
+import org.vaadin.security.api.*;
 
 import java.util.Collection;
 import java.util.Map;
@@ -25,6 +21,9 @@ import static com.google.common.collect.ImmutableSet.copyOf;
 
 @SuppressWarnings("unused")
 public class AuthorizationEngine implements Binder, Applier {
+
+    public interface AuthorizationEngineSupplier extends Supplier<AuthorizationEngine>{
+    }
 
     private final EvaluatorPool evaluatorPool;
     final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
@@ -47,25 +46,34 @@ public class AuthorizationEngine implements Binder, Applier {
 
     private static boolean setUp = false;
 
+    public static void setUp(AuthorizationEngineSupplier authorizationEngineSupplier){
+        checkNotNull(authorizationEngineSupplier);
+
+        checkState(!setUp, "setUp() cannot be called more than once");
+
+        VaadinService.getCurrent().addSessionInitListener(
+                event -> {
+                    AuthorizationEngine authorizationEngine = checkNotNull(authorizationEngineSupplier.get());
+                    event.getSession().setAttribute(Binder.class, authorizationEngine);
+                    event.getSession().setAttribute(Applier.class, authorizationEngine);
+                }
+        );
+
+        setUp = true;
+    }
+
     public static void setUp(Supplier<EvaluatorPool> evaluatorPoolSupplier){
         setUp(evaluatorPoolSupplier, false);
     }
 
     public static void setUp(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
-        checkState(!setUp, "setUp() cannot be called more than once");
 
         checkNotNull(evaluatorPoolSupplier);
 
-        VaadinService.getCurrent().addSessionInitListener(
-            (SessionInitListener) event -> {
-                final EvaluatorPool evaluatorPool = checkNotNull(evaluatorPoolSupplier.get());
-                AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool, allowManualSettingOfVisibility);
-                event.getSession().setAttribute(Binder.class, authorizationEngine);
-                event.getSession().setAttribute(Applier.class, authorizationEngine);
-            }
-        );
+        AuthorizationEngineSupplier authorizationEngineSupplier = () ->
+            new AuthorizationEngine(evaluatorPoolSupplier.get(), allowManualSettingOfVisibility);
 
-        setUp = true;
+        setUp(authorizationEngineSupplier);
     }
 
     @Override
@@ -198,6 +206,8 @@ public class AuthorizationEngine implements Binder, Applier {
         return ui.getNavigator();
     }
 
+    private boolean beforeViewChangeCalled = false;
+
     private void reEvaluateCurrentViewAccess() {
         final Navigator navigator = getNavigator();
 
@@ -207,5 +217,11 @@ public class AuthorizationEngine implements Binder, Applier {
         }
 
         navigator.navigateTo(navigator.getState());
+
+        checkState(
+            beforeViewChangeCalled,
+            "please attach the NavigationGuard to your navigator's ViewChangeListeners after navigator creation " +
+            "with 'navigator.addViewChangeListener(VaadinSession.getCurrent().getAttribute(NavigationGuard.class));'"
+        );
     }
 }
