@@ -58,6 +58,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
                     AuthorizationEngine authorizationEngine = checkNotNull(authorizationEngineSupplier.get());
                     event.getSession().setAttribute(Binder.class, authorizationEngine);
                     event.getSession().setAttribute(Applier.class, authorizationEngine);
+                    event.getSession().setAttribute(ViewGuard.class, authorizationEngine);
                 }
         );
 
