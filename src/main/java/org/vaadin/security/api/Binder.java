@@ -3,8 +3,14 @@ package org.vaadin.security.api;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 
+import java.util.Set;
+
 @SuppressWarnings("unused")
 public interface Binder {
+
+    Set<Object> getPermissions(Component component);
+    Set<Object> getViewPermissions(View view);
+
     Bind bind(Component... component);
     Bind bindView(View... views);
 

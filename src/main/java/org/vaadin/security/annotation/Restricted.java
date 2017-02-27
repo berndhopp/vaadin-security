@@ -25,7 +25,7 @@ import java.lang.annotation.*;
  * <pre>
  *     <code>
  *          class AdminOnlyButton extends Button {
- *               @Inject // or @Autowired in case you use Spring
+ *               @Inject
  *               AdminOnlyButton(Binder binder){
  *                   binder.bind(this).to("administrator_only");
  *               }
