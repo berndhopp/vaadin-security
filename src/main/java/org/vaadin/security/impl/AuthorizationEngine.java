@@ -1,6 +1,7 @@
 package org.vaadin.security.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -13,6 +14,7 @@ import org.vaadin.security.api.*;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -20,7 +22,7 @@ import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.ImmutableSet.copyOf;
 
 @SuppressWarnings("unused")
-public class AuthorizationEngine implements Binder, Applier {
+public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
     public interface AuthorizationEngineSupplier extends Supplier<AuthorizationEngine>{
     }
@@ -31,11 +33,11 @@ public class AuthorizationEngine implements Binder, Applier {
     private final Object2BooleanMap<Component> componentsToLastKnownVisibilityState;
     private final boolean allowManualSettingOfVisibility;
 
-    public AuthorizationEngine(EvaluatorPool evaluatorPool){
+    protected AuthorizationEngine(EvaluatorPool evaluatorPool){
         this(evaluatorPool, false);
     }
 
-    public AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility){
+    protected AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility){
         this.allowManualSettingOfVisibility = allowManualSettingOfVisibility;
         this.evaluatorPool = checkNotNull(evaluatorPool);
 
@@ -46,7 +48,7 @@ public class AuthorizationEngine implements Binder, Applier {
 
     private static boolean setUp = false;
 
-    public static void setUp(AuthorizationEngineSupplier authorizationEngineSupplier){
+    public static void start(AuthorizationEngineSupplier authorizationEngineSupplier){
         checkNotNull(authorizationEngineSupplier);
 
         checkState(!setUp, "setUp() cannot be called more than once");
@@ -62,18 +64,18 @@ public class AuthorizationEngine implements Binder, Applier {
         setUp = true;
     }
 
-    public static void setUp(Supplier<EvaluatorPool> evaluatorPoolSupplier){
-        setUp(evaluatorPoolSupplier, false);
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier){
+        start(evaluatorPoolSupplier, false);
     }
 
-    public static void setUp(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
 
         checkNotNull(evaluatorPoolSupplier);
 
         AuthorizationEngineSupplier authorizationEngineSupplier = () ->
             new AuthorizationEngine(evaluatorPoolSupplier.get(), allowManualSettingOfVisibility);
 
-        setUp(authorizationEngineSupplier);
+        start(authorizationEngineSupplier);
     }
 
     @Override
@@ -117,16 +119,33 @@ public class AuthorizationEngine implements Binder, Applier {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean evaluateAndCache(Collection<Object> permissions, Object2BooleanMap<Object> grantCache) {
+    private boolean evaluate(Collection<Object> permissions){
+        for (Object permission : permissions) {
+            Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
+            if(!evaluator.evaluate(permission)){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean evaluate(Collection<Object> permissions, Object2BooleanMap<Object> grantCache) {
         for (Object permission : permissions) {
             boolean granted;
 
-            if (grantCache.containsKey(permission)) {
-                granted = grantCache.getBoolean(permission);
-            } else {
-                final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
+            if(grantCache == null){
+                Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
                 granted = evaluator.evaluate(permission);
-                grantCache.put(permission, granted);
+            } else {
+                if (grantCache.containsKey(permission)) {
+                    granted = grantCache.getBoolean(permission);
+                } else {
+                    final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
+                    granted = evaluator.evaluate(permission);
+                    grantCache.put(permission, granted);
+                }
             }
 
             if (!granted) {
@@ -155,7 +174,7 @@ public class AuthorizationEngine implements Binder, Applier {
                     );
                 }
 
-                final boolean newVisibility = evaluateAndCache(permissions, grantCache);
+                final boolean newVisibility = evaluate(permissions, grantCache);
                 component.setVisible(newVisibility);
 
                 if(!allowManualSettingOfVisibility){
@@ -173,7 +192,7 @@ public class AuthorizationEngine implements Binder, Applier {
 
         Object2BooleanMap<Object> grantCache = components.length > 1
                 ? new Object2BooleanOpenHashMap<>(componentsToPermissions.values().size())
-                : NoImplGrantCache.INSTANCE;
+                : null;
 
         synchronized (this) {
             for (Component component : components) {
@@ -188,7 +207,7 @@ public class AuthorizationEngine implements Binder, Applier {
 
                 final Collection<Object> permissions = componentsToPermissions.get(component);
 
-                boolean newVisibility = permissions == null || evaluateAndCache(permissions, grantCache);
+                boolean newVisibility = evaluate(permissions, grantCache);
 
                 if(!allowManualSettingOfVisibility){
                     componentsToLastKnownVisibilityState.put(component, newVisibility);
@@ -223,5 +242,22 @@ public class AuthorizationEngine implements Binder, Applier {
             "please attach the NavigationGuard to your navigator's ViewChangeListeners after navigator creation " +
             "with 'navigator.addViewChangeListener(VaadinSession.getCurrent().getAttribute(NavigationGuard.class));'"
         );
+    }
+
+    @Override
+    public boolean beforeViewChange(ViewChangeEvent event) {
+        beforeViewChangeCalled = true;
+
+        final View newView = event.getNewView();
+
+        final Collection<Object> neededPermissions = Optional
+                .ofNullable(viewsToPermissions.get(newView))
+                .orElse(ImmutableList.of());
+
+        return evaluate(neededPermissions);
+    }
+
+    @Override
+    public void afterViewChange(ViewChangeEvent event) {
     }
 }
