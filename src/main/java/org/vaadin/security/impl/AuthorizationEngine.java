@@ -133,20 +133,19 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
     @SuppressWarnings("unchecked")
     private boolean evaluate(Collection<Object> permissions, Object2BooleanMap<Object> grantCache) {
+        if(grantCache == null){
+            return evaluate(permissions);
+        }
+
         for (Object permission : permissions) {
             boolean granted;
 
-            if(grantCache == null){
-                Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
-                granted = evaluator.evaluate(permission);
+            if (grantCache.containsKey(permission)) {
+                granted = grantCache.getBoolean(permission);
             } else {
-                if (grantCache.containsKey(permission)) {
-                    granted = grantCache.getBoolean(permission);
-                } else {
-                    final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
-                    granted = evaluator.evaluate(permission);
-                    grantCache.put(permission, granted);
-                }
+                final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
+                granted = evaluator.evaluate(permission);
+                grantCache.put(permission, granted);
             }
 
             if (!granted) {
