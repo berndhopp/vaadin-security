@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
@@ -16,6 +17,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.*;
@@ -27,7 +29,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
     public interface AuthorizationEngineSupplier extends Supplier<AuthorizationEngine>{
     }
 
-    private final EvaluatorPool evaluatorPool;
+    final EvaluatorPool evaluatorPool;
     final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
     final Multimap<View, Object> viewsToPermissions = HashMultimap.create();
     private final Object2BooleanMap<Component> componentsToLastKnownVisibilityState;
@@ -48,14 +50,18 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
     private static boolean setUp = false;
 
-    public static void start(AuthorizationEngineSupplier authorizationEngineSupplier){
-        checkNotNull(authorizationEngineSupplier);
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier){
+        start(evaluatorPoolSupplier, false);
+    }
+
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
 
         checkState(!setUp, "setUp() cannot be called more than once");
 
         VaadinService.getCurrent().addSessionInitListener(
                 event -> {
-                    AuthorizationEngine authorizationEngine = checkNotNull(authorizationEngineSupplier.get());
+                    final EvaluatorPool evaluatorPool = checkNotNull(evaluatorPoolSupplier.get());
+                    AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool, allowManualSettingOfVisibility);
                     event.getSession().setAttribute(Binder.class, authorizationEngine);
                     event.getSession().setAttribute(Applier.class, authorizationEngine);
                     event.getSession().setAttribute(ViewGuard.class, authorizationEngine);
@@ -65,18 +71,13 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         setUp = true;
     }
 
-    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier){
-        start(evaluatorPoolSupplier, false);
-    }
+    public static <T> Predicate<T> filter(Class<T> classToFilter){
+        AuthorizationEngine authorizationEngine = (AuthorizationEngine)checkNotNull(
+            VaadinSession.getCurrent().getAttribute(Binder.class),
+            "unable to access AuthorizationEngine instance for this VaadinSession, did you forget to call AuthorizationEngine.start()?"
+        );
 
-    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
-
-        checkNotNull(evaluatorPoolSupplier);
-
-        AuthorizationEngineSupplier authorizationEngineSupplier = () ->
-            new AuthorizationEngine(evaluatorPoolSupplier.get(), allowManualSettingOfVisibility);
-
-        start(authorizationEngineSupplier);
+        return authorizationEngine::evaluate;
     }
 
     @Override
@@ -129,6 +130,14 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         }
 
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean evaluate(Object permission){
+        checkNotNull(permission, "permission cannot be null");
+
+        final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
+        return evaluator.evaluate(permission);
     }
 
     @SuppressWarnings("unchecked")
