@@ -174,7 +174,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasFilterableDataProvider.getDataProvider();
 
         if (dataProvider instanceof AuthorizedDataProvider) {
-            checkArgument(boundHasFilteredDataProviders.remove(hasFilterableDataProvider));
+            checkState(boundHasFilteredDataProviders.remove(hasFilterableDataProvider));
             final DataProvider unwrappedDataProvider = ((AuthorizedDataProvider) dataProvider).dataProvider;
             hasFilterableDataProvider.setDataProvider(unwrappedDataProvider);
             return true;
@@ -194,7 +194,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
             final DataProvider unwrappedDataProvider = ((AuthorizedDataProvider) dataProvider).dataProvider;
             hasDataProvider.setDataProvider(unwrappedDataProvider);
 
-            checkArgument(boundHasDataProviders.remove(hasDataProvider));
+            checkState(boundHasDataProviders.remove(hasDataProvider));
             return true;
         } else {
             return boundHasDataProviders.remove(hasDataProvider);
