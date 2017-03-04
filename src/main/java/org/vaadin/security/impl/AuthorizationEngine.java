@@ -219,9 +219,10 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         synchronized (this) {
             final Map<Object, Boolean> permissionsToEvaluations = componentsToPermissions
                     .values()
-                    .parallelStream()
+                    .stream()
                     .flatMap(Collection::stream)
                     .distinct()
+                    .parallel()
                     .collect(toMap(p -> p, this::evaluate));
 
             for (Map.Entry<Component, Collection<Object>> entry : componentsToPermissions.entrySet()) {
