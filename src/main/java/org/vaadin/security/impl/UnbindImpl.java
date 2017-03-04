@@ -8,8 +8,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 class UnbindImpl implements Binder.Unbind {
 
-    private AuthorizationEngine authorizationEngine;
     private final Component[] components;
+    private AuthorizationEngine authorizationEngine;
 
     UnbindImpl(AuthorizationEngine authorizationEngine, Component[] components) {
         this.authorizationEngine = authorizationEngine;

@@ -72,9 +72,11 @@ public class BinderTest {
                 new DefaultEvaluatorPool(
                         ImmutableSet.of(Evaluators.stringEvaluator, Evaluators.integerEvaluator)));
 
-        View view = viewChangeEvent -> {};
+        View view = viewChangeEvent -> {
+        };
 
-        View view2 = viewChangeEvent -> {};
+        View view2 = viewChangeEvent -> {
+        };
 
         authorizationEngine
                 .bindView(view, view2).to("hello", "world", 23)

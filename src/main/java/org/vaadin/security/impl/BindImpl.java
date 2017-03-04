@@ -9,8 +9,8 @@ import static java.util.Arrays.asList;
 
 class BindImpl implements Binder.Bind {
 
-    private AuthorizationEngine authorizationEngine;
     private final Component[] components;
+    private AuthorizationEngine authorizationEngine;
 
     BindImpl(AuthorizationEngine authorizationEngine, Component[] components) {
         this.authorizationEngine = authorizationEngine;

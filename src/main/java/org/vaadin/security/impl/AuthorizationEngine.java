@@ -1,83 +1,91 @@
 package org.vaadin.security.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.HasFilterableDataProvider;
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.DataProviderListener;
+import com.vaadin.data.provider.Query;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import org.vaadin.security.api.*;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.cache.CacheBuilder.from;
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings("unused")
 public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
-    public interface AuthorizationEngineSupplier extends Supplier<AuthorizationEngine>{
-    }
-
-    final EvaluatorPool evaluatorPool;
+    private static boolean setUp = false;
     final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
     final Multimap<View, Object> viewsToPermissions = HashMultimap.create();
+    private final CacheBuilderSpec cacheBuilderSpec;
+    private final EvaluatorPool evaluatorPool;
+    private final Set<HasDataProvider<?>> boundHasDataProviders = new HashSet<>();
+    private final Set<HasFilterableDataProvider<?, ?>> boundHasFilteredDataProviders = new HashSet<>();
     private final Object2BooleanMap<Component> componentsToLastKnownVisibilityState;
     private final boolean allowManualSettingOfVisibility;
 
-    protected AuthorizationEngine(EvaluatorPool evaluatorPool){
-        this(evaluatorPool, false);
-    }
-
-    protected AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility){
+    AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility, CacheBuilderSpec cacheBuilderSpec) {
         this.allowManualSettingOfVisibility = allowManualSettingOfVisibility;
         this.evaluatorPool = checkNotNull(evaluatorPool);
 
         componentsToLastKnownVisibilityState = allowManualSettingOfVisibility
                 ? null
                 : new Object2BooleanOpenHashMap<>();
+
+        this.cacheBuilderSpec = cacheBuilderSpec;
     }
 
-    private static boolean setUp = false;
-
-    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier){
-        start(evaluatorPoolSupplier, false);
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier) {
+        start(evaluatorPoolSupplier, false, null);
     }
 
-    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility){
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, CacheBuilderSpec cacheBuilderSpec) {
+        start(evaluatorPoolSupplier, false, cacheBuilderSpec);
+    }
+
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility) {
+        start(evaluatorPoolSupplier, allowManualSettingOfVisibility, null);
+    }
+
+    public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility, CacheBuilderSpec cacheBuilderSpec) {
 
         checkState(!setUp, "setUp() cannot be called more than once");
+        checkNotNull(evaluatorPoolSupplier);
 
         VaadinService.getCurrent().addSessionInitListener(
                 event -> {
                     final EvaluatorPool evaluatorPool = checkNotNull(evaluatorPoolSupplier.get());
-                    AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool, allowManualSettingOfVisibility);
-                    event.getSession().setAttribute(Binder.class, authorizationEngine);
-                    event.getSession().setAttribute(Applier.class, authorizationEngine);
-                    event.getSession().setAttribute(ViewGuard.class, authorizationEngine);
+
+                    AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool, allowManualSettingOfVisibility, cacheBuilderSpec);
+
+                    final VaadinSession session = event.getSession();
+
+                    session.setAttribute(Binder.class, authorizationEngine);
+                    session.setAttribute(Applier.class, authorizationEngine);
+                    session.setAttribute(ViewGuard.class, authorizationEngine);
                 }
         );
 
         setUp = true;
-    }
-
-    public static <T> Predicate<T> filter(Class<T> classToFilter){
-        AuthorizationEngine authorizationEngine = (AuthorizationEngine)checkNotNull(
-            VaadinSession.getCurrent().getAttribute(Binder.class),
-            "unable to access AuthorizationEngine instance for this VaadinSession, did you forget to call AuthorizationEngine.start()?"
-        );
-
-        return authorizationEngine::evaluate;
     }
 
     @Override
@@ -106,6 +114,44 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         return new ViewBindImpl(this, views);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T, F> Binder bind(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
+        checkNotNull(itemClass);
+        checkNotNull(hasDataProvider);
+
+        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
+
+        checkNotNull(dataProvider);
+
+        hasDataProvider.setDataProvider(
+                cacheBuilderSpec != null
+                        ? new CachingAuthorizedDataProvider<>(dataProvider, itemClass, cacheBuilderSpec)
+                        : new AuthorizedDataProvider<>(dataProvider, itemClass)
+        );
+
+        return this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T, F> Binder bind(Class<T> itemClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
+        checkNotNull(itemClass);
+        checkNotNull(hasFilterableDataProvider);
+
+        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasFilterableDataProvider.getDataProvider();
+
+        checkNotNull(dataProvider);
+
+        hasFilterableDataProvider.setDataProvider(
+                cacheBuilderSpec != null
+                        ? new CachingAuthorizedDataProvider<>(dataProvider, itemClass, cacheBuilderSpec)
+                        : new AuthorizedDataProvider<>(dataProvider, itemClass)
+        );
+
+        return this;
+    }
+
     @Override
     public Unbind unbind(Component... components) {
         checkNotNull(components);
@@ -120,11 +166,46 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         return new ViewUnbindImpl(this, views);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    private boolean evaluate(Collection<Object> permissions){
+    public <T, F> boolean unbind(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
+        checkNotNull(hasFilterableDataProvider);
+
+        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasFilterableDataProvider.getDataProvider();
+
+        if (dataProvider instanceof AuthorizedDataProvider) {
+            checkArgument(boundHasFilteredDataProviders.remove(hasFilterableDataProvider));
+            final DataProvider unwrappedDataProvider = ((AuthorizedDataProvider) dataProvider).dataProvider;
+            hasFilterableDataProvider.setDataProvider(unwrappedDataProvider);
+            return true;
+        } else {
+            return boundHasFilteredDataProviders.remove(hasFilterableDataProvider);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T, F> boolean unbind(HasDataProvider<T> hasDataProvider) {
+        checkNotNull(hasDataProvider);
+
+        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
+
+        if (dataProvider instanceof AuthorizedDataProvider) {
+            final DataProvider unwrappedDataProvider = ((AuthorizedDataProvider) dataProvider).dataProvider;
+            hasDataProvider.setDataProvider(unwrappedDataProvider);
+
+            checkArgument(boundHasDataProviders.remove(hasDataProvider));
+            return true;
+        } else {
+            return boundHasDataProviders.remove(hasDataProvider);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean evaluate(Collection<Object> permissions) {
         for (Object permission : permissions) {
             Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
-            if(!evaluator.evaluate(permission)){
+            if (!evaluator.evaluate(permission)) {
                 return false;
             }
         }
@@ -133,7 +214,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean evaluate(Object permission){
+    private boolean evaluate(Object permission) {
         checkNotNull(permission, "permission cannot be null");
 
         final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
@@ -142,7 +223,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
     @SuppressWarnings("unchecked")
     private boolean evaluate(Collection<Object> permissions, Object2BooleanMap<Object> grantCache) {
-        if(grantCache == null){
+        if (grantCache == null) {
             return evaluate(permissions);
         }
 
@@ -186,7 +267,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
                 final boolean newVisibility = evaluate(permissions, grantCache);
                 component.setVisible(newVisibility);
 
-                if(!allowManualSettingOfVisibility){
+                if (!allowManualSettingOfVisibility) {
                     componentsToLastKnownVisibilityState.put(component, newVisibility);
                 }
             }
@@ -218,7 +299,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
                 boolean newVisibility = evaluate(permissions, grantCache);
 
-                if(!allowManualSettingOfVisibility){
+                if (!allowManualSettingOfVisibility) {
                     componentsToLastKnownVisibilityState.put(component, newVisibility);
                 }
 
@@ -229,7 +310,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         }
     }
 
-    Navigator getNavigator(){
+    Navigator getNavigator() {
         final UI ui = UI.getCurrent();
 
         return ui == null ? null : ui.getNavigator();
@@ -259,5 +340,87 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
     @Override
     public void afterViewChange(ViewChangeEvent event) {
+    }
+
+    private class AuthorizedDataProvider<T, F> implements DataProvider<T, F> {
+        final DataProvider<T, F> dataProvider;
+        private final Class<T> itemClass;
+
+        AuthorizedDataProvider(DataProvider<T, F> dataProvider, Class<T> itemClass) {
+            this.dataProvider = dataProvider;
+            this.itemClass = itemClass;
+        }
+
+        @Override
+        public boolean isInMemory() {
+            return dataProvider.isInMemory();
+        }
+
+        @Override
+        public int size(Query<T, F> query) {
+            return (int) fetch(query).count();
+        }
+
+        @Override
+        public Stream<T> fetch(Query<T, F> query) {
+            final Evaluator<T> evaluator = evaluatorPool.getEvaluator(itemClass);
+
+            return dataProvider
+                    .fetch(query)
+                    .filter(evaluator::evaluate);
+        }
+
+        @Override
+        public void refreshItem(T item) {
+            final Evaluator<T> evaluator = evaluatorPool.getEvaluator(itemClass);
+
+            checkArgument(evaluator.evaluate(item));
+
+            dataProvider.refreshItem(item);
+        }
+
+        @Override
+        public void refreshAll() {
+            dataProvider.refreshAll();
+        }
+
+        @Override
+        public Registration addDataProviderListener(DataProviderListener<T> listener) {
+            return dataProvider.addDataProviderListener(listener);
+        }
+    }
+
+    private class CachingAuthorizedDataProvider<T, F> extends AuthorizedDataProvider<T, F> {
+
+        private final Cache<Query<T, F>, List<T>> streamCache;
+
+        CachingAuthorizedDataProvider(DataProvider<T, F> dataProvider, Class<T> itemClass, CacheBuilderSpec cacheBuilderSpec) {
+            super(dataProvider, itemClass);
+
+            streamCache = from(cacheBuilderSpec).build();
+        }
+
+        @Override
+        public Stream<T> fetch(Query<T, F> query) {
+            if (query == null) {
+                return super.fetch(null);
+            }
+
+            List<T> list = streamCache.getIfPresent(query);
+
+            if (list == null) {
+                Stream<T> stream = super.fetch(query);
+
+                if (stream == null) {
+                    return null;
+                }
+
+                list = stream.collect(toList());
+
+                streamCache.put(query, list);
+            }
+
+            return list.stream();
+        }
     }
 }

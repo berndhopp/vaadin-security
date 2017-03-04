@@ -9,8 +9,8 @@ import static java.util.Arrays.asList;
 
 class ViewBindImpl implements Binder.Bind {
 
-    private AuthorizationEngine authorizationEngine;
     private final View[] views;
+    private AuthorizationEngine authorizationEngine;
 
     ViewBindImpl(AuthorizationEngine authorizationEngine, View[] views) {
         this.authorizationEngine = authorizationEngine;

@@ -9,7 +9,7 @@ import org.vaadin.security.impl.DefaultEvaluatorPool;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class EvaluatorPoolTest {
 
@@ -44,13 +44,30 @@ public class EvaluatorPoolTest {
 
         EvaluatorPool evaluatorPool = new DefaultEvaluatorPool(evaluators);
 
-        assertEquals(Evaluators.fooEvaluator, evaluatorPool.getEvaluator(Evaluators.Bar.class));
+        Evaluator<Evaluators.Foo> fooEvaluator = evaluatorPool.getEvaluator(Evaluators.Foo.class);
+
+        assertNotNull(fooEvaluator);
+        assertFalse(fooEvaluator.evaluate(new Evaluators.Bar()));
+        assertFalse(fooEvaluator.evaluate(new Evaluators.Foo()));
+        Evaluator<Evaluators.Bar> barEvaluator = evaluatorPool.getEvaluator(Evaluators.Bar.class);
+        assertNotNull(barEvaluator);
+        assertFalse(barEvaluator.evaluate(new Evaluators.Bar()));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void conflicting_evaluators_should_throw_illegal_state() {
+    @Test
+    public void conflicting_evaluators_should_return_best_fit() {
         EvaluatorPool evaluatorPool = createEvaluatorPool(true, true, true);
-        evaluatorPool.getEvaluator(String.class);
+        final Evaluator<String> evaluator = evaluatorPool.getEvaluator(String.class);
+        assertEquals(Evaluators.stringEvaluator, evaluator);
+        evaluator.evaluate("");
+    }
+
+    @Test
+    public void no_matching_evaluator_should_return_best_fit() {
+        EvaluatorPool evaluatorPool = createEvaluatorPool(true, false, true);
+        final Evaluator<String> evaluator = evaluatorPool.getEvaluator(String.class);
+        assertNotNull(evaluator);
+        evaluator.evaluate("");
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -14,6 +14,7 @@ public interface Evaluator<T> {
 
     /**
      * evaluate if a certain permission is granted in the current context
+     *
      * @param permission the permission
      * @return true if the permission is granted, otherwise false
      */
@@ -21,6 +22,7 @@ public interface Evaluator<T> {
 
     /**
      * returns the class of the permission that can be evaluated ( type-parameter T )
+     *
      * @return the class of T
      */
     Class<T> getPermissionClass();

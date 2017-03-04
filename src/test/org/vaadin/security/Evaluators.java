@@ -49,7 +49,7 @@ public class Evaluators {
         }
     };
 
-    private static class Foo {
+    static class Foo {
     }
 
     static class Bar extends Foo {
