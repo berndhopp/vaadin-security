@@ -335,11 +335,13 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
                 .ofNullable(viewsToPermissions.get(newView))
                 .orElse(ImmutableList.of());
 
-        return evaluate(neededPermissions);
-    }
+        final boolean granted = evaluate(neededPermissions);
 
-    @Override
-    public void afterViewChange(ViewChangeEvent event) {
+        if(!granted){
+            getNavigator().navigateTo("");
+        }
+
+        return granted;
     }
 
     private class AuthorizedDataProvider<T, F> implements DataProvider<T, F> {
