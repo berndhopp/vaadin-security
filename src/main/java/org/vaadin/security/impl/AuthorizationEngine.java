@@ -12,15 +12,11 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import org.vaadin.security.api.*;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.ImmutableSet.copyOf;
@@ -37,7 +33,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
     private final CacheBuilderSpec cacheBuilderSpec;
     private final Set<HasDataProvider<?>> boundHasDataProviders = new HashSet<>();
     private final Set<HasFilterableDataProvider<?, ?>> boundHasFilteredDataProviders = new HashSet<>();
-    private final Object2BooleanMap<Component> componentsToLastKnownVisibilityState;
+    private final Map<Component, Boolean> componentsToLastKnownVisibilityState;
     private final boolean allowManualSettingOfVisibility;
 
     AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility, CacheBuilderSpec cacheBuilderSpec) {
@@ -46,7 +42,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
         componentsToLastKnownVisibilityState = allowManualSettingOfVisibility
                 ? null
-                : new Object2BooleanOpenHashMap<>();
+                : new HashMap<>();
 
         this.cacheBuilderSpec = cacheBuilderSpec;
     }
@@ -217,13 +213,21 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
     void applyInternal(Map<Component, Collection<Object>> componentsToPermissions) {
         synchronized (this) {
-            final Map<Object, Boolean> permissionsToEvaluations = componentsToPermissions
+            Stream<Object> distinctPermissionsStream = componentsToPermissions
                     .values()
-                    .stream()
-                    .flatMap(Collection::stream)
-                    .distinct()
-                    .parallel()
-                    .collect(toMap(p -> p, this::evaluate));
+                    .stream() //streaming all bound permissions
+                    .flatMap(Collection::stream) //unrolling them from the collections
+                    .distinct();
+
+            /* TODO too many parameters, builder maybe?
+            if(parallelPermissionEvaluation){
+                //now we can go multithreaded
+                distinctPermissionsStream = distinctPermissionsStream.parallel();
+            }
+            */
+
+            //mapping all permissions to their evaluation
+            final Map<Object, Boolean> permissionsToEvaluations = distinctPermissionsStream.collect(toMap(p -> p, this::evaluate));
 
             for (Map.Entry<Component, Collection<Object>> entry : componentsToPermissions.entrySet()) {
                 final Collection<Object> permissions = entry.getValue();
@@ -231,7 +235,7 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
                 if (!allowManualSettingOfVisibility && componentsToLastKnownVisibilityState.containsKey(component)) {
                     checkState(
-                            componentsToLastKnownVisibilityState.getBoolean(component) == component.isVisible(),
+                            componentsToLastKnownVisibilityState.get(component) == component.isVisible(),
                             "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
                                     "consider making these components invisible via CSS instead if you want to hide them. In Component %s",
                             component
