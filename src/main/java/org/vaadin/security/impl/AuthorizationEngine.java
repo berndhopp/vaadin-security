@@ -3,6 +3,7 @@ package org.vaadin.security.impl;
 import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.provider.DataProvider;
@@ -12,19 +13,29 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
-import org.vaadin.security.api.*;
 
-import java.util.*;
+import org.vaadin.security.api.Applier;
+import org.vaadin.security.api.Binder;
+import org.vaadin.security.api.Evaluator;
+import org.vaadin.security.api.EvaluatorPool;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("unused")
-public class AuthorizationEngine implements Binder, Applier, ViewGuard {
+public class AuthorizationEngine implements Binder, Applier {
 
     private static boolean setUp = false;
     final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
@@ -74,7 +85,6 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
 
                     session.setAttribute(Binder.class, authorizationEngine);
                     session.setAttribute(Applier.class, authorizationEngine);
-                    session.setAttribute(ViewGuard.class, authorizationEngine);
                 }
         );
 
@@ -274,22 +284,15 @@ public class AuthorizationEngine implements Binder, Applier, ViewGuard {
         navigator.navigateTo(state);
     }
 
-    @Override
-    public boolean beforeViewChange(ViewChangeEvent event) {
-        final View newView = event.getNewView();
+    public boolean navigationAllowed(View newView) {
+        checkNotNull(newView);
 
-        final Collection<Object> permissions = viewsToPermissions.get(newView);
-
-        if (permissions == null) {
-            return true;
+        for (Object permission : viewsToPermissions.get(newView)) {
+            if (!evaluate(permission)) {
+                return false;
+            }
         }
 
-        final boolean granted = evaluate(permissions);
-
-        if(!granted){
-            getNavigator().navigateTo("");
-        }
-
-        return granted;
+        return true;
     }
 }
