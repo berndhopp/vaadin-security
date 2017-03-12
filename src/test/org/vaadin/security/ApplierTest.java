@@ -1,7 +1,9 @@
 package org.vaadin.security;
 
 import com.google.common.collect.ImmutableSet;
+
 import com.vaadin.ui.Button;
+
 import org.junit.Test;
 import org.vaadin.security.api.Evaluator;
 import org.vaadin.security.api.EvaluatorPool;
@@ -56,9 +58,9 @@ public class ApplierTest {
         Button button3 = new Button();
 
         authorizationEngine
-                .bind(button1).to("user", Clearance.NON)
-                .bind(button2).to("user", Clearance.SECRET)
-                .bind(button3).to("admin", Clearance.TOP_SECRET);
+                .bindComponent(button1).to("user", Clearance.NON)
+                .bindComponent(button2).to("user", Clearance.SECRET)
+                .bindComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());

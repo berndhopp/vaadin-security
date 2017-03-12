@@ -10,26 +10,46 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public interface Binder {
 
+    //get permissions
     Set<Object> getPermissions(Component component);
 
     Set<Object> getViewPermissions(View view);
 
-    Bind bind(Component... component);
+    //bind
+    default Bind bindComponent(Component component) {
+        return bindComponents(component);
+    }
 
-    Bind bindView(View... views);
+    Bind bindComponents(Component... component);
 
-    <T, F> Binder bind(Class<T> itemClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider);
+    default Bind bindView(View view) {
+        return bindViews(view);
+    }
 
-    <T, F> Binder bind(Class<T> itemClass, HasDataProvider<T> hasDataProvider);
+    Bind bindViews(View... views);
 
-    Unbind unbind(Component... component);
+    <T, F> Binder bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider);
 
-    Unbind unbindView(View... view);
+    <T, F> Binder bindHasDataProvider(HasDataProvider<T> hasDataProvider);
 
-    <T, F> boolean unbind(HasFilterableDataProvider<T, F> hasFilterableDataProvider);
+    //unbind
+    default Unbind unbindComponent(Component component) {
+        return unbindComponents(component);
+    }
 
-    <T, F> boolean unbind(HasDataProvider<T> hasDataProvider);
+    Unbind unbindComponents(Component... component);
 
+    default Unbind unbindView(View view) {
+        return unbindViews(view);
+    }
+
+    Unbind unbindViews(View... view);
+
+    <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider);
+
+    <T, F> boolean unbindHasDataProvider(HasDataProvider<T> hasDataProvider);
+
+    //fluent api
     interface Bind {
         Binder to(Object... permission);
     }

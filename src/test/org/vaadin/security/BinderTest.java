@@ -1,9 +1,11 @@
 package org.vaadin.security;
 
 import com.google.common.collect.ImmutableSet;
+
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.vaadin.security.impl.AuthorizationEngine;
@@ -12,7 +14,9 @@ import org.vaadin.security.impl.TestAuthorizationEngine;
 
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 public class BinderTest {
 
@@ -27,9 +31,9 @@ public class BinderTest {
         Component component2 = new Button();
 
         authorizationEngine
-                .bind(component, component2).to("hello", "world", 23)
-                .bind(component).to("foo")
-                .bind(component2).to("bar");
+                .bindComponents(component, component2).to("hello", "world", 23)
+                .bindComponent(component).to("foo")
+                .bindComponent(component2).to("bar");
 
         //check that permissions of component1 are as expected
         Set<Object> permissions1 = authorizationEngine.getPermissions(component);
@@ -46,7 +50,7 @@ public class BinderTest {
         assertThat(permissions2, Matchers.containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
-        authorizationEngine.bind(component).to(42);
+        authorizationEngine.bindComponent(component).to(42);
 
         permissions1 = authorizationEngine.getPermissions(component);
 
@@ -56,7 +60,7 @@ public class BinderTest {
 
         //remove some permissions from component1 and check they are gone
 
-        authorizationEngine.unbind(component).from("hello", 23);
+        authorizationEngine.unbindComponent(component).from("hello", 23);
 
         permissions1 = authorizationEngine.getPermissions(component);
 
@@ -79,7 +83,7 @@ public class BinderTest {
         };
 
         authorizationEngine
-                .bindView(view, view2).to("hello", "world", 23)
+                .bindViews(view, view2).to("hello", "world", 23)
                 .bindView(view).to("foo")
                 .bindView(view2).to("bar");
 
