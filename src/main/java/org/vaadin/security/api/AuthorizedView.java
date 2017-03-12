@@ -7,22 +7,15 @@ import com.vaadin.ui.UI;
 
 import java.util.logging.Logger;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 @SuppressWarnings("unused")
 public abstract class AuthorizedView<T> extends CustomComponent implements View {
 
-    private String permissionDeniedViewName = "";
-    private String badParamsViewName = "";
-
-    public void setPermissionDeniedViewName(String permissionDeniedViewName) {
-        checkArgument(!isNullOrEmpty(permissionDeniedViewName));
-        this.permissionDeniedViewName = permissionDeniedViewName;
+    protected String getPermissionDeniedViewName() {
+        return "";
     }
 
-    public void setBadParamsViewName(String badParamsViewName) {
-        this.badParamsViewName = badParamsViewName;
+    public String getBadParamsViewName() {
+        return "";
     }
 
     protected abstract T parse(String parameters) throws ParseException;
@@ -50,11 +43,11 @@ public abstract class AuthorizedView<T> extends CustomComponent implements View 
                 onSuccessfulAuthorization(t);
             } else {
                 onFailedAuthorization(t);
-                UI.getCurrent().getNavigator().navigateTo(permissionDeniedViewName);
+                UI.getCurrent().getNavigator().navigateTo(getPermissionDeniedViewName());
             }
         } catch (ParseException e) {
             onParseException(e);
-            UI.getCurrent().getNavigator().navigateTo(badParamsViewName);
+            UI.getCurrent().getNavigator().navigateTo(getBadParamsViewName());
         }
     }
 
