@@ -21,6 +21,7 @@ import org.vaadin.security.api.EvaluatorPool;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -41,6 +42,7 @@ public class AuthorizationEngine implements Binder, Applier {
     final Multimap<View, Object> viewsToPermissions = HashMultimap.create();
     final EvaluatorPool evaluatorPool;
     private final Map<Component, Boolean> componentsToLastKnownVisibilityState;
+    private final Set<DataProvider<?, ?>> dataProviders = new HashSet<>();
     private final boolean allowManualSettingOfVisibility;
 
     AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility) {
@@ -121,6 +123,8 @@ public class AuthorizationEngine implements Binder, Applier {
 
         ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
 
+        dataProviders.add(dataProvider);
+
         listDataProvider.addFilter(new EvaluatorPredicate<>(this));
 
         return this;
@@ -141,6 +145,8 @@ public class AuthorizationEngine implements Binder, Applier {
         );
 
         ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
+
+        dataProviders.add(dataProvider);
 
         listDataProvider.addFilter(new EvaluatorPredicate<>(this));
 
@@ -238,6 +244,8 @@ public class AuthorizationEngine implements Binder, Applier {
             }
 
             reEvaluateCurrentViewAccess();
+
+            dataProviders.forEach(DataProvider::refreshAll);
         }
     }
 
