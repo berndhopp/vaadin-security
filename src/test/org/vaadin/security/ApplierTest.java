@@ -6,7 +6,6 @@ import com.vaadin.ui.Button;
 
 import org.junit.Test;
 import org.vaadin.security.api.Evaluator;
-import org.vaadin.security.api.EvaluatorPool;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +46,7 @@ public class ApplierTest {
             }
         };
 
-        EvaluatorPool evaluatorPool = new DefaultEvaluatorPool(ImmutableSet.of(roleEvaluator, clearanceEvaluator));
+        EvaluatorPool evaluatorPool = new EvaluatorPool(ImmutableSet.of(roleEvaluator, clearanceEvaluator));
 
         TestAuthorizationEngine authorizationEngine = new TestAuthorizationEngine(evaluatorPool);
 

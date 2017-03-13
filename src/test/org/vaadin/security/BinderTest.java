@@ -21,7 +21,7 @@ public class BinderTest {
     public void test_components() {
 
         AuthorizationEngine authorizationEngine = new TestAuthorizationEngine(
-                new DefaultEvaluatorPool(
+                new EvaluatorPool(
                         ImmutableSet.of(Evaluators.stringEvaluator, Evaluators.integerEvaluator)));
 
         Component component = new Button();
@@ -70,7 +70,7 @@ public class BinderTest {
     public void test_views() {
 
         AuthorizationEngine authorizationEngine = new TestAuthorizationEngine(
-                new DefaultEvaluatorPool(
+                new EvaluatorPool(
                         ImmutableSet.of(Evaluators.stringEvaluator, Evaluators.integerEvaluator)));
 
         View view = viewChangeEvent -> {

@@ -17,7 +17,6 @@ import com.vaadin.ui.UI;
 import org.vaadin.security.api.Applier;
 import org.vaadin.security.api.Binder;
 import org.vaadin.security.api.Evaluator;
-import org.vaadin.security.api.EvaluatorPool;
 
 import java.util.Collection;
 import java.util.HashMap;

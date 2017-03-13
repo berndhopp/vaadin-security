@@ -1,7 +1,6 @@
 package org.vaadin.security;
 
 import org.vaadin.security.api.Evaluator;
-import org.vaadin.security.api.EvaluatorPool;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,11 +9,11 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class DefaultEvaluatorPool implements EvaluatorPool {
+public class EvaluatorPool {
 
     private final Map<Class<?>, Evaluator<?>> evaluators;
 
-    public DefaultEvaluatorPool(Collection<Evaluator> evaluators) {
+    public EvaluatorPool(Collection<Evaluator> evaluators) {
         checkNotNull(evaluators);
         this.evaluators = new HashMap<>(evaluators.size());
 
@@ -23,7 +22,6 @@ public class DefaultEvaluatorPool implements EvaluatorPool {
         }
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public <T> Evaluator<T> getEvaluator(Class<T> permissionClass) {
 
@@ -42,7 +40,7 @@ public class DefaultEvaluatorPool implements EvaluatorPool {
         return evaluator;
     }
 
-    int calculateDistance(Class<?> parent, Class<?> child) {
+    private int calculateDistance(Class<?> parent, Class<?> child) {
         int distance = 0;
 
         Class<?> clazz = child;

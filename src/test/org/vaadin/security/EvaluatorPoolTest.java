@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 
 import org.junit.Test;
 import org.vaadin.security.api.Evaluator;
-import org.vaadin.security.api.EvaluatorPool;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class EvaluatorPoolTest {
             evaluators.add(Evaluators.objectEvaluator);
         }
 
-        return new DefaultEvaluatorPool(evaluators);
+        return new EvaluatorPool(evaluators);
     }
 
     @Test
@@ -44,7 +43,7 @@ public class EvaluatorPoolTest {
     public void inheritance_matching_should_work() {
         ImmutableSet<Evaluator> evaluators = ImmutableSet.of(Evaluators.fooEvaluator);
 
-        EvaluatorPool evaluatorPool = new DefaultEvaluatorPool(evaluators);
+        EvaluatorPool evaluatorPool = new EvaluatorPool(evaluators);
 
         Evaluator<Evaluators.Foo> fooEvaluator = evaluatorPool.getEvaluator(Evaluators.Foo.class);
 
