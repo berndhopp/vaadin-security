@@ -1,20 +1,21 @@
-package org.vaadin.security.impl;
+package org.vaadin.security;
 
-import com.vaadin.navigator.View;
+import com.vaadin.ui.Component;
+
 import org.vaadin.security.api.Binder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 
-class ViewBindImpl implements Binder.Bind {
+class BindImpl implements Binder.Bind {
 
-    private final View[] views;
+    private final Component[] components;
     private AuthorizationEngine authorizationEngine;
 
-    ViewBindImpl(AuthorizationEngine authorizationEngine, View[] views) {
+    BindImpl(AuthorizationEngine authorizationEngine, Component[] components) {
         this.authorizationEngine = authorizationEngine;
-        this.views = views;
+        this.components = components;
     }
 
     @Override
@@ -22,9 +23,11 @@ class ViewBindImpl implements Binder.Bind {
         checkNotNull(permissions);
         checkArgument(permissions.length > 0, "one ore more permissions needed");
 
-        for (View view : views) {
-            authorizationEngine.viewsToPermissions.putAll(view, asList(permissions));
+        for (Component component : components) {
+            authorizationEngine.componentsToPermissions.putAll(component, asList(permissions));
         }
+
+        authorizationEngine.apply(components);
 
         return authorizationEngine;
     }

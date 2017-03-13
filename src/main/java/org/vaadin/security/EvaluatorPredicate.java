@@ -1,4 +1,4 @@
-package org.vaadin.security.impl;
+package org.vaadin.security;
 
 import com.vaadin.server.SerializablePredicate;
 

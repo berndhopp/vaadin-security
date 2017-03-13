@@ -7,8 +7,6 @@ import com.vaadin.ui.Button;
 import org.junit.Test;
 import org.vaadin.security.api.Evaluator;
 import org.vaadin.security.api.EvaluatorPool;
-import org.vaadin.security.impl.DefaultEvaluatorPool;
-import org.vaadin.security.impl.TestAuthorizationEngine;
 
 import java.util.HashSet;
 import java.util.Set;

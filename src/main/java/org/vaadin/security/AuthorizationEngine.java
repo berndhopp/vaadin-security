@@ -1,4 +1,4 @@
-package org.vaadin.security.impl;
+package org.vaadin.security;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -202,51 +201,39 @@ public class AuthorizationEngine implements Binder, Applier {
     }
 
     void applyInternal(Map<Component, Collection<Object>> componentsToPermissions) {
+        //TODO consider parallelization
+        final Map<Object, Boolean> permissionsToEvaluations = componentsToPermissions
+                .values()
+                .stream() //streaming all bound permissions
+                .flatMap(Collection::stream) //unrolling them from the collections
+                .distinct() // have each permission only once
+                .collect(toMap(p -> p, this::evaluate));//mapping all permissions to their evaluation
 
-        synchronized (this) {
+        for (Map.Entry<Component, Collection<Object>> entry : componentsToPermissions.entrySet()) {
+            final Collection<Object> permissions = entry.getValue();
+            final Component component = entry.getKey();
 
-            Stream<Object> distinctPermissionsStream = componentsToPermissions
-                    .values()
-                    .stream() //streaming all bound permissions
-                    .flatMap(Collection::stream) //unrolling them from the collections
-                    .distinct();
+            final boolean newVisibility = permissions.stream().allMatch(permissionsToEvaluations::get);
 
-            /* TODO too many parameters, builder maybe?
-            if(parallelPermissionEvaluation){
-                //now we can go multithreaded
-                distinctPermissionsStream = distinctPermissionsStream.parallel();
-            }
-            */
+            if (!allowManualSettingOfVisibility) {
+                final Boolean lastVisibilityState = componentsToLastKnownVisibilityState.get(component);
 
-            //mapping all permissions to their evaluation
-            final Map<Object, Boolean> permissionsToEvaluations = distinctPermissionsStream.collect(toMap(p -> p, this::evaluate));
+                checkState(
+                        lastVisibilityState == null || lastVisibilityState == component.isVisible(),
+                        "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
+                                "consider making these components invisible via CSS instead if you want to hide them. In Component %s",
+                        component
+                );
 
-            for (Map.Entry<Component, Collection<Object>> entry : componentsToPermissions.entrySet()) {
-                final Collection<Object> permissions = entry.getValue();
-                final Component component = entry.getKey();
-
-                if (!allowManualSettingOfVisibility && componentsToLastKnownVisibilityState.containsKey(component)) {
-                    checkState(
-                            componentsToLastKnownVisibilityState.get(component) == component.isVisible(),
-                            "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
-                                    "consider making these components invisible via CSS instead if you want to hide them. In Component %s",
-                            component
-                    );
-                }
-
-                final boolean newVisibility = permissions.stream().allMatch(permissionsToEvaluations::get);
-
-                component.setVisible(newVisibility);
-
-                if (!allowManualSettingOfVisibility) {
-                    componentsToLastKnownVisibilityState.put(component, newVisibility);
-                }
+                componentsToLastKnownVisibilityState.put(component, newVisibility);
             }
 
-            reEvaluateCurrentViewAccess();
-
-            dataProviders.forEach(DataProvider::refreshAll);
+            component.setVisible(newVisibility);
         }
+
+        reEvaluateCurrentViewAccess();
+
+        dataProviders.forEach(DataProvider::refreshAll);
     }
 
     Navigator getNavigator() {

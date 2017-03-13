@@ -1,19 +1,20 @@
-package org.vaadin.security.impl;
+package org.vaadin.security;
 
-import com.vaadin.navigator.View;
+import com.vaadin.ui.Component;
+
 import org.vaadin.security.api.Binder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class ViewUnbindImpl implements Binder.Unbind {
+class UnbindImpl implements Binder.Unbind {
 
-    private final View[] views;
+    private final Component[] components;
     private AuthorizationEngine authorizationEngine;
 
-    ViewUnbindImpl(AuthorizationEngine authorizationEngine, View[] views) {
+    UnbindImpl(AuthorizationEngine authorizationEngine, Component[] components) {
         this.authorizationEngine = authorizationEngine;
-        this.views = views;
+        this.components = components;
     }
 
     @Override
@@ -21,9 +22,10 @@ class ViewUnbindImpl implements Binder.Unbind {
         checkNotNull(permissions);
         checkArgument(permissions.length > 0);
 
-        for (View view : views) {
+        for (Component component : components) {
+
             for (Object permission : permissions) {
-                authorizationEngine.viewsToPermissions.remove(view, permission);
+                authorizationEngine.componentsToPermissions.remove(component, permission);
             }
         }
 
@@ -32,8 +34,8 @@ class ViewUnbindImpl implements Binder.Unbind {
 
     @Override
     public Binder fromAll() {
-        for (View view : views) {
-            authorizationEngine.componentsToPermissions.removeAll(view);
+        for (Component component : components) {
+            authorizationEngine.componentsToPermissions.removeAll(component);
         }
 
         return authorizationEngine;

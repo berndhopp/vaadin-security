@@ -8,9 +8,6 @@ import com.vaadin.ui.Component;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.vaadin.security.impl.AuthorizationEngine;
-import org.vaadin.security.impl.DefaultEvaluatorPool;
-import org.vaadin.security.impl.TestAuthorizationEngine;
 
 import java.util.Set;
 

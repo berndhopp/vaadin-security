@@ -1,4 +1,4 @@
-package org.vaadin.security.impl;
+package org.vaadin.security;
 
 import org.vaadin.security.api.Evaluator;
 import org.vaadin.security.api.EvaluatorPool;
