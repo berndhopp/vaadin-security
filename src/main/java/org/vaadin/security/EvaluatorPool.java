@@ -18,7 +18,13 @@ public class EvaluatorPool {
         this.evaluators = new HashMap<>(evaluators.size());
 
         for (Evaluator evaluator : evaluators) {
-            this.evaluators.put(evaluator.getPermissionClass(), evaluator);
+            Evaluator<?> alreadyRegistered = this.evaluators.put(evaluator.getPermissionClass(), evaluator);
+
+            checkArgument(
+                    alreadyRegistered == null,
+                    "multiple evaluators for class %s",
+                    evaluator.getPermissionClass()
+            );
         }
     }
 
