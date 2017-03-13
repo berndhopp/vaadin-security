@@ -62,7 +62,11 @@ public class AuthorizationEngine implements Binder, Applier {
         checkState(!setUp, "setUp() cannot be called more than once");
         checkNotNull(evaluatorPoolSupplier);
 
-        VaadinService.getCurrent().addSessionInitListener(
+        final VaadinService vaadinService = VaadinService.getCurrent();
+
+        checkState(vaadinService != null, "VaadinService is not initialized yet");
+
+        vaadinService.addSessionInitListener(
                 event -> {
                     final EvaluatorPool evaluatorPool = checkNotNull(evaluatorPoolSupplier.get());
 
