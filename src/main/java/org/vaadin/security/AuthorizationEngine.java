@@ -39,7 +39,7 @@ public class AuthorizationEngine implements Binder, Applier {
     private static boolean setUp = false;
     final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
     final Multimap<View, Object> viewsToPermissions = HashMultimap.create();
-    final EvaluatorPool evaluatorPool;
+    private final EvaluatorPool evaluatorPool;
     private final Map<Component, Boolean> componentsToLastKnownVisibilityState;
     private final Set<DataProvider<?, ?>> dataProviders = new HashSet<>();
     private final boolean allowManualSettingOfVisibility;
@@ -200,7 +200,7 @@ public class AuthorizationEngine implements Binder, Applier {
         applyInternal(stream(components).collect(toMap(c -> c, componentsToPermissions::get)));
     }
 
-    void applyInternal(Map<Component, Collection<Object>> componentsToPermissions) {
+    private void applyInternal(Map<Component, Collection<Object>> componentsToPermissions) {
         //TODO consider parallelization
         final Map<Object, Boolean> permissionsToEvaluations = componentsToPermissions
                 .values()
