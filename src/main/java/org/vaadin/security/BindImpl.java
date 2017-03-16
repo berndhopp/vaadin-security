@@ -4,9 +4,10 @@ import com.vaadin.ui.Component;
 
 import org.vaadin.security.api.Binder;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Collection;
+
 import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
 
 class BindImpl implements Binder.Bind {
 
@@ -20,11 +21,22 @@ class BindImpl implements Binder.Bind {
 
     @Override
     public Binder to(Object... permissions) {
-        checkNotNull(permissions);
-        checkArgument(permissions.length > 0, "one ore more permissions needed");
+        requireNonNull(permissions);
+        if (permissions.length == 0) {
+            throw new IllegalArgumentException("one ore more permissions needed");
+        }
 
         for (Component component : components) {
-            authorizationEngine.componentsToPermissions.putAll(component, asList(permissions));
+
+            final Collection<Object> currentPermissions = authorizationEngine.componentsToPermissions.get(component);
+
+            final Collection<Object> newPermissions = asList(permissions);
+
+            if (currentPermissions == null) {
+                authorizationEngine.componentsToPermissions.put(component, newPermissions);
+            } else {
+                currentPermissions.addAll(newPermissions);
+            }
         }
 
         authorizationEngine.apply(components);

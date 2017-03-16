@@ -4,8 +4,9 @@ import com.vaadin.navigator.View;
 
 import org.vaadin.security.api.Binder;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Collection;
+
+import static java.util.Objects.requireNonNull;
 
 class ViewUnbindImpl implements Binder.Unbind {
 
@@ -19,12 +20,18 @@ class ViewUnbindImpl implements Binder.Unbind {
 
     @Override
     public Binder from(Object... permissions) {
-        checkNotNull(permissions);
-        checkArgument(permissions.length > 0);
+        requireNonNull(permissions);
+        if (permissions.length == 0) {
+            throw new IllegalArgumentException("permissions cannot be empty");
+        }
 
         for (View view : views) {
-            for (Object permission : permissions) {
-                authorizationEngine.viewsToPermissions.remove(view, permission);
+            final Collection<Object> existingPermissions = authorizationEngine.viewsToPermissions.get(view);
+
+            if (existingPermissions != null) {
+                for (Object permission : permissions) {
+                    existingPermissions.remove(permission);
+                }
             }
         }
 
@@ -34,7 +41,7 @@ class ViewUnbindImpl implements Binder.Unbind {
     @Override
     public Binder fromAll() {
         for (View view : views) {
-            authorizationEngine.componentsToPermissions.removeAll(view);
+            authorizationEngine.viewsToPermissions.remove(view);
         }
 
         return authorizationEngine;

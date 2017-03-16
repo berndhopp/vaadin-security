@@ -1,14 +1,15 @@
 package org.vaadin.security;
 
-import com.google.common.collect.ImmutableSet;
-
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.vaadin.security.api.Evaluator;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -20,9 +21,11 @@ public class BinderTest {
     @Test
     public void test_components() {
 
-        AuthorizationEngine authorizationEngine = new TestAuthorizationEngine(
-                new EvaluatorPool(
-                        ImmutableSet.of(Evaluators.stringEvaluator, Evaluators.integerEvaluator)));
+        Set<Evaluator> evaluators = new HashSet<>();
+        evaluators.add(Evaluators.stringEvaluator);
+        evaluators.add(Evaluators.integerEvaluator);
+
+        AuthorizationEngine authorizationEngine = new TestAuthorizationEngine(new EvaluatorPool(evaluators));
 
         Component component = new Button();
         Component component2 = new Button();
@@ -33,14 +36,14 @@ public class BinderTest {
                 .bindComponent(component2).to("bar");
 
         //check that permissions of component1 are as expected
-        Set<Object> permissions1 = authorizationEngine.getPermissions(component);
+        Collection<Object> permissions1 = authorizationEngine.getPermissions(component);
 
         assertNotNull(permissions1);
         assertEquals(4, permissions1.size());
         assertThat(permissions1, Matchers.containsInAnyOrder("hello", "world", 23, "foo"));
 
         //check that permissions of component2 are as expected
-        Set<Object> permissions2 = authorizationEngine.getPermissions(component2);
+        Collection<Object> permissions2 = authorizationEngine.getPermissions(component2);
 
         assertNotNull(permissions2);
         assertEquals(4, permissions2.size());
@@ -69,9 +72,11 @@ public class BinderTest {
     @Test
     public void test_views() {
 
-        AuthorizationEngine authorizationEngine = new TestAuthorizationEngine(
-                new EvaluatorPool(
-                        ImmutableSet.of(Evaluators.stringEvaluator, Evaluators.integerEvaluator)));
+        Set<Evaluator> evaluators = new HashSet<>();
+        evaluators.add(Evaluators.stringEvaluator);
+        evaluators.add(Evaluators.integerEvaluator);
+
+        AuthorizationEngine authorizationEngine = new TestAuthorizationEngine(new EvaluatorPool(evaluators));
 
         View view = viewChangeEvent -> {
         };
@@ -85,14 +90,14 @@ public class BinderTest {
                 .bindView(view2).to("bar");
 
         //check that permissions of view1 are as expected
-        Set<Object> permissions1 = authorizationEngine.getViewPermissions(view);
+        Collection<Object> permissions1 = authorizationEngine.getViewPermissions(view);
 
         assertNotNull(permissions1);
         assertEquals(4, permissions1.size());
         assertThat(permissions1, Matchers.containsInAnyOrder("hello", "world", 23, "foo"));
 
         //check that permissions of view2 are as expected
-        Set<Object> permissions2 = authorizationEngine.getViewPermissions(view2);
+        Collection<Object> permissions2 = authorizationEngine.getViewPermissions(view2);
 
         assertNotNull(permissions2);
         assertEquals(4, permissions2.size());

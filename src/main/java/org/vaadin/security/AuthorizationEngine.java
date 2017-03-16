@@ -1,8 +1,5 @@
 package org.vaadin.security;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.provider.DataProvider;
@@ -18,34 +15,38 @@ import org.vaadin.security.api.Applier;
 import org.vaadin.security.api.Binder;
 import org.vaadin.security.api.Evaluator;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.ImmutableSet.copyOf;
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("unused")
 public class AuthorizationEngine implements Binder, Applier {
 
     private static boolean setUp = false;
-    final Multimap<Component, Object> componentsToPermissions = HashMultimap.create();
-    final Multimap<View, Object> viewsToPermissions = HashMultimap.create();
+    final Map<Component, Collection<Object>> componentsToPermissions = new WeakHashMap<>();
+    final Map<View, Collection<Object>> viewsToPermissions = new WeakHashMap<>();
     private final EvaluatorPool evaluatorPool;
     private final Map<Component, Boolean> componentsToLastKnownVisibilityState;
-    private final Set<DataProvider<?, ?>> dataProviders = new HashSet<>();
+    private final Set<Reference<DataProvider<?, ?>>> dataProviders = new HashSet<>();
     private final boolean allowManualSettingOfVisibility;
 
     AuthorizationEngine(EvaluatorPool evaluatorPool, boolean allowManualSettingOfVisibility) {
         this.allowManualSettingOfVisibility = allowManualSettingOfVisibility;
-        this.evaluatorPool = checkNotNull(evaluatorPool);
+        this.evaluatorPool = requireNonNull(evaluatorPool);
 
         componentsToLastKnownVisibilityState = allowManualSettingOfVisibility
                 ? null
@@ -58,16 +59,20 @@ public class AuthorizationEngine implements Binder, Applier {
 
     public static void start(Supplier<EvaluatorPool> evaluatorPoolSupplier, boolean allowManualSettingOfVisibility) {
 
-        checkState(!setUp, "setUp() cannot be called more than once");
-        checkNotNull(evaluatorPoolSupplier);
+        if (setUp) {
+            throw new IllegalStateException("setUp() cannot be called more than once");
+        }
+        requireNonNull(evaluatorPoolSupplier);
 
         final VaadinService vaadinService = VaadinService.getCurrent();
 
-        checkState(vaadinService != null, "VaadinService is not initialized yet");
+        if (vaadinService == null) {
+            throw new IllegalStateException("VaadinService is not initialized yet");
+        }
 
         vaadinService.addSessionInitListener(
                 event -> {
-                    final EvaluatorPool evaluatorPool = checkNotNull(evaluatorPoolSupplier.get());
+                    final EvaluatorPool evaluatorPool = requireNonNull(evaluatorPoolSupplier.get());
 
                     AuthorizationEngine authorizationEngine = new AuthorizationEngine(evaluatorPool, allowManualSettingOfVisibility);
 
@@ -83,49 +88,53 @@ public class AuthorizationEngine implements Binder, Applier {
     }
 
     @Override
-    public Set<Object> getPermissions(Component component) {
-        checkNotNull(component);
-        return copyOf(componentsToPermissions.get(component));
+    public Collection<Object> getPermissions(Component component) {
+        requireNonNull(component);
+        return unmodifiableCollection(Optional.ofNullable(componentsToPermissions.get(component)).orElse(EMPTY_LIST));
     }
 
     @Override
-    public Set<Object> getViewPermissions(View view) {
-        checkNotNull(view);
-        return copyOf(viewsToPermissions.get(view));
+    public Collection<Object> getViewPermissions(View view) {
+        requireNonNull(view);
+        return unmodifiableCollection(Optional.ofNullable(viewsToPermissions.get(view)).orElse(EMPTY_LIST));
     }
 
     @Override
     public Bind bindComponents(Component... components) {
-        checkNotNull(components);
-        checkArgument(components.length > 0);
+        requireNonNull(components);
+        if (components.length == 0) {
+            throw new IllegalArgumentException("components must not be empty");
+        }
+
         return new BindImpl(this, components);
     }
 
     @Override
     public Bind bindViews(View... views) {
-        checkNotNull(views);
-        checkArgument(views.length > 0);
+        requireNonNull(views);
+        if (views.length == 0) {
+            throw new IllegalArgumentException("components must not be empty");
+        }
         return new ViewBindImpl(this, views);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T, F> Binder bindHasDataProvider(HasDataProvider<T> hasDataProvider) {
-        checkNotNull(hasDataProvider);
+        requireNonNull(hasDataProvider);
 
 
         final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
 
-        checkNotNull(dataProvider);
+        requireNonNull(dataProvider);
 
-        checkArgument(
-                dataProvider instanceof ListDataProvider,
-                "thus far, we can only handle ListDataProvider, sorry"
-        );
+        if (!(dataProvider instanceof ListDataProvider)) {
+            throw new IllegalArgumentException("thus far, we can only handle ListDataProvider, sorry");
+        }
 
         ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
 
-        dataProviders.add(dataProvider);
+        dataProviders.add(new WeakReference<>(dataProvider));
 
         listDataProvider.addFilter(new EvaluatorPredicate<>(this));
 
@@ -135,20 +144,19 @@ public class AuthorizationEngine implements Binder, Applier {
     @Override
     @SuppressWarnings("unchecked")
     public <T, F> Binder bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        checkNotNull(hasFilterableDataProvider);
+        requireNonNull(hasFilterableDataProvider);
 
         final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasFilterableDataProvider.getDataProvider();
 
-        checkNotNull(dataProvider);
+        requireNonNull(dataProvider);
 
-        checkArgument(
-                dataProvider instanceof ListDataProvider,
-                "thus far, we can only handle ListDataProvider, sorry"
-        );
+        if (!(dataProvider instanceof ListDataProvider)) {
+            throw new IllegalArgumentException("thus far, we can only handle ListDataProvider, sorry");
+        }
 
         ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
 
-        dataProviders.add(dataProvider);
+        dataProviders.add(new WeakReference<>(dataProvider));
 
         listDataProvider.addFilter(new EvaluatorPredicate<>(this));
 
@@ -157,22 +165,30 @@ public class AuthorizationEngine implements Binder, Applier {
 
     @Override
     public Unbind unbindComponents(Component... components) {
-        checkNotNull(components);
-        checkArgument(components.length > 0);
+        requireNonNull(components);
+
+        if (components.length == 0) {
+            throw new IllegalArgumentException("components must not be empty");
+        }
+
         return new UnbindImpl(this, components);
     }
 
     @Override
     public Unbind unbindViews(View... views) {
-        checkNotNull(views);
-        checkArgument(views.length > 0);
+        requireNonNull(views);
+
+        if (views.length == 0) {
+            throw new IllegalArgumentException("components must not be empty");
+        }
+
         return new ViewUnbindImpl(this, views);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        checkNotNull(hasFilterableDataProvider);
+        requireNonNull(hasFilterableDataProvider);
 
         ListDataProvider<T> listDataProvider = (ListDataProvider<T>) hasFilterableDataProvider.getDataProvider();
 
@@ -182,7 +198,7 @@ public class AuthorizationEngine implements Binder, Applier {
     @Override
     @SuppressWarnings("unchecked")
     public <T, F> boolean unbindHasDataProvider(HasDataProvider<T> hasDataProvider) {
-        checkNotNull(hasDataProvider);
+        requireNonNull(hasDataProvider);
         throw new RuntimeException("not implemented yet");
     }
 
@@ -194,16 +210,16 @@ public class AuthorizationEngine implements Binder, Applier {
 
     @Override
     public void applyAll() {
-        applyInternal(componentsToPermissions.asMap());
+        applyInternal(componentsToPermissions);
     }
 
     @Override
     public void apply(Component... components) {
-        checkNotNull(components);
+        requireNonNull(components);
         applyInternal(stream(components).collect(toMap(c -> c, componentsToPermissions::get)));
     }
 
-    private void applyInternal(Map<Component, Collection<Object>> componentsToPermissions) {
+    private void applyInternal(Map<Component, Collection<Object>> componentsToPermissions) throws IllegalStateException {
         //TODO consider parallelization
         final Map<Object, Boolean> permissionsToEvaluations = componentsToPermissions
                 .values()
@@ -221,12 +237,15 @@ public class AuthorizationEngine implements Binder, Applier {
             if (!allowManualSettingOfVisibility) {
                 final Boolean lastVisibilityState = componentsToLastKnownVisibilityState.get(component);
 
-                checkState(
-                        lastVisibilityState == null || lastVisibilityState == component.isVisible(),
-                        "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
-                                "consider making these components invisible via CSS instead if you want to hide them. In Component %s",
-                        component
-                );
+                if (lastVisibilityState != null && lastVisibilityState == component.isVisible()) {
+                    throw new IllegalStateException(
+                            format(
+                                    "Component.setVisible() must not be called for components in the vaadin-authorization context, " +
+                                            "consider making these components invisible via CSS instead if you want to hide them. In Component %s",
+                                    component
+                            )
+                    );
+                }
 
                 componentsToLastKnownVisibilityState.put(component, newVisibility);
             }
@@ -236,7 +255,11 @@ public class AuthorizationEngine implements Binder, Applier {
 
         reEvaluateCurrentViewAccess();
 
-        dataProviders.forEach(DataProvider::refreshAll);
+        dataProviders
+                .stream()
+                .map(Reference::get)
+                .filter(o -> o != null)
+                .forEach(DataProvider::refreshAll);
     }
 
     Navigator getNavigator() {
@@ -259,7 +282,7 @@ public class AuthorizationEngine implements Binder, Applier {
     }
 
     public boolean navigationAllowed(View newView) {
-        checkNotNull(newView);
+        requireNonNull(newView);
 
         for (Object permission : viewsToPermissions.get(newView)) {
             if (!evaluate(permission)) {

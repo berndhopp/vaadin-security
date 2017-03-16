@@ -19,7 +19,6 @@
         <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
         <java-source.version>1.8</java-source.version>
         <java-target.version>1.8</java-target.version>
-        <guava.version>[16.0,)</guava.version>
         <junit.version>4.12</junit.version>
         <hamcrest-all.version>1.3</hamcrest-all.version>
     </properties>
@@ -35,11 +34,6 @@
             <artifactId>vaadin-server</artifactId>
             <version>${vaadin.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

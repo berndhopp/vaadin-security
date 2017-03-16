@@ -6,9 +6,8 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.UI;
 
+import java.util.Objects;
 import java.util.logging.Logger;
-
-import static com.google.common.base.Preconditions.checkState;
 
 @SuppressWarnings("unused")
 public abstract class AuthorizedView<T> extends CustomComponent implements View {
@@ -26,11 +25,11 @@ public abstract class AuthorizedView<T> extends CustomComponent implements View 
     boolean checkAuthorization(T t) {
         final VaadinSession vaadinSession = VaadinSession.getCurrent();
 
-        checkState(vaadinSession != null, "VaadinSession.getCurrent() must not return null here");
+        Objects.requireNonNull(vaadinSession, "VaadinSession.getCurrent() must not return null here");
 
         final AuthorizationEngine authorizationEngine = vaadinSession.getAttribute(AuthorizationEngine.class);
 
-        checkState(authorizationEngine != null,
+        Objects.requireNonNull(authorizationEngine,
                 "please call AuthorizationEngine.start() at the bootstrap of your application, or look " +
                         "up how to integrate vaadin authorization with your DI framework ( Spring, Guice, Java CDI )"
         );

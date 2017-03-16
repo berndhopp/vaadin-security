@@ -1,7 +1,5 @@
 package org.vaadin.security;
 
-import com.google.common.collect.ImmutableSet;
-
 import com.vaadin.ui.Button;
 
 import org.junit.Test;
@@ -46,7 +44,11 @@ public class ApplierTest {
             }
         };
 
-        EvaluatorPool evaluatorPool = new EvaluatorPool(ImmutableSet.of(roleEvaluator, clearanceEvaluator));
+        Set<Evaluator> evaluators = new HashSet<>();
+        evaluators.add(roleEvaluator);
+        evaluators.add(clearanceEvaluator);
+
+        EvaluatorPool evaluatorPool = new EvaluatorPool(evaluators);
 
         TestAuthorizationEngine authorizationEngine = new TestAuthorizationEngine(evaluatorPool);
 

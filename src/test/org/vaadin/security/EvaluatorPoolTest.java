@@ -1,7 +1,5 @@
 package org.vaadin.security;
 
-import com.google.common.collect.ImmutableSet;
-
 import org.junit.Test;
 import org.vaadin.security.api.Evaluator;
 
@@ -41,7 +39,8 @@ public class EvaluatorPoolTest {
 
     @Test
     public void inheritance_matching_should_work() {
-        ImmutableSet<Evaluator> evaluators = ImmutableSet.of(Evaluators.fooEvaluator);
+        Set<Evaluator> evaluators = new HashSet<>();
+        evaluators.add(Evaluators.fooEvaluator);
 
         EvaluatorPool evaluatorPool = new EvaluatorPool(evaluators);
 

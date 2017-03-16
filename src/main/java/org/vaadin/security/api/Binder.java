@@ -5,15 +5,15 @@ import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 
-import java.util.Set;
+import java.util.Collection;
 
 @SuppressWarnings("unused")
 public interface Binder {
 
     //get permissions
-    Set<Object> getPermissions(Component component);
+    Collection<Object> getPermissions(Component component);
 
-    Set<Object> getViewPermissions(View view);
+    Collection<Object> getViewPermissions(View view);
 
     //bind
     default Bind bindComponent(Component component) {

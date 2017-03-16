@@ -6,32 +6,29 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 public class EvaluatorPool {
 
     private final Map<Class<?>, Evaluator<?>> evaluators;
 
     public EvaluatorPool(Collection<Evaluator> evaluators) {
-        checkNotNull(evaluators);
+        requireNonNull(evaluators);
         this.evaluators = new HashMap<>(evaluators.size());
 
         for (Evaluator evaluator : evaluators) {
             Evaluator<?> alreadyRegistered = this.evaluators.put(evaluator.getPermissionClass(), evaluator);
 
-            checkArgument(
-                    alreadyRegistered == null,
-                    "multiple evaluators for class %s",
-                    evaluator.getPermissionClass()
-            );
+            if (alreadyRegistered != null) {
+                throw new IllegalStateException("multiple evaluators for class %s" + evaluator.getPermissionClass());
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
     public <T> Evaluator<T> getEvaluator(Class<T> permissionClass) {
 
-        checkNotNull(permissionClass);
+        requireNonNull(permissionClass);
 
         Evaluator<T> evaluator = (Evaluator<T>) evaluators.get(permissionClass);
 
@@ -58,7 +55,9 @@ public class EvaluatorPool {
             evaluator = evaluators.get(clazz);
         } while (evaluator == null && !clazz.equals(Object.class));
 
-        checkArgument(evaluator != null, "no evaluator found for %s", permissionClass);
+        if (evaluator == null) {
+            throw new IllegalArgumentException("no evaluator found for %s" + permissionClass);
+        }
 
         final Evaluator finalEvaluator = evaluator;
 
