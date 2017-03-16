@@ -39,49 +39,30 @@ public class EvaluatorPool {
             return evaluator;
         }
 
-        evaluator = findDerived(permissionClass);
+        evaluator = findSuperClassEvaluator(permissionClass);
 
         evaluators.put(permissionClass, evaluator);
 
         return evaluator;
     }
 
-    private int calculateDistance(Class<?> parent, Class<?> child) {
-        int distance = 0;
+    @SuppressWarnings("unchecked")
+    private <T> Evaluator<T> findSuperClassEvaluator(Class<T> permissionClass) {
 
-        Class<?> clazz = child;
+        Evaluator<?> evaluator;
+
+        Class<?> clazz = permissionClass;
 
         do {
             clazz = clazz.getSuperclass();
-            ++distance;
-        } while (!clazz.equals(parent));
-
-        return distance;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> Evaluator<T> findDerived(final Class<T> permissionClass) {
-        Evaluator evaluator = null;
-
-        for (Evaluator<?> anEvaluator : evaluators.values()) {
-            if (anEvaluator.getPermissionClass().isAssignableFrom(permissionClass)) {
-                if (evaluator != null) {
-                    int distanceOld = calculateDistance(permissionClass, evaluator.getPermissionClass());
-                    int distanceNew = calculateDistance(permissionClass, anEvaluator.getPermissionClass());
-
-                    if (distanceOld > distanceNew) {
-                        evaluator = anEvaluator;
-                    }
-                } else {
-                    evaluator = anEvaluator;
-                }
-            }
-        }
+            evaluator = evaluators.get(clazz);
+        } while (evaluator == null && !clazz.equals(Object.class));
 
         checkArgument(evaluator != null, "no evaluator found for %s", permissionClass);
 
         final Evaluator finalEvaluator = evaluator;
 
+        //if the evaluator can handle x, it can also handle all subclasses of x
         return new Evaluator<T>() {
             @Override
             public boolean evaluate(T permission) {
