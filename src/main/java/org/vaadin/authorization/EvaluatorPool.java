@@ -1,6 +1,6 @@
-package org.vaadin.security;
+package org.vaadin.authorization;
 
-import org.vaadin.security.api.Evaluator;
+import org.vaadin.authorization.Authorization.Evaluator;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,15 +8,15 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
-public class EvaluatorPool {
+class EvaluatorPool {
 
     private final Map<Class<?>, Evaluator<?>> evaluators;
 
-    public EvaluatorPool(Collection<Evaluator> evaluators) {
+    EvaluatorPool(Collection<Evaluator> evaluators) {
         requireNonNull(evaluators);
         this.evaluators = new HashMap<>(evaluators.size());
 
-        for (Evaluator evaluator : evaluators) {
+        for (Authorization.Evaluator evaluator : evaluators) {
             Evaluator<?> alreadyRegistered = this.evaluators.put(evaluator.getPermissionClass(), evaluator);
 
             if (alreadyRegistered != null) {
@@ -26,7 +26,7 @@ public class EvaluatorPool {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Evaluator<T> getEvaluator(Class<T> permissionClass) {
+    <T> Evaluator<T> getEvaluator(Class<T> permissionClass) {
 
         requireNonNull(permissionClass);
 
@@ -56,7 +56,7 @@ public class EvaluatorPool {
         } while (evaluator == null && !clazz.equals(Object.class));
 
         if (evaluator == null) {
-            throw new IllegalArgumentException("no evaluator found for %s" + permissionClass);
+            throw new IllegalStateException("no evaluator found for %s" + permissionClass);
         }
 
         final Evaluator finalEvaluator = evaluator;

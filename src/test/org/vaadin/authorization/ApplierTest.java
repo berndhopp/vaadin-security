@@ -1,15 +1,16 @@
-package org.vaadin.security;
+package org.vaadin.authorization;
 
 import com.vaadin.ui.Button;
 
 import org.junit.Test;
-import org.vaadin.security.api.Evaluator;
+import org.vaadin.authorization.Authorization.Evaluator;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.vaadin.authorization.Authorization.bindComponent;
 
 public class ApplierTest {
 
@@ -48,24 +49,19 @@ public class ApplierTest {
         evaluators.add(roleEvaluator);
         evaluators.add(clearanceEvaluator);
 
-        EvaluatorPool evaluatorPool = new EvaluatorPool(evaluators);
-
-        TestAuthorizationEngine authorizationEngine = new TestAuthorizationEngine(evaluatorPool);
-
         Button button1 = new Button();
         Button button2 = new Button();
         Button button3 = new Button();
 
-        authorizationEngine
-                .bindComponent(button1).to("user", Clearance.NON)
-                .bindComponent(button2).to("user", Clearance.SECRET)
-                .bindComponent(button3).to("admin", Clearance.TOP_SECRET);
+        bindComponent(button1).to("user", Clearance.NON);
+        bindComponent(button2).to("user", Clearance.SECRET);
+        bindComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        authorizationEngine.applyAll();
+        Authorization.applyAll();
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -73,7 +69,7 @@ public class ApplierTest {
 
         user.setClearance(Clearance.SECRET);
 
-        authorizationEngine.applyAll();
+        Authorization.applyAll();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -81,7 +77,7 @@ public class ApplierTest {
 
         user.setClearance(Clearance.TOP_SECRET);
         user.getRoles().add("admin");
-        authorizationEngine.applyAll();
+        Authorization.applyAll();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -93,7 +89,7 @@ public class ApplierTest {
         assertTrue(button2.isVisible());
         assertTrue(button3.isVisible());
 
-        authorizationEngine.applyAll();
+        Authorization.applyAll();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
