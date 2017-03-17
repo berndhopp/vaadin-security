@@ -75,24 +75,24 @@ class AuthorizationContext {
         return dataProviders;
     }
 
+    @SuppressWarnings("unchecked")
     <T, F> void bindHasDataProvider(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
 
-        final DataProvider<T, ?> dataProvider = hasDataProvider.getDataProvider();
+        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
 
         requireNonNull(dataProvider);
 
-        if (!(dataProvider instanceof ListDataProvider)) {
-            throw new IllegalArgumentException("thus far, we can only handle ListDataProvider, sorry");
+        if (dataProvider instanceof ListDataProvider) {
+            ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
+            AuthorizationContext.getCurrent().getDataProviders().add(new WeakReference<>(dataProvider));
+            listDataProvider.addFilter(new EvaluatorPredicate<>());
+        } else {
+            hasDataProvider.setDataProvider(new DataProviderWrapper<>(this, dataProvider));
         }
-
-        ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
-
-        AuthorizationContext.getCurrent().getDataProviders().add(new WeakReference<>(dataProvider));
-
-        listDataProvider.addFilter(new EvaluatorPredicate<>());
     }
 
+    @SuppressWarnings("unchecked")
     <T, F> void bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
         requireNonNull(hasFilterableDataProvider);
 
@@ -100,15 +100,13 @@ class AuthorizationContext {
 
         requireNonNull(dataProvider);
 
-        if (!(dataProvider instanceof ListDataProvider)) {
-            throw new IllegalArgumentException("thus far, we can only handle ListDataProvider, sorry");
+        if (dataProvider instanceof ListDataProvider) {
+            ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
+            AuthorizationContext.getCurrent().getDataProviders().add(new WeakReference<>(dataProvider));
+            listDataProvider.addFilter(new EvaluatorPredicate<>());
+        } else {
+            hasFilterableDataProvider.setDataProvider(new DataProviderWrapper<>(this, dataProvider));
         }
-
-        ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
-
-        AuthorizationContext.getCurrent().getDataProviders().add(new WeakReference<>(dataProvider));
-
-        listDataProvider.addFilter(new EvaluatorPredicate<>());
     }
 
     void applyComponents(Map<Component, Collection<Object>> componentsToPermissions) throws IllegalStateException {
@@ -169,4 +167,5 @@ class AuthorizationContext {
             return authorizationContext.evaluate(permission);
         }
     }
+
 }
