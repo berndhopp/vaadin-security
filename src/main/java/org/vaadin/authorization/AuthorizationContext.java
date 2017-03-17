@@ -76,21 +76,21 @@ class AuthorizationContext {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
+    <T, F> void bindData(Class<T> itemClass, Class<F> filterClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
         requireNonNull(hasFilterableDataProvider);
-        DataProvider<T, F> dataProvider = bindDataProviderInternal(hasFilterableDataProvider);
+        DataProvider<T, F> dataProvider = bindDataProviderInternal(itemClass, filterClass, hasFilterableDataProvider);
         hasFilterableDataProvider.setDataProvider(dataProvider);
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindHasDataProvider(HasDataProvider<T> hasDataProvider) {
+    <T, F> void bindData(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
-        DataProvider<T, F> dataProvider = bindDataProviderInternal(hasDataProvider);
+        DataProvider<T, F> dataProvider = bindDataProviderInternal(null, null, hasDataProvider);
         hasDataProvider.setDataProvider(dataProvider);
     }
 
     @SuppressWarnings("unchecked")
-    private <T, F> DataProvider<T, F> bindDataProviderInternal(HasItems<T> hasItems) {
+    private <T, F> DataProvider<T, F> bindDataProviderInternal(Class<T> itemClass, Class<F> filterClass, HasItems<T> hasItems) {
         final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasItems.getDataProvider();
 
         if (dataProvider instanceof ListDataProvider) {
@@ -99,7 +99,21 @@ class AuthorizationContext {
             listDataProvider.addFilter(new EvaluatorPredicate<>());
             return dataProvider;
         } else {
-            return new DataProviderWrapper<>(this, dataProvider);
+            requireNonNull(itemClass);
+            requireNonNull(filterClass);
+
+            final Evaluator<T> evaluator = evaluatorPool.getEvaluator(itemClass);
+
+            if (!(evaluator instanceof Authorization.BackendEvaluator)) {
+                throw new IllegalStateException();
+            }
+            if (!((Authorization.BackendEvaluator) evaluator).getFilterClass().isAssignableFrom(filterClass)) {
+                throw new IllegalStateException();
+            }
+
+            final Authorization.BackendEvaluator<T, F> backendEvaluator = (Authorization.BackendEvaluator<T, F>) evaluator;
+
+            return new AuthorizingDataProviderWrapper<>(dataProvider, backendEvaluator);
         }
     }
 
@@ -152,7 +166,9 @@ class AuthorizationContext {
 
     <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
 
-        hasFilterableDataProvider.getDataProvider()
+        final DataProvider<T, ?> dataProvider = hasFilterableDataProvider.getDataProvider();
+
+        if (dataProvider instanceof com.vaadin.data.provider.DataProviderWrapper) ;
 
         return false;
     }

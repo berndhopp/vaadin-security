@@ -66,19 +66,17 @@ public final class Authorization {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T, F> void bindHasDataProvider(HasDataProvider<T> hasDataProvider) {
+    public static void bindData(HasDataProvider hasDataProvider) {
         requireNonNull(hasDataProvider);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.bindHasDataProvider(hasDataProvider);
+        authorizationContext.bindData(hasDataProvider);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T, F> void bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
+    public static <T, F> void bindData(Class<T> itemClass, Class<F> filterClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
         requireNonNull(hasFilterableDataProvider);
-
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-
-        authorizationContext.bindHasDataProvider(hasFilterableDataProvider);
+        authorizationContext.bindData(itemClass, filterClass, hasFilterableDataProvider);
     }
 
     public static Unbind unbindComponent(Component component) {
@@ -184,5 +182,11 @@ public final class Authorization {
          * @return the class of T
          */
         Class<T> getPermissionClass();
+    }
+
+    public interface BackendEvaluator<T, F> extends Evaluator<T> {
+        Class<F> getFilterClass();
+
+        F getFilter();
     }
 }
