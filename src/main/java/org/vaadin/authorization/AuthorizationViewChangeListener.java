@@ -8,6 +8,7 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
+@SuppressWarnings("unused")
 public class AuthorizationViewChangeListener implements ViewChangeListener {
 
     @Override

@@ -3,25 +3,15 @@ package org.vaadin.authorization;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.UI;
 
 import java.util.logging.Logger;
 
 @SuppressWarnings("unused")
 public abstract class AuthorizedView<T> extends CustomComponent implements View {
 
-    protected String getPermissionDeniedViewName() {
-        return "";
-    }
-
-    public String getBadParamsViewName() {
-        return "";
-    }
-
     protected abstract T parse(String parameters) throws ParseException;
 
-    protected void onFailedAuthorization(T t) {
-    }
+    protected abstract void onFailedAuthorization(T t);
 
     protected abstract void onSuccessfulAuthorization(T t);
 
@@ -43,11 +33,9 @@ public abstract class AuthorizedView<T> extends CustomComponent implements View 
                 onSuccessfulAuthorization(t);
             } else {
                 onFailedAuthorization(t);
-                UI.getCurrent().getNavigator().navigateTo(getPermissionDeniedViewName());
             }
         } catch (ParseException e) {
             onParseException(e);
-            UI.getCurrent().getNavigator().navigateTo(getBadParamsViewName());
         }
     }
 

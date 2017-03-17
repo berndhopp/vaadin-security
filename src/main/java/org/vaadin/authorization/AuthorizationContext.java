@@ -2,6 +2,7 @@ package org.vaadin.authorization;
 
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasFilterableDataProvider;
+import com.vaadin.data.HasItems;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.navigator.View;
@@ -26,7 +27,7 @@ import static java.util.stream.Collectors.toMap;
 
 class AuthorizationContext {
 
-    static Supplier<AuthorizationContext> instanceProvider = () -> {
+    private static Supplier<AuthorizationContext> instanceProvider = () -> {
         final VaadinSession vaadinSession = VaadinSession.getCurrent();
 
         requireNonNull(vaadinSession, "no VaadinSession available");
@@ -44,7 +45,6 @@ class AuthorizationContext {
     private final EvaluatorPool evaluatorPool;
     private final Map<Component, Boolean> trackedVisibilities = new WeakHashMap<>();
     private final Set<Reference<DataProvider<?, ?>>> dataProviders = new HashSet<>();
-
     private AuthorizationContext(Set<Evaluator> evaluators) {
         this.evaluatorPool = new EvaluatorPool(evaluators);
     }
@@ -63,6 +63,10 @@ class AuthorizationContext {
         return instanceProvider.get();
     }
 
+    void setInstanceProvider(Supplier<AuthorizationContext> instanceProvider) {
+        AuthorizationContext.instanceProvider = instanceProvider;
+    }
+
     Map<Component, Collection<Object>> getComponentsToPermissions() {
         return componentsToPermissions;
     }
@@ -71,41 +75,31 @@ class AuthorizationContext {
         return viewsToPermissions;
     }
 
-    Set<Reference<DataProvider<?, ?>>> getDataProviders() {
-        return dataProviders;
+    @SuppressWarnings("unchecked")
+    <T, F> void bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
+        requireNonNull(hasFilterableDataProvider);
+        DataProvider<T, F> dataProvider = bindDataProviderInternal(hasFilterableDataProvider);
+        hasFilterableDataProvider.setDataProvider(dataProvider);
     }
 
     @SuppressWarnings("unchecked")
     <T, F> void bindHasDataProvider(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
-
-        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
-
-        requireNonNull(dataProvider);
-
-        if (dataProvider instanceof ListDataProvider) {
-            ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
-            AuthorizationContext.getCurrent().getDataProviders().add(new WeakReference<>(dataProvider));
-            listDataProvider.addFilter(new EvaluatorPredicate<>());
-        } else {
-            hasDataProvider.setDataProvider(new DataProviderWrapper<>(this, dataProvider));
-        }
+        DataProvider<T, F> dataProvider = bindDataProviderInternal(hasDataProvider);
+        hasDataProvider.setDataProvider(dataProvider);
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        requireNonNull(hasFilterableDataProvider);
-
-        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasFilterableDataProvider.getDataProvider();
-
-        requireNonNull(dataProvider);
+    private <T, F> DataProvider<T, F> bindDataProviderInternal(HasItems<T> hasItems) {
+        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasItems.getDataProvider();
 
         if (dataProvider instanceof ListDataProvider) {
             ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
-            AuthorizationContext.getCurrent().getDataProviders().add(new WeakReference<>(dataProvider));
+            dataProviders.add(new WeakReference<>(dataProvider));
             listDataProvider.addFilter(new EvaluatorPredicate<>());
+            return dataProvider;
         } else {
-            hasFilterableDataProvider.setDataProvider(new DataProviderWrapper<>(this, dataProvider));
+            return new DataProviderWrapper<>(this, dataProvider);
         }
     }
 
@@ -156,8 +150,18 @@ class AuthorizationContext {
         return evaluator.evaluate(permission);
     }
 
-    static class EvaluatorPredicate<T> implements SerializablePredicate<T> {
+    <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
 
+        hasFilterableDataProvider.getDataProvider()
+
+        return false;
+    }
+
+    public <T> boolean unbindHasDataProvider(HasDataProvider<T> hasDataProvider) {
+        return false;
+    }
+
+    private static class EvaluatorPredicate<T> implements SerializablePredicate<T> {
         EvaluatorPredicate() {
         }
 
@@ -167,5 +171,4 @@ class AuthorizationContext {
             return authorizationContext.evaluate(permission);
         }
     }
-
 }

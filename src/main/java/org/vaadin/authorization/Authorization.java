@@ -17,9 +17,10 @@ import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
+@SuppressWarnings("unused")
 public final class Authorization {
 
-    static Supplier<Navigator> navigatorSupplier = () -> UI.getCurrent().getNavigator();
+    private static Supplier<Navigator> navigatorSupplier = () -> UI.getCurrent().getNavigator();
     private static boolean setUp = false;
 
     private Authorization() {
@@ -101,13 +102,13 @@ public final class Authorization {
     @SuppressWarnings("unchecked")
     public static <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
         requireNonNull(hasFilterableDataProvider);
-        throw new RuntimeException("not implemented yet");
+        return AuthorizationContext.getCurrent().unbindHasDataProvider(hasFilterableDataProvider);
     }
 
     @SuppressWarnings("unchecked")
     public static <T, F> boolean unbindHasDataProvider(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
-        throw new RuntimeException("not implemented yet");
+        return AuthorizationContext.getCurrent().unbindHasDataProvider(hasDataProvider);
     }
 
     public static void applyAll() {
@@ -142,6 +143,10 @@ public final class Authorization {
         final String state = navigator.getState();
         navigator.navigateTo("");
         navigator.navigateTo(state);
+    }
+
+    void setNavigatorSupplier(Supplier<Navigator> navigatorSupplier) {
+        Authorization.navigatorSupplier = navigatorSupplier;
     }
 
     public interface Bind {
