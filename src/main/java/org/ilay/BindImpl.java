@@ -1,4 +1,4 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.ui.Component;
 
@@ -8,7 +8,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
-class BindImpl implements Authorization.Bind {
+class BindImpl implements Bind {
 
     private final Component[] components;
 

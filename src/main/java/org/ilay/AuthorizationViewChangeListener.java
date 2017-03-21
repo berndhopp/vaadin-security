@@ -1,4 +1,4 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;

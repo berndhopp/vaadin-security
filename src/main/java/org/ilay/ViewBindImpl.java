@@ -1,4 +1,4 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.navigator.View;
 import com.vaadin.server.VaadinSession;
@@ -9,7 +9,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
-class ViewBindImpl implements Authorization.Bind {
+class ViewBindImpl implements Bind {
 
     private static final String OPEN_BIND_KEY = "open_bind";
     private static final String OPEN_BIND_EXCEPTION_MESSAGE = "cannot bind  when bind is in progress, did you call just \"bind()\"; instead of \"bind().to()\"?";

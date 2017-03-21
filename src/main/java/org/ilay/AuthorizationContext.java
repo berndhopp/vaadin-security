@@ -1,16 +1,11 @@
-package org.vaadin.authorization;
+package org.ilay;
 
-import com.vaadin.data.HasDataProvider;
-import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.HasItems;
+import com.vaadin.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.data.provider.DataProvider;
-import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.navigator.View;
-import com.vaadin.server.SerializablePredicate;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
-
-import org.vaadin.authorization.Authorization.Evaluator;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -45,6 +40,7 @@ class AuthorizationContext {
     private final EvaluatorPool evaluatorPool;
     private final Map<Component, Boolean> trackedVisibilities = new WeakHashMap<>();
     private final Set<Reference<DataProvider<?, ?>>> dataProviders = new HashSet<>();
+
     private AuthorizationContext(Set<Evaluator> evaluators) {
         this.evaluatorPool = new EvaluatorPool(evaluators);
     }
@@ -76,45 +72,24 @@ class AuthorizationContext {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindData(Class<T> itemClass, Class<F> filterClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        requireNonNull(hasFilterableDataProvider);
-        DataProvider<T, F> dataProvider = bindDataProviderInternal(itemClass, filterClass, hasFilterableDataProvider);
-        hasFilterableDataProvider.setDataProvider(dataProvider);
-    }
-
-    @SuppressWarnings("unchecked")
-    <T, F> void bindData(HasDataProvider<T> hasDataProvider) {
+    <T, F> void bindData(Class<T> itemClass, HasItems<T> hasDataProvider) {
+        requireNonNull(itemClass);
         requireNonNull(hasDataProvider);
-        DataProvider<T, F> dataProvider = bindDataProviderInternal(null, null, hasDataProvider);
-        hasDataProvider.setDataProvider(dataProvider);
-    }
 
-    @SuppressWarnings("unchecked")
-    private <T, F> DataProvider<T, F> bindDataProviderInternal(Class<T> itemClass, Class<F> filterClass, HasItems<T> hasItems) {
-        final DataProvider<T, F> dataProvider = (DataProvider<T, F>) hasItems.getDataProvider();
+        final ConfigurableFilterDataProvider<T, ?, F> filterDataProvider = (ConfigurableFilterDataProvider<T, ?, F>) hasDataProvider.getDataProvider().withConfigurableFilter();
+        final Evaluator<T, F> evaluator;
 
-        if (dataProvider instanceof ListDataProvider) {
-            ListDataProvider<T> listDataProvider = (ListDataProvider<T>) dataProvider;
-            dataProviders.add(new WeakReference<>(dataProvider));
-            listDataProvider.addFilter(new EvaluatorPredicate<>());
-            return dataProvider;
-        } else {
-            requireNonNull(itemClass);
-            requireNonNull(filterClass);
-
-            final Evaluator<T> evaluator = evaluatorPool.getEvaluator(itemClass);
-
-            if (!(evaluator instanceof Authorization.BackendEvaluator)) {
-                throw new IllegalStateException();
-            }
-            if (!((Authorization.BackendEvaluator) evaluator).getFilterClass().isAssignableFrom(filterClass)) {
-                throw new IllegalStateException();
-            }
-
-            final Authorization.BackendEvaluator<T, F> backendEvaluator = (Authorization.BackendEvaluator<T, F>) evaluator;
-
-            return new AuthorizingDataProviderWrapper<>(dataProvider, backendEvaluator);
+        try {
+            evaluator = (Evaluator<T, F>) evaluatorPool.getEvaluator(itemClass);
+        } catch (ClassCastException e) {
+            throw new DataBindingException(e);
         }
+
+        final F filter = requireNonNull(evaluator.asFilter());
+
+        filterDataProvider.setFilter(filter);
+
+        dataProviders.add(new WeakReference<>(filterDataProvider));
     }
 
     void applyComponents(Map<Component, Collection<Object>> componentsToPermissions) throws IllegalStateException {
@@ -158,33 +133,14 @@ class AuthorizationContext {
                 .forEach(DataProvider::refreshAll);
     }
 
+    <T> void unbindData(HasItems<T> hasItems) {
+        requireNonNull(hasItems);
+        hasItems.getDataProvider().withConfigurableFilter().setFilter(null);
+    }
+
     @SuppressWarnings("unchecked")
     boolean evaluate(Object permission) {
         final Evaluator evaluator = evaluatorPool.getEvaluator(permission.getClass());
         return evaluator.evaluate(permission);
-    }
-
-    <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-
-        final DataProvider<T, ?> dataProvider = hasFilterableDataProvider.getDataProvider();
-
-        if (dataProvider instanceof com.vaadin.data.provider.DataProviderWrapper) ;
-
-        return false;
-    }
-
-    public <T> boolean unbindHasDataProvider(HasDataProvider<T> hasDataProvider) {
-        return false;
-    }
-
-    private static class EvaluatorPredicate<T> implements SerializablePredicate<T> {
-        EvaluatorPredicate() {
-        }
-
-        @Override
-        public boolean test(T permission) {
-            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-            return authorizationContext.evaluate(permission);
-        }
     }
 }

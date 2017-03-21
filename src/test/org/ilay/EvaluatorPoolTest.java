@@ -1,7 +1,6 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import org.junit.Test;
-import org.vaadin.authorization.Authorization.Evaluator;
 
 import java.util.HashSet;
 import java.util.Set;

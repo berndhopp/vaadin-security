@@ -1,4 +1,4 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Button;
@@ -6,7 +6,6 @@ import com.vaadin.ui.Component;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.vaadin.authorization.Authorization.Evaluator;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,10 +15,6 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.vaadin.authorization.Authorization.bindComponent;
-import static org.vaadin.authorization.Authorization.bindComponents;
-import static org.vaadin.authorization.Authorization.bindView;
-import static org.vaadin.authorization.Authorization.bindViews;
 
 public class BinderTest {
 
@@ -33,9 +28,9 @@ public class BinderTest {
         Component component = new Button();
         Component component2 = new Button();
 
-        bindComponents(component, component2).to("hello", "world", 23);
-        bindComponent(component).to("foo");
-        bindComponent(component2).to("bar");
+        Authorization.bindComponents(component, component2).to("hello", "world", 23);
+        Authorization.bindComponent(component).to("foo");
+        Authorization.bindComponent(component2).to("bar");
 
         AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -56,7 +51,7 @@ public class BinderTest {
         assertThat(permissions2, Matchers.containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
-        bindComponent(component).to(42);
+        Authorization.bindComponent(component).to(42);
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -88,9 +83,9 @@ public class BinderTest {
         View view2 = viewChangeEvent -> {
         };
 
-        bindViews(view, view2).to("hello", "world", 23);
-        bindView(view).to("foo");
-        bindView(view2).to("bar");
+        Authorization.bindViews(view, view2).to("hello", "world", 23);
+        Authorization.bindView(view).to("foo");
+        Authorization.bindView(view2).to("bar");
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -111,7 +106,7 @@ public class BinderTest {
         assertThat(permissions2, Matchers.containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to view 1 and check that it is there
-        bindView(view).to(42);
+        Authorization.bindView(view).to(42);
 
         permissions1 = viewsToPermissions.get(view);
 

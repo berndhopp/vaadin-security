@@ -1,4 +1,4 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.navigator.View;
 
@@ -7,7 +7,7 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
-class ViewUnbindImpl implements Authorization.Unbind {
+class ViewUnbindImpl implements Unbind {
 
     private final View[] views;
 

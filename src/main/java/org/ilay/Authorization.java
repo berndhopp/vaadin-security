@@ -1,7 +1,6 @@
-package org.vaadin.authorization;
+package org.ilay;
 
-import com.vaadin.data.HasDataProvider;
-import com.vaadin.data.HasFilterableDataProvider;
+import com.vaadin.data.HasItems;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.server.VaadinService;
@@ -17,6 +16,9 @@ import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * <b>Authorization</b> is the main entry point for the ILAY framework.
+ */
 @SuppressWarnings("unused")
 public final class Authorization {
 
@@ -26,7 +28,11 @@ public final class Authorization {
     private Authorization() {
     }
 
-    @SuppressWarnings("unused")
+    public static void start(Set<Evaluator> evaluators) {
+        requireNonNull(evaluators);
+        start(() -> evaluators);
+    }
+
     public static void start(Supplier<Set<Evaluator>> evaluatorSupplier) {
         requireNonNull(evaluatorSupplier);
 
@@ -65,18 +71,9 @@ public final class Authorization {
         return new ViewBindImpl(views);
     }
 
-    @SuppressWarnings("unchecked")
-    public static void bindData(HasDataProvider hasDataProvider) {
-        requireNonNull(hasDataProvider);
+    public static <T> void bindData(Class<T> itemClass, HasItems<T> hasItems) {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.bindData(hasDataProvider);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T, F> void bindData(Class<T> itemClass, Class<F> filterClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        requireNonNull(hasFilterableDataProvider);
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.bindData(itemClass, filterClass, hasFilterableDataProvider);
+        authorizationContext.bindData(itemClass, hasItems);
     }
 
     public static Unbind unbindComponent(Component component) {
@@ -97,22 +94,15 @@ public final class Authorization {
         return new ViewUnbindImpl(views);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T, F> boolean unbindHasDataProvider(HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        requireNonNull(hasFilterableDataProvider);
-        return AuthorizationContext.getCurrent().unbindHasDataProvider(hasFilterableDataProvider);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T, F> boolean unbindHasDataProvider(HasDataProvider<T> hasDataProvider) {
-        requireNonNull(hasDataProvider);
-        return AuthorizationContext.getCurrent().unbindHasDataProvider(hasDataProvider);
+    public static <T> void unbindData(HasItems<T> hasItems) {
+        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+        authorizationContext.unbindData(hasItems);
     }
 
     public static void applyAll() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-        applyInternal(componentsToPermissions, authorizationContext);
+        apply(componentsToPermissions, authorizationContext);
 
     }
 
@@ -121,10 +111,10 @@ public final class Authorization {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         final Map<Component, Collection<Object>> reducedComponentsToPermissions = stream(components).collect(toMap(c -> c, componentsToPermissions::get));
-        applyInternal(reducedComponentsToPermissions, authorizationContext);
+        apply(reducedComponentsToPermissions, authorizationContext);
     }
 
-    static void applyInternal(Map<Component, Collection<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
+    static void apply(Map<Component, Collection<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
         authorizationContext.applyComponents(componentsToPermissions);
         authorizationContext.applyData();
         reEvaluateCurrentViewAccess();
@@ -145,48 +135,5 @@ public final class Authorization {
 
     void setNavigatorSupplier(Supplier<Navigator> navigatorSupplier) {
         Authorization.navigatorSupplier = navigatorSupplier;
-    }
-
-    public interface Bind {
-        void to(Object... permission);
-    }
-
-    public interface Unbind {
-        void from(Object... permissions);
-
-        void fromAll();
-    }
-
-    /**
-     * Evaluator is the object responsible of deciding if a certain permission is granted in the
-     * current context or not. Usually the "current context" is the currently logged in user and
-     * it's roles. A "permission" can be any object that is an instance of the generic type argument
-     * T, so that every {@link Evaluator} is responsible for evaluating the permissions that are
-     * assignable to the type T.
-     *
-     * @author Bernd Hopp
-     */
-    public interface Evaluator<T> {
-
-        /**
-         * evaluate if a certain permission is granted in the current context
-         *
-         * @param permission the permission
-         * @return true if the permission is granted, otherwise false
-         */
-        boolean evaluate(T permission);
-
-        /**
-         * returns the class of the permission that can be evaluated ( type-parameter T )
-         *
-         * @return the class of T
-         */
-        Class<T> getPermissionClass();
-    }
-
-    public interface BackendEvaluator<T, F> extends Evaluator<T> {
-        Class<F> getFilterClass();
-
-        F getFilter();
     }
 }

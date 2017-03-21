@@ -1,6 +1,4 @@
-package org.vaadin.authorization;
-
-import org.vaadin.authorization.Authorization.Evaluator;
+package org.ilay;
 
 public class Evaluators {
     static final Evaluator fooEvaluator = new Evaluator<Foo>() {

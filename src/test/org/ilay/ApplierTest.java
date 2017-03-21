@@ -1,16 +1,14 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.ui.Button;
 
 import org.junit.Test;
-import org.vaadin.authorization.Authorization.Evaluator;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.vaadin.authorization.Authorization.bindComponent;
 
 public class ApplierTest {
 
@@ -53,9 +51,9 @@ public class ApplierTest {
         Button button2 = new Button();
         Button button3 = new Button();
 
-        bindComponent(button1).to("user", Clearance.NON);
-        bindComponent(button2).to("user", Clearance.SECRET);
-        bindComponent(button3).to("admin", Clearance.TOP_SECRET);
+        Authorization.bindComponent(button1).to("user", Clearance.NON);
+        Authorization.bindComponent(button2).to("user", Clearance.SECRET);
+        Authorization.bindComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());

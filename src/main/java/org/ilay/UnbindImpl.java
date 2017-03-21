@@ -1,4 +1,4 @@
-package org.vaadin.authorization;
+package org.ilay;
 
 import com.vaadin.ui.Component;
 
@@ -7,7 +7,7 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
-class UnbindImpl implements Authorization.Unbind {
+class UnbindImpl implements Unbind {
 
     private final Component[] components;
 
