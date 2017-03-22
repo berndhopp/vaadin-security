@@ -21,9 +21,9 @@ public class BinderTest {
     @Test
     public void test_components() {
 
-        Set<Evaluator> evaluators = new HashSet<>();
-        evaluators.add(Evaluators.stringEvaluator);
-        evaluators.add(Evaluators.integerEvaluator);
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Evaluators.STRING_AUTHORIZER);
+        authorizers.add(Evaluators.INTEGER_AUTHORIZER);
 
         Component component = new Button();
         Component component2 = new Button();
@@ -73,9 +73,9 @@ public class BinderTest {
     @Test
     public void test_views() {
 
-        Set<Evaluator> evaluators = new HashSet<>();
-        evaluators.add(Evaluators.stringEvaluator);
-        evaluators.add(Evaluators.integerEvaluator);
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Evaluators.STRING_AUTHORIZER);
+        authorizers.add(Evaluators.INTEGER_AUTHORIZER);
 
         View view = viewChangeEvent -> {
         };

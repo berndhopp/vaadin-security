@@ -1,9 +1,9 @@
 package org.ilay;
 
 public class Evaluators {
-    static final Evaluator fooEvaluator = new Evaluator<Foo>() {
+    static final Authorizer FOO_AUTHORIZER = new Authorizer<Foo>() {
         @Override
-        public boolean evaluate(Foo foo) {
+        public boolean isGranted(Foo foo) {
             return false;
         }
 
@@ -12,9 +12,9 @@ public class Evaluators {
             return Foo.class;
         }
     };
-    static final Evaluator stringEvaluator = new Evaluator<String>() {
+    static final Authorizer STRING_AUTHORIZER = new Authorizer<String>() {
         @Override
-        public boolean evaluate(String s) {
+        public boolean isGranted(String s) {
             return false;
         }
 
@@ -23,9 +23,9 @@ public class Evaluators {
             return String.class;
         }
     };
-    static final Evaluator integerEvaluator = new Evaluator<Integer>() {
+    static final Authorizer INTEGER_AUTHORIZER = new Authorizer<Integer>() {
         @Override
-        public boolean evaluate(Integer integer) {
+        public boolean isGranted(Integer integer) {
             return false;
         }
 
@@ -34,10 +34,10 @@ public class Evaluators {
             return Integer.class;
         }
     };
-    static final Evaluator objectEvaluator = new Evaluator<Object>() {
+    static final Authorizer OBJECT_AUTHORIZER = new Authorizer<Object>() {
 
         @Override
-        public boolean evaluate(Object o) {
+        public boolean isGranted(Object o) {
             return false;
         }
 

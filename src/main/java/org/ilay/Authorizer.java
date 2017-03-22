@@ -1,15 +1,15 @@
 package org.ilay;
 
 /**
- * Evaluator is the object responsible of deciding if a certain permission is granted in the current
+ * Authorizer is the object responsible of deciding if a certain permission is granted in the current
  * context or not. Usually the "current context" is the currently logged in user and it's roles. A
  * "permission" can be any object that is an instance of the generic type argument T, so that every
- * {@link Evaluator} is responsible for evaluating the permissions that are assignable to the type
+ * {@link Authorizer} is responsible for evaluating the permissions that are assignable to the type
  * T.
  *
  * @author Bernd Hopp
  */
-public interface Evaluator<T, F> {
+public interface Authorizer<T, F> {
 
     /**
      * evaluate if a certain permission is granted in the current context
@@ -17,7 +17,7 @@ public interface Evaluator<T, F> {
      * @param permission the permission
      * @return true if the permission is granted, otherwise false
      */
-    boolean evaluate(T permission);
+    boolean isGranted(T permission);
 
     /**
      * returns the class of the permission that can be evaluated ( type-parameter T )

@@ -19,9 +19,9 @@ public class ApplierTest {
 
         user.getRoles().add("user");
 
-        Evaluator<String> roleEvaluator = new Evaluator<String>() {
+        Authorizer<String> roleAuthorizer = new Authorizer<String>() {
             @Override
-            public boolean evaluate(String s) {
+            public boolean isGranted(String s) {
                 return user.getRoles().contains(s);
             }
 
@@ -31,9 +31,9 @@ public class ApplierTest {
             }
         };
 
-        Evaluator<Clearance> clearanceEvaluator = new Evaluator<Clearance>() {
+        Authorizer<Clearance> clearanceAuthorizer = new Authorizer<Clearance>() {
             @Override
-            public boolean evaluate(Clearance clearance) {
+            public boolean isGranted(Clearance clearance) {
                 return user.getClearance().ordinal() >= clearance.ordinal();
             }
 
@@ -43,9 +43,9 @@ public class ApplierTest {
             }
         };
 
-        Set<Evaluator> evaluators = new HashSet<>();
-        evaluators.add(roleEvaluator);
-        evaluators.add(clearanceEvaluator);
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(roleAuthorizer);
+        authorizers.add(clearanceAuthorizer);
 
         Button button1 = new Button();
         Button button2 = new Button();
