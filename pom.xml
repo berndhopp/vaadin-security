@@ -3,9 +3,12 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.vaadin</groupId>
-    <artifactId>security</artifactId>
-    <version>1.0.1</version>
+    <groupId>org.ilay</groupId>
+    <artifactId>ilay</artifactId>
+    <version>1.0.0</version>
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
     <properties>
         <vaadin.version>[8.0.0,)</vaadin.version>
         <servlet-api.version>[2.5,)</servlet-api.version>
@@ -13,10 +16,10 @@
         <project.build.target>1.7</project.build.target>
         <project.build.source>1.7</project.build.source>
         <Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
-        <Implementation-Title>Security for Vaadin</Implementation-Title>
+        <Implementation-Title>ILAY - authorization for Vaadin</Implementation-Title>
         <maven-surefire-plugin.version>2.10</maven-surefire-plugin.version>
-        <maven-jar-plugin.version>2.3.1</maven-jar-plugin.version>
-        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
+        <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
         <java-source.version>1.8</java-source.version>
         <java-target.version>1.8</java-target.version>
         <junit.version>4.12</junit.version>
@@ -86,6 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
