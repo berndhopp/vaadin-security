@@ -69,7 +69,7 @@ public class DataTest {
 
         fooGrid.setItems(foo1, foo2, foo3);
 
-        bindData(Foo.class, fooGrid, false);
+        bindData(Foo.class, fooGrid);
 
         DataProvider<Foo, ?> dataProvider = fooGrid.getDataProvider();
 

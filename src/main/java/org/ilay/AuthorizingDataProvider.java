@@ -12,10 +12,13 @@ class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> impl
     private final Authorizer<T, M> authorizer;
     private final boolean integrityCheck;
 
-    AuthorizingDataProvider(DataProvider<T, M> dataProvider, Authorizer<T, M> authorizer, boolean integrityCheck) {
+    AuthorizingDataProvider(DataProvider<T, M> dataProvider, Authorizer<T, M> authorizer) {
         super(dataProvider);
         this.authorizer = authorizer;
-        this.integrityCheck = integrityCheck;
+
+        //inMemory-DataProviders should use an InMemoryAuthorizer,
+        //where an integrity check on the data would not make sense
+        integrityCheck = !dataProvider.isInMemory();
     }
 
     @Override

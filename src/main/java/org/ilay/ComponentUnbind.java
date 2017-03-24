@@ -38,6 +38,8 @@ public class ComponentUnbind {
                 componentPermissions.remove(permission);
             }
         }
+
+        Authorization.apply(components, authorizationContext);
     }
 
     public void fromAll() {
@@ -46,6 +48,7 @@ public class ComponentUnbind {
 
         for (Component component : components) {
             componentsToPermissions.remove(component);
+            component.setVisible(true);
         }
     }
 }

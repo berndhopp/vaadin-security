@@ -55,7 +55,7 @@ import static java.util.stream.Collectors.toMap;
  *
  * Then, {@link Component}s, {@link View}s and {@link HasItems}' can be bound with
  * the {@link Authorization#bindComponents(Component...)}, {@link Authorization#bindViews(View...)} and
- * {@link Authorization#bindData(Class, HasDataProvider, boolean)} methods.
+ * {@link Authorization#bindData(Class, HasDataProvider)} methods.
  *
  * <code>
  *     Button button = new Button();
@@ -188,13 +188,12 @@ public final class Authorization {
      * returned true for t. If no {@link Authorizer} for the type T is available, an exception will be thrown.
      * @param itemClass
      * @param hasItems
-     * @param integrityCheck
      * @param <T>
      */
-    public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems, boolean integrityCheck) {
+    public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.bindData(itemClass, hasItems, integrityCheck);
+        authorizationContext.bindData(itemClass, hasItems);
     }
 
     public static ComponentUnbind unbindComponent(Component component) {

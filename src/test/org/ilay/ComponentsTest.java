@@ -56,7 +56,6 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        //urgh
         ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
 
         Button button1 = new Button();
@@ -104,6 +103,14 @@ public class ComponentsTest {
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
         assertFalse(button3.isVisible());
+
+        Authorization.unbindComponent(button3).fromAll();
+
+        Authorization.applyAll();
+
+        assertTrue(button1.isVisible());
+        assertTrue(button2.isVisible());
+        assertTrue(button3.isVisible());
     }
 
     @Test

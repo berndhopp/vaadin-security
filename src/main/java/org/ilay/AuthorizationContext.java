@@ -50,7 +50,7 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider, boolean integrityCheck) {
+    <T, F> void bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
         requireNonNull(itemClass);
         requireNonNull(hasDataProvider);
 
@@ -64,7 +64,7 @@ class AuthorizationContext implements ViewChangeListener {
             throw new DataBindingException(e);
         }
 
-        DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer, integrityCheck);
+        DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
 
         hasDataProvider.setDataProvider(newDataProvider);
 
