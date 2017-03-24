@@ -29,8 +29,8 @@ public class BindTest {
     public void test_components() throws ServiceException {
 
         Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Evaluators.STRING_AUTHORIZER);
-        authorizers.add(Evaluators.INTEGER_AUTHORIZER);
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
         Authorization.start(authorizers);
 
@@ -86,8 +86,8 @@ public class BindTest {
     public void test_views() throws ServiceException {
 
         Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Evaluators.STRING_AUTHORIZER);
-        authorizers.add(Evaluators.INTEGER_AUTHORIZER);
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
         View view = viewChangeEvent -> {
         };

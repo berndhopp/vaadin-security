@@ -38,7 +38,13 @@ class AuthorizerPool {
         }
 
         for (Authorizer<?, ?> anAuthorizer : authorizers.values()) {
-            if (anAuthorizer.getPermissionClass().isAssignableFrom(permissionClass)) {
+
+            //TODO this needs explanation, as soon as I can wrap my own head around it
+            boolean match = permissionClass.isInterface()
+                    ? permissionClass.isAssignableFrom(anAuthorizer.getPermissionClass())
+                    : anAuthorizer.getPermissionClass().isAssignableFrom(permissionClass);
+
+            if (match) {
                 if (authorizer != null) {
                     throw new ConflictingEvaluatorsException(authorizer, anAuthorizer, permissionClass);
                 }

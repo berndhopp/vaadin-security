@@ -142,6 +142,10 @@ class AuthorizationContext implements ViewChangeListener {
 
         final View newView = requireNonNull(event.getNewView());
 
+        return isViewAuthorized(newView);
+    }
+
+    boolean isViewAuthorized(View newView) {
         final Collection<Object> permissions = viewsToPermissions.get(newView);
 
         return permissions == null || permissions.stream().allMatch(this::evaluate);

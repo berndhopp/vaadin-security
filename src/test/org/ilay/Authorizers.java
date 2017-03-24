@@ -1,6 +1,6 @@
 package org.ilay;
 
-public class Evaluators {
+public class Authorizers {
     static final InMemoryAuthorizer FOO_AUTHORIZER = new InMemoryAuthorizer<Foo>() {
         @Override
         public boolean isGranted(Foo foo) {
@@ -12,6 +12,19 @@ public class Evaluators {
             return Foo.class;
         }
     };
+
+    static final InMemoryAuthorizer BAR_AUTHORIZER = new InMemoryAuthorizer<Bar>() {
+        @Override
+        public boolean isGranted(Bar foo) {
+            return false;
+        }
+
+        @Override
+        public Class<Bar> getPermissionClass() {
+            return Bar.class;
+        }
+    };
+
     static final InMemoryAuthorizer STRING_AUTHORIZER = new InMemoryAuthorizer<String>() {
         @Override
         public boolean isGranted(String s) {
@@ -47,9 +60,4 @@ public class Evaluators {
         }
     };
 
-    static class Foo {
-    }
-
-    static class Bar extends Foo {
-    }
 }

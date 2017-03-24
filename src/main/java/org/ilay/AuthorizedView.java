@@ -11,7 +11,9 @@ public abstract class AuthorizedView<T> extends CustomComponent implements View 
 
     protected abstract T parse(String parameters) throws ParseException;
 
-    protected abstract void onFailedAuthorization(T t);
+    protected void onFailedAuthorization(T t) {
+        Authorization.navigatorSupplier.get().navigateTo("");
+    }
 
     protected abstract void onSuccessfulAuthorization(T t);
 
