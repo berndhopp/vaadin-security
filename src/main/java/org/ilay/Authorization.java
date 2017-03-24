@@ -1,5 +1,6 @@
 package org.ilay;
 
+import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasItems;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
@@ -54,7 +55,7 @@ import static java.util.stream.Collectors.toMap;
  *
  * Then, {@link Component}s, {@link View}s and {@link HasItems}' can be bound with
  * the {@link Authorization#bindComponents(Component...)}, {@link Authorization#bindViews(View...)} and
- * {@link Authorization#bindData(Class, HasItems)} methods.
+ * {@link Authorization#bindData(Class, HasDataProvider)} methods.
  *
  * <code>
  *     Button button = new Button();
@@ -125,70 +126,64 @@ public final class Authorization {
      */
     public static ComponentBind bindComponent(Component component) {
         requireNonNull(component);
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindComponents(component);
     }
 
     public static ComponentBind bindComponents(Component... components) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ComponentBind(components);
     }
 
     public static ViewBind bindView(View view) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindViews(view);
     }
 
     public static ViewBind bindViews(View... views) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
 
         return new ViewBind(views);
     }
 
-    public static <T> void bindData(Class<T> itemClass, HasItems<T> hasItems) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+    public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems) {
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         authorizationContext.bindData(itemClass, hasItems);
     }
 
     public static ComponentUnbind unbindComponent(Component component) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(component);
         return unbindComponents(component);
     }
 
     public static ComponentUnbind unbindComponents(Component... components) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ComponentUnbind(components);
     }
 
     public static ViewUnbind unbindView(View view) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
         return unbindViews(view);
     }
 
     public static ViewUnbind unbindViews(View... views) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ViewUnbind(views);
     }
 
-    public static <T> void unbindData(HasItems<T> hasItems) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.unbindData(hasItems);
-    }
-
     public static void applyAll() {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         apply(componentsToPermissions, authorizationContext);
     }
 
     public static void apply(Component... components) {
-        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(components);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         apply(components, authorizationContext);

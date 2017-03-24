@@ -9,7 +9,6 @@ import com.vaadin.server.SerializablePredicate;
  *
  * @author Bernd Hopp
  */
-@SuppressWarnings("unused")
 public interface InMemoryAuthorizer<T> extends Authorizer<T, SerializablePredicate<T>> {
 
     @Override

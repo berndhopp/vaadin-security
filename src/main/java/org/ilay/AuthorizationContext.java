@@ -1,6 +1,6 @@
 package org.ilay;
 
-import com.vaadin.data.HasItems;
+import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.View;
@@ -51,7 +51,7 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindData(Class<T> itemClass, HasItems<T> hasDataProvider) {
+    <T, F> void bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
         requireNonNull(itemClass);
         requireNonNull(hasDataProvider);
 
@@ -67,6 +67,8 @@ class AuthorizationContext implements ViewChangeListener {
         final F filter = requireNonNull(authorizer.asFilter());
 
         filterDataProvider.setFilter(filter);
+
+        hasDataProvider.setDataProvider(filterDataProvider);
 
         dataProviders.add(new WeakReference<>(filterDataProvider));
     }
@@ -110,11 +112,6 @@ class AuthorizationContext implements ViewChangeListener {
                 .map(Reference::get)
                 .filter(o -> o != null)
                 .forEach(DataProvider::refreshAll);
-    }
-
-    <T> void unbindData(HasItems<T> hasItems) {
-        requireNonNull(hasItems);
-        hasItems.getDataProvider().withConfigurableFilter().setFilter(null);
     }
 
     @SuppressWarnings("unchecked")

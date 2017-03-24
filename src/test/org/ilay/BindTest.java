@@ -14,8 +14,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.ilay.Authorization.bindComponent;
+import static org.ilay.Authorization.unbindComponent;
+import static org.ilay.Authorization.unbindView;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class BindTest {
@@ -24,6 +28,101 @@ public class BindTest {
     public void setup() throws NoSuchFieldException, IllegalAccessException {
         TestUtil.beforeTest();
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void component_bind_empty_throws_illegal_argument_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Authorization.bindComponents();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void component_unbind_empty_throws_illegal_argument_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Authorization.unbindComponents();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void component_unbind_to_empty_permissions_throws_illegal_argument_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Authorization.unbindComponents(new Button()).from();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void component_bind_to_empty_permissions_throws_illegal_argument_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Authorization.bindComponents(new Button()).to();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void view_bind_empty_throws_illegal_argument_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        Authorization.bindViews();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void view_unbind_empty_throws_illegal_argument_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Authorization.unbindViews();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void view_unbind_to_empty_permissions_throws_illegal_argument_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Authorization.unbindViews(e -> {
+        }).from();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void view_bind_to_empty_permissions_throws_illegal_argument_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        Authorization.bindViews(e -> {
+        }).to();
+    }
+
 
     @Test
     public void test_components() throws ServiceException {
@@ -41,8 +140,8 @@ public class BindTest {
         Component component2 = new Button();
 
         Authorization.bindComponents(component, component2).to("hello", "world", 23);
-        Authorization.bindComponent(component).to("foo");
-        Authorization.bindComponent(component2).to("bar");
+        bindComponent(component).to("foo");
+        bindComponent(component2).to("bar");
 
         AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -63,7 +162,7 @@ public class BindTest {
         assertThat(permissions2, Matchers.containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
-        Authorization.bindComponent(component).to(42);
+        bindComponent(component).to(42);
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -73,13 +172,19 @@ public class BindTest {
 
         //remove some permissions from component1 and check they are gone
 
-        Authorization.unbindComponent(component).from("hello", 23);
+        unbindComponent(component).from("hello", 23);
 
         permissions1 = componentsToPermissions.get(component);
 
         assertNotNull(permissions1);
         assertEquals(3, permissions1.size());
         assertThat(permissions1, Matchers.containsInAnyOrder("world", "foo", 42));
+
+        unbindComponent(component).fromAll();
+
+        permissions1 = componentsToPermissions.get(component);
+
+        assertNull(permissions1);
     }
 
     @Test
@@ -140,5 +245,11 @@ public class BindTest {
         assertNotNull(permissions1);
         assertEquals(3, permissions1.size());
         assertThat(permissions1, Matchers.containsInAnyOrder("world", "foo", 42));
+
+        unbindView(view).fromAll();
+
+        permissions1 = viewsToPermissions.get(view);
+
+        assertNull(permissions1);
     }
 }

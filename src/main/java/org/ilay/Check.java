@@ -5,10 +5,7 @@ import java.util.Collection;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-final class Check {
-
-    private Check() {
-    }
+class Check {
 
     static <T extends Collection> T notEmpty(T collection) {
         requireNonNull(collection);
@@ -29,6 +26,12 @@ final class Check {
     static void state(boolean condition) {
         if (!condition) {
             throw new IllegalStateException();
+        }
+    }
+
+    static void state(boolean condition, String message, Object... parameters) {
+        if (!condition) {
+            throw new IllegalStateException(format(message, parameters));
         }
     }
 }
