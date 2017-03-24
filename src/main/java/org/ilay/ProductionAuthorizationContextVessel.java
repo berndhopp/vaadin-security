@@ -2,11 +2,9 @@ package org.ilay;
 
 import com.vaadin.server.VaadinSession;
 
-import java.util.function.Supplier;
-
 import static java.util.Objects.requireNonNull;
 
-public class ProductionAuthorizationContextSupplier implements Supplier<AuthorizationContext> {
+class ProductionAuthorizationContextVessel implements Vessel<AuthorizationContext> {
     @Override
     public AuthorizationContext get() {
         final VaadinSession vaadinSession = VaadinSession.getCurrent();
@@ -20,5 +18,16 @@ public class ProductionAuthorizationContextSupplier implements Supplier<Authoriz
                 "no authorizationContext available in the current session, did you forget" +
                         "to call Authorization.start()?"
         );
+    }
+
+    @Override
+    public void set(AuthorizationContext authorizationContext) {
+        final VaadinSession vaadinSession = VaadinSession.getCurrent();
+
+        requireNonNull(vaadinSession, "no VaadinSession available");
+
+        Check.state(vaadinSession.getAttribute(AuthorizationContext.class) == null);
+
+        vaadinSession.setAttribute(AuthorizationContext.class, authorizationContext);
     }
 }

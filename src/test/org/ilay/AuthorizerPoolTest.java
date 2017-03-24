@@ -43,12 +43,12 @@ public class AuthorizerPoolTest {
 
         AuthorizerPool authorizerPool = new AuthorizerPool(authorizers);
 
-        Authorizer<Evaluators.Foo> fooAuthorizer = authorizerPool.getAuthorizer(Evaluators.Foo.class);
+        Authorizer<Evaluators.Foo, ?> fooAuthorizer = authorizerPool.getAuthorizer(Evaluators.Foo.class);
 
         assertNotNull(fooAuthorizer);
         assertFalse(fooAuthorizer.isGranted(new Evaluators.Bar()));
         assertFalse(fooAuthorizer.isGranted(new Evaluators.Foo()));
-        Authorizer<Evaluators.Bar> barAuthorizer = authorizerPool.getAuthorizer(Evaluators.Bar.class);
+        Authorizer<Evaluators.Bar, ?> barAuthorizer = authorizerPool.getAuthorizer(Evaluators.Bar.class);
         assertNotNull(barAuthorizer);
         assertFalse(barAuthorizer.isGranted(new Evaluators.Bar()));
     }
@@ -56,7 +56,7 @@ public class AuthorizerPoolTest {
     @Test
     public void conflicting_evaluators_should_return_best_fit() {
         AuthorizerPool authorizerPool = createEvaluatorPool(true, true, true);
-        final Authorizer<String> authorizer = authorizerPool.getAuthorizer(String.class);
+        final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
         assertEquals(Evaluators.STRING_AUTHORIZER, authorizer);
         authorizer.isGranted("");
     }
@@ -64,7 +64,7 @@ public class AuthorizerPoolTest {
     @Test
     public void no_matching_evaluator_should_return_best_fit() {
         AuthorizerPool authorizerPool = createEvaluatorPool(true, false, true);
-        final Authorizer<String> authorizer = authorizerPool.getAuthorizer(String.class);
+        final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
         assertNotNull(authorizer);
         authorizer.isGranted("");
     }

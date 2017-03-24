@@ -20,9 +20,15 @@ final class Check {
         return collection;
     }
 
-    static void that(boolean condition, String message, Object... parameters) {
+    static void arg(boolean condition, String message, Object... parameters) {
         if (!condition) {
             throw new IllegalArgumentException(format(message, parameters));
+        }
+    }
+
+    static void state(boolean condition) {
+        if (!condition) {
+            throw new IllegalStateException();
         }
     }
 }

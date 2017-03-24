@@ -3,12 +3,9 @@ package org.ilay;
 import com.vaadin.data.HasItems;
 import com.vaadin.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.data.provider.DataProvider;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.UI;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -17,7 +14,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -25,9 +21,9 @@ import static java.util.stream.Collectors.toMap;
 
 class AuthorizationContext implements ViewChangeListener {
 
-    static Supplier<AuthorizationContext> instanceProvider = new ProductionAuthorizationContextSupplier();
-    private final Map<Component, Collection<Object>> componentsToPermissions = new WeakHashMap<>();
-    private final Map<View, Collection<Object>> viewsToPermissions = new WeakHashMap<>();
+    static Vessel<AuthorizationContext> currentInstanceVessel = new ProductionAuthorizationContextVessel();
+    private final Map<Component, Set<Object>> componentsToPermissions = new WeakHashMap<>();
+    private final Map<View, Set<Object>> viewsToPermissions = new WeakHashMap<>();
     private final AuthorizerPool authorizerPool;
     private final Map<Component, Boolean> trackedVisibilities = new WeakHashMap<>();
     private final Set<Reference<DataProvider<?, ?>>> dataProviders = new HashSet<>();
@@ -39,27 +35,18 @@ class AuthorizationContext implements ViewChangeListener {
 
     static void init(Set<Authorizer> authorizers) {
         requireNonNull(authorizers);
-        AuthorizationContext authorizationContext = new AuthorizationContext(authorizers);
-        final VaadinSession vaadinSession = VaadinSession.getCurrent();
-
-        requireNonNull(vaadinSession, "no VaadinSession available");
-
-        vaadinSession.setAttribute(AuthorizationContext.class, authorizationContext);
+        currentInstanceVessel.set(new AuthorizationContext(authorizers));
     }
 
     static AuthorizationContext getCurrent() {
-        return instanceProvider.get();
+        return currentInstanceVessel.get();
     }
 
-    void setInstanceProvider(Supplier<AuthorizationContext> instanceProvider) {
-        AuthorizationContext.instanceProvider = instanceProvider;
-    }
-
-    Map<Component, Collection<Object>> getComponentsToPermissions() {
+    Map<Component, Set<Object>> getComponentsToPermissions() {
         return componentsToPermissions;
     }
 
-    Map<View, Collection<Object>> getViewsToPermissions() {
+    Map<View, Set<Object>> getViewsToPermissions() {
         return viewsToPermissions;
     }
 
@@ -84,7 +71,7 @@ class AuthorizationContext implements ViewChangeListener {
         dataProviders.add(new WeakReference<>(filterDataProvider));
     }
 
-    void applyComponents(Map<Component, Collection<Object>> componentsToPermissions) throws IllegalStateException {
+    void applyComponents(Map<Component, Set<Object>> componentsToPermissions) throws IllegalStateException {
 
         //this is the cache for all current evaluation-values ( granted / not granted )
         final Map<Object, Boolean> permissionsToEvaluations = componentsToPermissions
@@ -94,7 +81,7 @@ class AuthorizationContext implements ViewChangeListener {
                 .distinct() // have each permission only once
                 .collect(toMap(p -> p, this::evaluate));//mapping all permissions to their evaluation
 
-        for (Map.Entry<Component, Collection<Object>> entry : componentsToPermissions.entrySet()) {
+        for (Map.Entry<Component, Set<Object>> entry : componentsToPermissions.entrySet()) {
             final Collection<Object> permissions = entry.getValue();
             final Component component = entry.getKey();
 
@@ -142,12 +129,7 @@ class AuthorizationContext implements ViewChangeListener {
             return;
         }
 
-        UI ui = requireNonNull(UI.getCurrent(), "UI.getCurrent() must be present in order to call this method");
-
-        Navigator navigator = requireNonNull(
-                ui.getNavigator(),
-                "a Navigator must be registered with the current UI by calling UI.getCurrent().setNavigator() in order to call this method."
-        );
+        final NavigatorFacade navigator = Authorization.navigatorSupplier.get();
 
         navigator.addViewChangeListener(this);
 

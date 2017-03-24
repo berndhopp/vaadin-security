@@ -4,6 +4,7 @@ import com.vaadin.navigator.View;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
@@ -28,7 +29,7 @@ public class ViewUnbind {
         }
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<View, Collection<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+        final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
 
         for (View view : views) {
             final Collection<Object> existingPermissions = viewsToPermissions.get(view);
@@ -43,7 +44,7 @@ public class ViewUnbind {
 
     public void fromAll() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<View, Collection<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+        final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
 
         for (View view : views) {
             viewsToPermissions.remove(view);

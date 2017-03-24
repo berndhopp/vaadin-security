@@ -47,7 +47,7 @@ class AuthorizerPool {
             }
         }
 
-        requireNonNull(authorizer, "no authorizer found for " + permissionClass);
+        Check.arg(authorizer != null, "no authorizer found for %s", permissionClass);
 
         authorizers.put(permissionClass, authorizer);
 

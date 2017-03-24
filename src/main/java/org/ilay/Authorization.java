@@ -1,12 +1,9 @@
 package org.ilay;
 
 import com.vaadin.data.HasItems;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
-import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Component;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -73,7 +70,8 @@ import static java.util.stream.Collectors.toMap;
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
-    private static Supplier<Navigator> navigatorSupplier = new ProductionNavigatorSupplier();
+    static Supplier<NavigatorFacade> navigatorSupplier = new ProductionNavigatorFacadeSupplier();
+    static Supplier<SessionInitNotifier> sessionInitNotifierSupplier = new ProductionSessionInitNotifierSupplier();
     private static boolean initialized = false;
 
     private Authorization() {
@@ -106,17 +104,13 @@ public final class Authorization {
     public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
         requireNonNull(evaluatorSupplier);
 
-        final VaadinService vaadinService = VaadinService.getCurrent();
-
-        if (vaadinService == null) {
-            throw new IllegalStateException("VaadinService is not initialized yet");
-        }
-
         if (initialized) {
             throw new IllegalStateException("start() cannot be called more than once");
         }
 
-        vaadinService.addSessionInitListener(
+        final SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
+
+        sessionInitNotifier.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
                 e -> AuthorizationContext.init(Check.notEmpty(evaluatorSupplier.get()))
         );
@@ -131,89 +125,89 @@ public final class Authorization {
      */
     public static ComponentBind bindComponent(Component component) {
         requireNonNull(component);
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindComponents(component);
     }
 
     public static ComponentBind bindComponents(Component... components) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ComponentBind(components);
     }
 
     public static ViewBind bindView(View view) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindViews(view);
     }
 
     public static ViewBind bindViews(View... views) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
 
         return new ViewBind(views);
     }
 
     public static <T> void bindData(Class<T> itemClass, HasItems<T> hasItems) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         authorizationContext.bindData(itemClass, hasItems);
     }
 
     public static ComponentUnbind unbindComponent(Component component) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(component);
         return unbindComponents(component);
     }
 
     public static ComponentUnbind unbindComponents(Component... components) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ComponentUnbind(components);
     }
 
     public static ViewUnbind unbindView(View view) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
         return unbindViews(view);
     }
 
     public static ViewUnbind unbindViews(View... views) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ViewUnbind(views);
     }
 
     public static <T> void unbindData(HasItems<T> hasItems) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         authorizationContext.unbindData(hasItems);
     }
 
     public static void applyAll() {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         apply(componentsToPermissions, authorizationContext);
     }
 
     public static void apply(Component... components) {
-        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(components);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         apply(components, authorizationContext);
     }
 
     static void apply(Component[] components, AuthorizationContext authorizationContext){
-        final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-        final Map<Component, Collection<Object>> reducedComponentsToPermissions = stream(components).collect(toMap(c -> c, componentsToPermissions::get));
+        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+        final Map<Component, Set<Object>> reducedComponentsToPermissions = stream(components).collect(toMap(c -> c, componentsToPermissions::get));
         apply(reducedComponentsToPermissions, authorizationContext);
     }
 
-    static void apply(Map<Component, Collection<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
+    static void apply(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
         authorizationContext.applyComponents(componentsToPermissions);
         authorizationContext.applyData();
         reEvaluateCurrentViewAccess();
     }
 
     private static void reEvaluateCurrentViewAccess() {
-        final Navigator navigator = navigatorSupplier.get();
+        final NavigatorFacade navigator = navigatorSupplier.get();
 
         if (navigator == null) {
             //no navigator -> no views to check
@@ -223,9 +217,5 @@ public final class Authorization {
         final String state = navigator.getState();
         navigator.navigateTo("");
         navigator.navigateTo(state);
-    }
-
-    void setNavigatorSupplier(Supplier<Navigator> navigatorSupplier) {
-        Authorization.navigatorSupplier = navigatorSupplier;
     }
 }

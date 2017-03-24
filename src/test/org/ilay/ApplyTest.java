@@ -1,7 +1,9 @@
 package org.ilay;
 
+import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -10,16 +12,21 @@ import java.util.Set;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class ApplierTest {
+public class ApplyTest {
+
+    @Before
+    public void setup() throws NoSuchFieldException, IllegalAccessException {
+        TestUtil.beforeTest();
+    }
 
     @Test
-    public void applier_full_test() {
+    public void applier_full_test() throws ServiceException {
 
         final User user = new User();
 
         user.getRoles().add("user");
 
-        Authorizer<String> roleAuthorizer = new Authorizer<String>() {
+        InMemoryAuthorizer<String> roleAuthorizer = new InMemoryAuthorizer<String>() {
             @Override
             public boolean isGranted(String s) {
                 return user.getRoles().contains(s);
@@ -31,7 +38,7 @@ public class ApplierTest {
             }
         };
 
-        Authorizer<Clearance> clearanceAuthorizer = new Authorizer<Clearance>() {
+        InMemoryAuthorizer<Clearance> clearanceAuthorizer = new InMemoryAuthorizer<Clearance>() {
             @Override
             public boolean isGranted(Clearance clearance) {
                 return user.getClearance().ordinal() >= clearance.ordinal();
@@ -46,6 +53,11 @@ public class ApplierTest {
         Set<Authorizer> authorizers = new HashSet<>();
         authorizers.add(roleAuthorizer);
         authorizers.add(clearanceAuthorizer);
+
+        Authorization.start(authorizers);
+
+        //urgh
+        ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();

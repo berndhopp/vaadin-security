@@ -1,10 +1,12 @@
 package org.ilay;
 
 import com.vaadin.navigator.View;
+import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -16,14 +18,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
-public class BinderTest {
+public class BindTest {
+
+    @Before
+    public void setup() throws NoSuchFieldException, IllegalAccessException {
+        TestUtil.beforeTest();
+    }
 
     @Test
-    public void test_components() {
+    public void test_components() throws ServiceException {
 
         Set<Authorizer> authorizers = new HashSet<>();
         authorizers.add(Evaluators.STRING_AUTHORIZER);
         authorizers.add(Evaluators.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        //urgh
+        ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
 
         Component component = new Button();
         Component component2 = new Button();
@@ -34,7 +46,7 @@ public class BinderTest {
 
         AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 
         //check that permissions of component1 are as expected
         Collection<Object> permissions1 = componentsToPermissions.get(component);
@@ -71,7 +83,7 @@ public class BinderTest {
     }
 
     @Test
-    public void test_views() {
+    public void test_views() throws ServiceException {
 
         Set<Authorizer> authorizers = new HashSet<>();
         authorizers.add(Evaluators.STRING_AUTHORIZER);
@@ -83,13 +95,18 @@ public class BinderTest {
         View view2 = viewChangeEvent -> {
         };
 
+        Authorization.start(authorizers);
+
+        //urgh
+        ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
+
         Authorization.bindViews(view, view2).to("hello", "world", 23);
         Authorization.bindView(view).to("foo");
         Authorization.bindView(view2).to("bar");
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        final Map<View, Collection<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+        final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
 
         //check that permissions of view1 are as expected
         Collection<Object> permissions1 = viewsToPermissions.get(view);

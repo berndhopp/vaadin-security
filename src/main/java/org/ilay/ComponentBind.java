@@ -3,7 +3,9 @@ package org.ilay;
 import com.vaadin.ui.Component;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
@@ -28,13 +30,13 @@ public class ComponentBind {
         }
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 
         for (Component component : components) {
 
-            final Collection<Object> currentPermissions = componentsToPermissions.get(component);
+            Collection<Object> currentPermissions = componentsToPermissions.get(component);
 
-            final Collection<Object> newPermissions = asList(permissions);
+            final Set<Object> newPermissions = new HashSet<>(asList(permissions));
 
             if (currentPermissions == null) {
                 componentsToPermissions.put(component, newPermissions);

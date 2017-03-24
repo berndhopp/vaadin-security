@@ -1,7 +1,7 @@
 package org.ilay;
 
 public class Evaluators {
-    static final Authorizer FOO_AUTHORIZER = new Authorizer<Foo>() {
+    static final InMemoryAuthorizer FOO_AUTHORIZER = new InMemoryAuthorizer<Foo>() {
         @Override
         public boolean isGranted(Foo foo) {
             return false;
@@ -12,7 +12,7 @@ public class Evaluators {
             return Foo.class;
         }
     };
-    static final Authorizer STRING_AUTHORIZER = new Authorizer<String>() {
+    static final InMemoryAuthorizer STRING_AUTHORIZER = new InMemoryAuthorizer<String>() {
         @Override
         public boolean isGranted(String s) {
             return false;
@@ -23,7 +23,7 @@ public class Evaluators {
             return String.class;
         }
     };
-    static final Authorizer INTEGER_AUTHORIZER = new Authorizer<Integer>() {
+    static final InMemoryAuthorizer INTEGER_AUTHORIZER = new InMemoryAuthorizer<Integer>() {
         @Override
         public boolean isGranted(Integer integer) {
             return false;
@@ -34,7 +34,7 @@ public class Evaluators {
             return Integer.class;
         }
     };
-    static final Authorizer OBJECT_AUTHORIZER = new Authorizer<Object>() {
+    static final InMemoryAuthorizer OBJECT_AUTHORIZER = new InMemoryAuthorizer<Object>() {
 
         @Override
         public boolean isGranted(Object o) {

@@ -4,6 +4,7 @@ import com.vaadin.ui.Component;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
@@ -28,7 +29,7 @@ public class ComponentUnbind {
         }
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 
         for (Component component : components) {
             final Collection<Object> componentPermissions = componentsToPermissions.get(component);
@@ -41,7 +42,7 @@ public class ComponentUnbind {
 
     public void fromAll() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 
         for (Component component : components) {
             componentsToPermissions.remove(component);
