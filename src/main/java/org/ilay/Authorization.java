@@ -55,7 +55,7 @@ import static java.util.stream.Collectors.toMap;
  *
  * Then, {@link Component}s, {@link View}s and {@link HasItems}' can be bound with
  * the {@link Authorization#bindComponents(Component...)}, {@link Authorization#bindViews(View...)} and
- * {@link Authorization#bindData(Class, HasDataProvider)} methods.
+ * {@link Authorization#bindData(Class, HasDataProvider, boolean)} methods.
  *
  * <code>
  *     Button button = new Button();
@@ -67,7 +67,6 @@ import static java.util.stream.Collectors.toMap;
  *     Authorization.bindData(fooGrid);
  * </code>
  */
-@SuppressWarnings("unused")
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
@@ -120,9 +119,15 @@ public final class Authorization {
     }
 
     /**
+     * returns a {@link ComponentBind} to connect
+     * a {@link Component} to one or more permissions
      *
-     * @param component
-     * @return
+     * <code>
+     *   Button button = new Button();
+     *   Authorization.bindComponent(button).to(Permission.ADMIN);
+     * </code>
+     * @param component the component to be bound to one or more permission, cannot be null
+     * @return a {@link ComponentBind} for a chained fluent API
      */
     public static ComponentBind bindComponent(Component component) {
         requireNonNull(component);
@@ -130,27 +135,66 @@ public final class Authorization {
         return bindComponents(component);
     }
 
+    /**
+     * returns a {@link ComponentBind} to connect {@link Component}s to one or more permissions
+     *
+     * <code> Button button = new Button(); Label label = new Label();
+     * Authorization.bindComponents(button, label).to(Permission.ADMIN); </code>
+     *
+     * @param components the {@link Component}s to be bound to one or more permission, cannot be
+     *                   null or empty
+     * @return a {@link ComponentBind} for a chained fluent API
+     */
     public static ComponentBind bindComponents(Component... components) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ComponentBind(components);
     }
 
+    /**
+     * returns a {@link ViewBind} to connect a {@link View} to one or more permissions
+     *
+     * <code> View view = createView(); Authorization.bindView(view).to(Permission.ADMIN); </code>
+     *
+     * @param view the {@link View} to be bound to one or more permission, cannot be null or empty
+     * @return a {@link ViewBind} for a chained fluent API
+     */
     public static ViewBind bindView(View view) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindViews(view);
     }
 
+    /**
+     * returns a {@link ViewBind} to connect
+     * {@link View}s to one or more permissions
+     *
+     * <code>
+     *   View view = createView();
+     *   View view2 = createView();
+     *   Authorization.bindViews(view, view2).to(Permission.ADMIN);
+     * </code>
+     * @param views the {@link View}s to be bound to one or more permission, cannot be null or empty
+     * @return a {@link ViewBind} for a chained fluent API
+     */
     public static ViewBind bindViews(View... views) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
-
         return new ViewBind(views);
     }
 
-    public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems) {
+    /**
+     * binds the data, or items, in the {@link HasDataProvider} to authorization. Each item t of type
+     * T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be displayed
+     * when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link Authorizer#isGranted(Object)}-method
+     * returned true for t. If no {@link Authorizer} for the type T is available, an exception will be thrown.
+     * @param itemClass
+     * @param hasItems
+     * @param integrityCheck
+     * @param <T>
+     */
+    public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems, boolean integrityCheck) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.bindData(itemClass, hasItems);
+        authorizationContext.bindData(itemClass, hasItems, integrityCheck);
     }
 
     public static ComponentUnbind unbindComponent(Component component) {
@@ -173,6 +217,11 @@ public final class Authorization {
     public static ViewUnbind unbindViews(View... views) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ViewUnbind(views);
+    }
+
+    public static <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
+        requireNonNull(hasDataProvider);
+        return AuthorizationContext.getCurrent().unbindData(hasDataProvider);
     }
 
     public static void applyAll() {

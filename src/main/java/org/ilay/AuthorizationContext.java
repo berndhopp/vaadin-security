@@ -1,7 +1,6 @@
 package org.ilay;
 
 import com.vaadin.data.HasDataProvider;
-import com.vaadin.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -51,26 +50,47 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> void bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
+    <T, F> void bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider, boolean integrityCheck) {
         requireNonNull(itemClass);
         requireNonNull(hasDataProvider);
 
-        final ConfigurableFilterDataProvider<T, Void, F> filterDataProvider = (ConfigurableFilterDataProvider<T, Void, F>) hasDataProvider.getDataProvider().withConfigurableFilter();
         final Authorizer<T, F> authorizer;
+        final DataProvider<T, F> oldDataProvider;
 
         try {
             authorizer = authorizerPool.getAuthorizer(itemClass);
+            oldDataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
         } catch (ClassCastException e) {
             throw new DataBindingException(e);
         }
 
-        final F filter = requireNonNull(authorizer.asFilter());
+        DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer, integrityCheck);
 
-        filterDataProvider.setFilter(filter);
+        hasDataProvider.setDataProvider(newDataProvider);
 
-        hasDataProvider.setDataProvider(filterDataProvider);
+        dataProviders.add(new WeakReference<>(newDataProvider));
+    }
 
-        dataProviders.add(new WeakReference<>(filterDataProvider));
+    <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
+        requireNonNull(hasDataProvider);
+
+        final DataProvider<T, ?> dataProvider = hasDataProvider.getDataProvider();
+
+        if (dataProvider == null) {
+            return false;
+        }
+
+        if (dataProvider instanceof AuthorizingDataProvider) {
+            AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (AuthorizingDataProvider<T, ?, ?>) dataProvider;
+
+            final DataProvider<T, ?> wrappedDataProvider = authorizingDataProvider.getWrappedDataProvider();
+
+            hasDataProvider.setDataProvider(wrappedDataProvider);
+
+            return true;
+        }
+
+        return false;
     }
 
     void applyComponents(Map<Component, Set<Object>> componentsToPermissions) throws IllegalStateException {

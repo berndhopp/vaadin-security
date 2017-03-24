@@ -6,7 +6,6 @@ import com.vaadin.ui.CustomComponent;
 
 import java.util.logging.Logger;
 
-@SuppressWarnings("unused")
 public abstract class AuthorizedView<T> extends CustomComponent implements View {
 
     protected abstract T parse(String parameters) throws ParseException;

@@ -1,5 +1,6 @@
 package org.ilay;
 
+import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.data.provider.QuerySortOrder;
@@ -19,26 +20,28 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
 import static org.ilay.Authorization.bindData;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class DataTest {
 
-    @Before
-    public void setup() throws NoSuchFieldException, IllegalAccessException {
-        TestUtil.beforeTest();
-    }
+    private Foo foo1;
+    private Foo foo2;
+    private Foo foo3;
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void test_in_memory_positive() throws ServiceException {
+    @Before
+    public void setup() throws NoSuchFieldException, IllegalAccessException, ServiceException {
+        TestUtil.beforeTest();
+
         Set<Authorizer> authorizers = new HashSet<>();
 
-        Foo foo1 = new Foo();
+        foo1 = new Foo();
 
-        Foo foo2 = new Foo();
+        foo2 = new Foo();
 
-        Foo foo3 = new Foo();
+        foo3 = new Foo();
 
         authorizers.add(new InMemoryAuthorizer<Foo>() {
             @Override
@@ -56,12 +59,17 @@ public class DataTest {
 
         //urgh
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void test_in_memory_positive() throws ServiceException {
 
         Grid<Foo> fooGrid = new Grid<>(Foo.class);
 
         fooGrid.setItems(foo1, foo2, foo3);
 
-        bindData(Foo.class, fooGrid);
+        bindData(Foo.class, fooGrid, false);
 
         DataProvider<Foo, ?> dataProvider = fooGrid.getDataProvider();
 
@@ -73,5 +81,44 @@ public class DataTest {
         assertThat(items, hasItem(foo1));
         assertThat(items, hasItem(foo2));
         assertThat(items, not(hasItem(foo3)));
+
+        boolean unbound = Authorization.unbindData(fooGrid);
+
+        assertTrue(unbound);
+
+        dataProvider = fooGrid.getDataProvider();
+
+        items = dataProvider.fetch(new Query(0, 5, new ArrayList<QuerySortOrder>(), null, null)).collect(toList());
+
+        assertThat(items, hasSize(3));
+        assertThat(items, hasItem(foo1));
+        assertThat(items, hasItem(foo2));
+        assertThat(items, hasItem(foo3));
+    }
+
+    @Test
+    public void unbind_null_returns_false() {
+
+        HasDataProvider<Foo> hasFooItems = new Grid<Foo>(Foo.class) {
+            @Override
+            public DataProvider getDataProvider() {
+                return null;
+            }
+        };
+
+        final boolean unbound = Authorization.unbindData(hasFooItems);
+
+        assertFalse(unbound);
+    }
+
+
+    @Test
+    public void unbind_unbound_dataprovider_returns_false() {
+
+        HasDataProvider<Foo> hasFooItems = new Grid<>(Foo.class);
+
+        final boolean unbound = Authorization.unbindData(hasFooItems);
+
+        assertFalse(unbound);
     }
 }
