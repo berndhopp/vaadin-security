@@ -14,8 +14,6 @@ import java.util.function.Supplier;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
-import static org.ilay.Util.checkArg;
-import static org.ilay.Util.checkNotEmpty;
 
 /**
  * <b>Authorization</b> is the main entry point for the ILAY framework.
@@ -88,12 +86,12 @@ public final class Authorization {
      * same set can be used for all {@link com.vaadin.server.VaadinSession}s.
      *
      * @param authorizers the {@link Authorizer}s needed. For every object passed in {@link
-     *                    Bind#to(Object...)}, there must be a evaluator in the set where the {@link
+     *                    ComponentBind#to(Object...)}, there must be a evaluator in the set where the {@link
      *                    Authorizer#getPermissionClass()} is assignable from the objects {@link
      *                    Class}.
      */
     public static void start(Set<Authorizer> authorizers) {
-        checkNotEmpty(authorizers);
+        Check.notEmpty(authorizers);
         start(() -> authorizers);
     }
 
@@ -102,7 +100,7 @@ public final class Authorization {
      * called before any other method in {@link Authorization} is called. Use this method instead of
      * {@link Authorization#start(Set)} if the set of {@link Authorizer}s is not immutable and a different
      * set may be used for all {@link com.vaadin.server.VaadinSession}s.
-     * @param evaluatorSupplier the {@link Authorizer}s needed. For every object passed in {@link Bind#to(Object...)}, there
+     * @param evaluatorSupplier the {@link Authorizer}s needed. For every object passed in {@link ComponentBind#to(Object...)}, there
      * must be a evaluator in the set where the {@link Authorizer#getPermissionClass()} is assignable from the objects {@link Class}.
      */
     public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
@@ -120,7 +118,7 @@ public final class Authorization {
 
         vaadinService.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
-                e -> AuthorizationContext.init(checkNotEmpty(evaluatorSupplier.get()))
+                e -> AuthorizationContext.init(Check.notEmpty(evaluatorSupplier.get()))
         );
 
         initialized = true;
@@ -131,72 +129,72 @@ public final class Authorization {
      * @param component
      * @return
      */
-    public static Bind bindComponent(Component component) {
+    public static ComponentBind bindComponent(Component component) {
         requireNonNull(component);
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindComponents(component);
     }
 
-    public static Bind bindComponents(Component... components) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        return new Bind(components);
+    public static ComponentBind bindComponents(Component... components) {
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        return new ComponentBind(components);
     }
 
     public static ViewBind bindView(View view) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return bindViews(view);
     }
 
     public static ViewBind bindViews(View... views) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
 
         return new ViewBind(views);
     }
 
     public static <T> void bindData(Class<T> itemClass, HasItems<T> hasItems) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         authorizationContext.bindData(itemClass, hasItems);
     }
 
-    public static Unbind unbindComponent(Component component) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+    public static ComponentUnbind unbindComponent(Component component) {
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(component);
         return unbindComponents(component);
     }
 
-    public static Unbind unbindComponents(Component... components) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        return new UnbindImpl(components);
+    public static ComponentUnbind unbindComponents(Component... components) {
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        return new ComponentUnbind(components);
     }
 
-    public static Unbind unbindView(View view) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+    public static ViewUnbind unbindView(View view) {
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
         return unbindViews(view);
     }
 
-    public static Unbind unbindViews(View... views) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        return new ViewUnbindImpl(views);
+    public static ViewUnbind unbindViews(View... views) {
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        return new ViewUnbind(views);
     }
 
     public static <T> void unbindData(HasItems<T> hasItems) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         authorizationContext.unbindData(hasItems);
     }
 
     public static void applyAll() {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Collection<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         apply(componentsToPermissions, authorizationContext);
     }
 
     public static void apply(Component... components) {
-        checkArg(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.that(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(components);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         apply(components, authorizationContext);

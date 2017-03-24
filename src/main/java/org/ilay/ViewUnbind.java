@@ -7,11 +7,11 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
-class ViewUnbindImpl implements Unbind {
+public class ViewUnbind {
 
     private final View[] views;
 
-    ViewUnbindImpl(View[] views) {
+    ViewUnbind(View[] views) {
         requireNonNull(views);
 
         if (views.length == 0) {
@@ -21,7 +21,6 @@ class ViewUnbindImpl implements Unbind {
         this.views = views;
     }
 
-    @Override
     public void from(Object... permissions) {
         requireNonNull(permissions);
         if (permissions.length == 0) {
@@ -42,7 +41,6 @@ class ViewUnbindImpl implements Unbind {
         }
     }
 
-    @Override
     public void fromAll() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<View, Collection<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
