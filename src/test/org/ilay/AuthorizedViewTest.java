@@ -39,7 +39,6 @@ public class AuthorizedViewTest {
 
         Authorization.start(authorizers);
 
-        //urgh
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         AuthorizedView<Foo> authorizedView = Mockito.spy(new FooAuthorizedView(true));
@@ -69,7 +68,6 @@ public class AuthorizedViewTest {
 
         Authorization.start(authorizers);
 
-        //urgh
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         AuthorizedView<Foo> authorizedView = Mockito.spy(new FooAuthorizedView(true));
@@ -92,7 +90,6 @@ public class AuthorizedViewTest {
         verify(authorizedView, times(1)).onParseException(any());
     }
 
-
     @Test(expected = NullPointerException.class)
     public void test_null_parse() {
         AuthorizedView<Foo> authorizedView = new FooAuthorizedView(false) {
@@ -106,6 +103,4 @@ public class AuthorizedViewTest {
 
         authorizedView.enter(viewChangeEvent);
     }
-
-
 }

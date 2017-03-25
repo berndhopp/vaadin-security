@@ -150,7 +150,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         Button button1 = new Button();
@@ -237,7 +237,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         Button button1 = new Button();

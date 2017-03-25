@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 
 public class ViewUnbind {
@@ -24,22 +26,18 @@ public class ViewUnbind {
 
     public void from(Object... permissions) {
         requireNonNull(permissions);
-        if (permissions.length == 0) {
-            throw new IllegalArgumentException("permissions cannot be empty");
-        }
+        Check.arg(permissions.length != 0, "permissions cannot be empty");
 
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+        Collection<Object> permissionsCollection = asList(permissions);
 
-        for (View view : views) {
-            final Collection<Object> existingPermissions = viewsToPermissions.get(view);
+        final Map<View, Set<Object>> viewsToPermissions = AuthorizationContext
+                .getCurrent()
+                .getViewsToPermissions();
 
-            if (existingPermissions != null) {
-                for (Object permission : permissions) {
-                    existingPermissions.remove(permission);
-                }
-            }
-        }
+        stream(views)
+                .map(viewsToPermissions::get)
+                .filter(p -> p != null)
+                .forEach(p -> p.removeAll(permissionsCollection));
     }
 
     public void fromAll() {

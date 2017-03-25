@@ -133,7 +133,7 @@ public class BindTest {
 
         Authorization.start(authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
 
         Component component = new Button();
@@ -202,7 +202,7 @@ public class BindTest {
 
         Authorization.start(authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
 
         Authorization.bindViews(view, view2).to("hello", "world", 23);

@@ -53,7 +53,7 @@ public class ViewChangeListenerTest {
 
         Authorization.start(authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
     }
 

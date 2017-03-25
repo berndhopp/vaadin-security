@@ -57,7 +57,7 @@ public class DataTest {
 
         Authorization.start(authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
     }
 

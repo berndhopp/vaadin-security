@@ -106,7 +106,6 @@ public class ApiTest {
 
         Authorization.start(authorizers);
 
-        //urgh
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
@@ -132,7 +131,7 @@ public class ApiTest {
 
         Authorization.start(() -> authorizers);
 
-        //urgh
+
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
