@@ -11,6 +11,7 @@ import org.ilay.api.Authorizer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +23,7 @@ import static java.util.stream.Collectors.toMap;
 
 class AuthorizationContext implements ViewChangeListener {
 
-    static Vessel<AuthorizationContext> currentInstanceVessel = new ProductionAuthorizationContextVessel();
+    static TestSupport.Vessel<AuthorizationContext> currentInstanceVessel = new TestSupport.ProductionAuthorizationContextVessel();
     private final Map<Component, Set<Object>> componentsToPermissions = new WeakHashMap<>();
     private final Map<View, Set<Object>> viewsToPermissions = new WeakHashMap<>();
     private final AuthorizerPool authorizerPool;
@@ -56,17 +57,9 @@ class AuthorizationContext implements ViewChangeListener {
         requireNonNull(itemClass);
         requireNonNull(hasDataProvider);
 
-        final Authorizer<T, F> authorizer;
-        final DataProvider<T, F> oldDataProvider;
-
-        try {
-            authorizer = authorizerPool.getAuthorizer(itemClass);
-            oldDataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
-        } catch (ClassCastException e) {
-            throw new DataBindingException(e);
-        }
-
-        DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
+        final Authorizer<T, F> authorizer = authorizerPool.getAuthorizer(itemClass);
+        final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
+        final DataProvider<T, F> newDataProvider = new Authorization.AuthorizingDataProvider<>(oldDataProvider, authorizer);
 
         hasDataProvider.setDataProvider(newDataProvider);
 
@@ -82,8 +75,8 @@ class AuthorizationContext implements ViewChangeListener {
             return false;
         }
 
-        if (dataProvider instanceof AuthorizingDataProvider) {
-            AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (AuthorizingDataProvider<T, ?, ?>) dataProvider;
+        if (dataProvider instanceof Authorization.AuthorizingDataProvider) {
+            Authorization.AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (Authorization.AuthorizingDataProvider<T, ?, ?>) dataProvider;
 
             final DataProvider<T, ?> wrappedDataProvider = authorizingDataProvider.getWrappedDataProvider();
 
@@ -148,7 +141,7 @@ class AuthorizationContext implements ViewChangeListener {
             return;
         }
 
-        final NavigatorFacade navigator = Authorization.navigatorSupplier.get();
+        final TestSupport.NavigatorFacade navigator = Authorization.navigatorSupplier.get();
 
         navigator.addViewChangeListener(this);
 
@@ -168,5 +161,73 @@ class AuthorizationContext implements ViewChangeListener {
         final Collection<Object> permissions = viewsToPermissions.get(newView);
 
         return permissions == null || permissions.stream().allMatch(this::evaluate);
+    }
+
+    static class AuthorizerPool {
+
+        private final Map<Class<?>, Authorizer<?, ?>> authorizers;
+
+        AuthorizerPool(Collection<Authorizer> authorizers) {
+            requireNonNull(authorizers);
+            this.authorizers = new HashMap<>(authorizers.size());
+
+            for (Authorizer authorizer : authorizers) {
+                requireNonNull(authorizer);
+                requireNonNull(authorizer.getPermissionClass());
+
+                Authorizer<?, ?> alreadyRegistered = this.authorizers.put(authorizer.getPermissionClass(), authorizer);
+
+                if (alreadyRegistered != null) {
+                    throw new ConflictingEvaluatorsException(authorizer, alreadyRegistered, authorizer.getPermissionClass());
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        <T, F> Authorizer<T, F> getAuthorizer(Class<T> permissionClass) {
+
+            requireNonNull(permissionClass);
+
+            Authorizer<T, F> authorizer = (Authorizer<T, F>) authorizers.get(permissionClass);
+
+            if (authorizer != null) {
+                return authorizer;
+            }
+
+            for (Authorizer<?, ?> anAuthorizer : authorizers.values()) {
+
+                //TODO this needs explanation, as soon as I can wrap my own head around it
+                boolean match = permissionClass.isInterface()
+                        ? permissionClass.isAssignableFrom(anAuthorizer.getPermissionClass())
+                        : anAuthorizer.getPermissionClass().isAssignableFrom(permissionClass);
+
+                if (match) {
+                    if (authorizer != null) {
+                        throw new ConflictingEvaluatorsException(authorizer, anAuthorizer, permissionClass);
+                    }
+
+                    authorizer = (Authorizer<T, F>) anAuthorizer;
+                }
+            }
+
+            Check.arg(authorizer != null, "no authorizer found for %s", permissionClass);
+
+            authorizers.put(permissionClass, authorizer);
+
+            return authorizer;
+        }
+
+        public static class ConflictingEvaluatorsException extends RuntimeException {
+
+            public ConflictingEvaluatorsException(Authorizer authorizer1, Authorizer authorizer2, Class permissionClass) {
+                super(
+                        format(
+                                "conflicting navigators: %s and %s are both assignable to %s",
+                                authorizer1,
+                                authorizer2,
+                                permissionClass)
+                );
+            }
+        }
     }
 }

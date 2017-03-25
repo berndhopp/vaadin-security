@@ -2,6 +2,9 @@ package org.ilay;
 
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasItems;
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.DataProviderWrapper;
+import com.vaadin.data.provider.Query;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 
@@ -11,7 +14,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -75,8 +80,8 @@ import static java.util.stream.Collectors.toMap;
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
-    static Supplier<NavigatorFacade> navigatorSupplier = new ProductionNavigatorFacadeSupplier();
-    static Supplier<SessionInitNotifier> sessionInitNotifierSupplier = new ProductionSessionInitNotifierSupplier();
+    static Supplier<TestSupport.NavigatorFacade> navigatorSupplier = new TestSupport.ProductionNavigatorFacadeSupplier();
+    static Supplier<TestSupport.SessionInitNotifier> sessionInitNotifierSupplier = new TestSupport.ProductionSessionInitNotifierSupplier();
     private static boolean initialized = false;
 
     private Authorization() {
@@ -113,7 +118,7 @@ public final class Authorization {
             throw new IllegalStateException("start() cannot be called more than once");
         }
 
-        final SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
+        final TestSupport.SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
 
         sessionInitNotifier.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
@@ -382,7 +387,7 @@ public final class Authorization {
     }
 
     private static void reEvaluateCurrentViewAccess() {
-        final NavigatorFacade navigator = navigatorSupplier.get();
+        final TestSupport.NavigatorFacade navigator = navigatorSupplier.get();
 
         if (navigator == null) {
             //no navigator -> no views to check
@@ -394,6 +399,10 @@ public final class Authorization {
         navigator.navigateTo(state);
     }
 
+    /**
+     * @see {@link Authorization#bindComponent(Component)}
+     * @see {@link Authorization#bindComponents(Component...)}
+     */
     public static class ComponentBind {
 
         private final Component[] components;
@@ -433,6 +442,10 @@ public final class Authorization {
         }
     }
 
+    /**
+     * @see {@link Authorization#unbindComponent(Component)}
+     * @see {@link Authorization#unbindComponents(Component...)}
+     */
     public static class ComponentUnbind {
 
         private final Component[] components;
@@ -478,6 +491,11 @@ public final class Authorization {
         }
     }
 
+
+    /**
+     * @see {@link Authorization#unbindView(View)}
+     * @see {@link Authorization#unbindViews(View...)}
+     */
     public static class ViewUnbind {
 
         private final View[] views;
@@ -518,6 +536,10 @@ public final class Authorization {
         }
     }
 
+    /**
+     * @see {@link Authorization#bindView(View)}
+     * @see {@link Authorization#bindViews(View...)}
+     */
     static class ViewBind {
         private final View[] views;
 
@@ -552,6 +574,52 @@ public final class Authorization {
                     currentPermissions.addAll(newPermissions);
                 }
             }
+        }
+    }
+
+    static class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> implements Predicate<T> {
+
+        private final Authorizer<T, M> authorizer;
+        private final boolean integrityCheck;
+
+        AuthorizingDataProvider(DataProvider<T, M> dataProvider, Authorizer<T, M> authorizer) {
+            super(requireNonNull(dataProvider));
+            this.authorizer = requireNonNull(authorizer);
+
+            //inMemory-DataProviders should use an InMemoryAuthorizer,
+            //where an integrity check on the data would not make sense
+            integrityCheck = !dataProvider.isInMemory();
+        }
+
+        @Override
+        public Stream<T> fetch(Query<T, F> t) {
+
+            if (integrityCheck) {
+                return super.fetch(t).filter(this);
+            } else {
+                return super.fetch(t);
+            }
+        }
+
+        @Override
+        protected M getFilter(Query<T, F> query) {
+            return authorizer.asFilter();
+        }
+
+        DataProvider<T, M> getWrappedDataProvider() {
+            return super.dataProvider;
+        }
+
+        @Override
+        public boolean test(T t) {
+            if (!authorizer.isGranted(t)) {
+                //if we get here, filter ( M ) and Authorizer.isGranted() do not work in sync correctly
+                throw new IllegalStateException(
+                        "item " + t + " was not filtered out by " + authorizer + " but permission to it was not granted"
+                );
+            }
+
+            return true;
         }
     }
 }

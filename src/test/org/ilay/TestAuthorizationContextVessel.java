@@ -2,7 +2,7 @@ package org.ilay;
 
 import static java.util.Objects.requireNonNull;
 
-class TestAuthorizationContextVessel implements Vessel<AuthorizationContext> {
+class TestAuthorizationContextVessel implements TestSupport.Vessel<AuthorizationContext> {
 
     private AuthorizationContext authorizationContext;
 

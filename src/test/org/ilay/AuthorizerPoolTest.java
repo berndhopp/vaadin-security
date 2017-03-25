@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class AuthorizerPoolTest {
 
-    static AuthorizerPool createEvaluatorPool(boolean withInt, boolean withString, boolean withObject) {
+    static AuthorizationContext.AuthorizerPool createEvaluatorPool(boolean withInt, boolean withString, boolean withObject) {
         Set<Authorizer> authorizers = new HashSet<>();
 
         if (withInt) {
@@ -30,12 +30,12 @@ public class AuthorizerPoolTest {
             authorizers.add(Authorizers.OBJECT_AUTHORIZER);
         }
 
-        return new AuthorizerPool(authorizers);
+        return new AuthorizationContext.AuthorizerPool(authorizers);
     }
 
     @Test
     public void matching_evaluators_should_be_found() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, true, false);
+        AuthorizationContext.AuthorizerPool authorizerPool = createEvaluatorPool(true, true, false);
         assertEquals(Authorizers.STRING_AUTHORIZER, authorizerPool.getAuthorizer(String.class));
         assertEquals(Authorizers.INTEGER_AUTHORIZER, authorizerPool.getAuthorizer(Integer.class));
     }
@@ -45,7 +45,7 @@ public class AuthorizerPoolTest {
         Set<Authorizer> authorizers = new HashSet<>();
         authorizers.add(Authorizers.FOO_AUTHORIZER);
 
-        AuthorizerPool authorizerPool = new AuthorizerPool(authorizers);
+        AuthorizationContext.AuthorizerPool authorizerPool = new AuthorizationContext.AuthorizerPool(authorizers);
 
         Authorizer<Foo, ?> fooAuthorizer = authorizerPool.getAuthorizer(Foo.class);
 
@@ -59,28 +59,28 @@ public class AuthorizerPoolTest {
 
     @Test
     public void rivaling_evaluators_should_return_best_fit() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, true, true);
+        AuthorizationContext.AuthorizerPool authorizerPool = createEvaluatorPool(true, true, true);
         final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
         assertEquals(Authorizers.STRING_AUTHORIZER, authorizer);
         authorizer.isGranted("");
     }
 
-    @Test(expected = ConflictingEvaluatorsException.class)
+    @Test(expected = AuthorizationContext.AuthorizerPool.ConflictingEvaluatorsException.class)
     public void conflicting_evaluators_should_throw_exception() {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
 
-        new AuthorizerPool(authorizerList);
+        new AuthorizationContext.AuthorizerPool(authorizerList);
     }
 
-    @Test(expected = ConflictingEvaluatorsException.class)
+    @Test(expected = AuthorizationContext.AuthorizerPool.ConflictingEvaluatorsException.class)
     public void undecideable_interfaces_should_throw_exception() {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
         authorizerList.add(Authorizers.BAR_AUTHORIZER);
 
-        final AuthorizerPool authorizerPool = new AuthorizerPool(authorizerList);
+        final AuthorizationContext.AuthorizerPool authorizerPool = new AuthorizationContext.AuthorizerPool(authorizerList);
 
         authorizerPool.getAuthorizer(Serializable.class);
     }
@@ -90,7 +90,7 @@ public class AuthorizerPoolTest {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
 
-        final AuthorizerPool authorizerPool = new AuthorizerPool(authorizerList);
+        final AuthorizationContext.AuthorizerPool authorizerPool = new AuthorizationContext.AuthorizerPool(authorizerList);
 
         final Authorizer<Serializable, ?> authorizer = authorizerPool.getAuthorizer(Serializable.class);
 
@@ -99,7 +99,7 @@ public class AuthorizerPoolTest {
 
     @Test
     public void no_matching_evaluator_should_return_best_fit() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, false, true);
+        AuthorizationContext.AuthorizerPool authorizerPool = createEvaluatorPool(true, false, true);
         final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
         assertNotNull(authorizer);
         authorizer.isGranted("");
@@ -107,7 +107,7 @@ public class AuthorizerPoolTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void no_matching_evaluators_should_throw_illegal_argument() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, true, false);
+        AuthorizationContext.AuthorizerPool authorizerPool = createEvaluatorPool(true, true, false);
         authorizerPool.getAuthorizer(Float.class);
     }
 

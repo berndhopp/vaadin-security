@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TestSessionInitNotifierSupplier implements SessionInitNotifier, Supplier<SessionInitNotifier> {
+public class TestSessionInitNotifierSupplier implements TestSupport.SessionInitNotifier, Supplier<TestSupport.SessionInitNotifier> {
 
     private List<SessionInitListener> sessionInitListeners = new ArrayList<>();
 
     @Override
-    public SessionInitNotifier get() {
+    public TestSupport.SessionInitNotifier get() {
         return this;
     }
 
