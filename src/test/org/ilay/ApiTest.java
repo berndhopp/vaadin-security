@@ -2,6 +2,7 @@ package org.ilay;
 
 import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Grid;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class ApiTest {
     @Before
@@ -37,9 +39,53 @@ public class ApiTest {
         Authorization.start(authorizers);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void call_without_start_throws_exception() {
-        Authorization.bindComponent(new Button()).to("");
+
+        try {
+            Authorization.bindComponent(new Button()).to("");
+            fail();
+        } catch (IllegalStateException e) {
+        }
+
+        try {
+            Authorization.bindComponents(new Button(), new Button()).to("");
+            fail();
+        } catch (IllegalStateException e) {
+        }
+
+        try {
+            Authorization.bindView(e -> {
+            }).to("");
+            fail();
+        } catch (IllegalStateException e) {
+        }
+
+        try {
+            Authorization.bindViews(e -> {
+            }, e -> {
+            }).to("");
+            fail();
+        } catch (IllegalStateException e) {
+        }
+
+        try {
+            Authorization.bindData(Foo.class, new Grid<>(Foo.class));
+            fail();
+        } catch (IllegalStateException e) {
+        }
+
+        try {
+            Authorization.apply(new Button());
+            fail();
+        } catch (IllegalStateException e) {
+        }
+
+        try {
+            Authorization.applyAll();
+            fail();
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test

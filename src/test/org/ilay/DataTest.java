@@ -62,7 +62,7 @@ public class DataTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "RedundantCast"})
     public void test_in_memory_positive() throws ServiceException {
 
         Grid<Foo> fooGrid = new Grid<>(Foo.class);
@@ -75,7 +75,7 @@ public class DataTest {
 
         assertNotNull(dataProvider);
 
-        List<Foo> items = dataProvider.fetch(new Query(0, 5, new ArrayList<QuerySortOrder>(), null, null)).collect(toList());
+        List<Foo> items = (List<Foo>) dataProvider.fetch(new Query(0, 5, new ArrayList<QuerySortOrder>(), null, null)).collect(toList());
 
         assertThat(items, hasSize(2));
         assertThat(items, hasItem(foo1));
@@ -88,7 +88,7 @@ public class DataTest {
 
         dataProvider = fooGrid.getDataProvider();
 
-        items = dataProvider.fetch(new Query(0, 5, new ArrayList<QuerySortOrder>(), null, null)).collect(toList());
+        items = (List<Foo>) dataProvider.fetch(new Query(0, 5, new ArrayList<QuerySortOrder>(), null, null)).collect(toList());
 
         assertThat(items, hasSize(3));
         assertThat(items, hasItem(foo1));
