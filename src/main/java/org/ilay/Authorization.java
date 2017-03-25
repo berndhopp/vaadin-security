@@ -5,10 +5,15 @@ import com.vaadin.data.HasItems;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 
+import org.ilay.api.Authorizer;
+
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
@@ -387,5 +392,166 @@ public final class Authorization {
         final String state = navigator.getState();
         navigator.navigateTo("");
         navigator.navigateTo(state);
+    }
+
+    public static class ComponentBind {
+
+        private final Component[] components;
+
+        ComponentBind(Component[] components) {
+            requireNonNull(components);
+            if (components.length == 0) {
+                throw new IllegalArgumentException("components must not be empty");
+            }
+
+            this.components = components;
+        }
+
+        public void to(Object... permissions) {
+            requireNonNull(permissions);
+            if (permissions.length == 0) {
+                throw new IllegalArgumentException("one ore more permissions needed");
+            }
+
+            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+            final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+
+            for (Component component : components) {
+
+                Collection<Object> currentPermissions = componentsToPermissions.get(component);
+
+                final Set<Object> newPermissions = new HashSet<>(asList(permissions));
+
+                if (currentPermissions == null) {
+                    componentsToPermissions.put(component, newPermissions);
+                } else {
+                    currentPermissions.addAll(newPermissions);
+                }
+            }
+
+            apply(components, authorizationContext);
+        }
+    }
+
+    public static class ComponentUnbind {
+
+        private final Component[] components;
+
+        ComponentUnbind(Component[] components) {
+            requireNonNull(components);
+
+            if (components.length == 0) {
+                throw new IllegalArgumentException("components must not be empty");
+            }
+
+            this.components = components;
+        }
+
+        public void from(Object... permissions) {
+            requireNonNull(permissions);
+            if (permissions.length == 0) {
+                throw new IllegalArgumentException("permissions cannot be empty");
+            }
+
+            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+            final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+
+            for (Component component : components) {
+                final Collection<Object> componentPermissions = componentsToPermissions.get(component);
+
+                for (Object permission : permissions) {
+                    componentPermissions.remove(permission);
+                }
+            }
+
+            apply(components, authorizationContext);
+        }
+
+        public void fromAll() {
+            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+            final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+
+            for (Component component : components) {
+                componentsToPermissions.remove(component);
+                component.setVisible(true);
+            }
+        }
+    }
+
+    public static class ViewUnbind {
+
+        private final View[] views;
+
+        ViewUnbind(View[] views) {
+            requireNonNull(views);
+
+            if (views.length == 0) {
+                throw new IllegalArgumentException("components must not be empty");
+            }
+
+            this.views = views;
+        }
+
+        public void from(Object... permissions) {
+            requireNonNull(permissions);
+            Check.arg(permissions.length != 0, "permissions cannot be empty");
+
+            Collection<Object> permissionsCollection = asList(permissions);
+
+            final Map<View, Set<Object>> viewsToPermissions = AuthorizationContext
+                    .getCurrent()
+                    .getViewsToPermissions();
+
+            stream(views)
+                    .map(viewsToPermissions::get)
+                    .filter(p -> p != null)
+                    .forEach(p -> p.removeAll(permissionsCollection));
+        }
+
+        public void fromAll() {
+            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+            final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+
+            for (View view : views) {
+                viewsToPermissions.remove(view);
+            }
+        }
+    }
+
+    static class ViewBind {
+        private final View[] views;
+
+        ViewBind(View[] views) {
+            requireNonNull(views);
+            if (views.length == 0) {
+                throw new IllegalArgumentException("views must not be empty");
+            }
+
+            this.views = views;
+        }
+
+        public void to(Object... permissions) {
+            requireNonNull(permissions);
+
+            if (permissions.length == 0) {
+                throw new IllegalArgumentException("one ore more permissions needed");
+            }
+
+            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+
+            final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+
+            for (View view : views) {
+                final Set<Object> currentPermissions = viewsToPermissions.get(view);
+
+                final Set<Object> newPermissions = new HashSet<>(asList(permissions));
+
+                if (currentPermissions == null) {
+                    viewsToPermissions.put(view, newPermissions);
+                } else {
+                    currentPermissions.addAll(newPermissions);
+                }
+            }
+        }
     }
 }

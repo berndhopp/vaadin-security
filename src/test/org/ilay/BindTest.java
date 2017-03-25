@@ -6,6 +6,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
 import org.hamcrest.Matchers;
+import org.ilay.api.Authorizer;
 import org.junit.Before;
 import org.junit.Test;
 

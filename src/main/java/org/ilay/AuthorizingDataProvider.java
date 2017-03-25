@@ -4,6 +4,8 @@ import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.DataProviderWrapper;
 import com.vaadin.data.provider.Query;
 
+import org.ilay.api.Authorizer;
+
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 

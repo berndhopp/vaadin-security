@@ -6,6 +6,8 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 
+import org.ilay.api.Authorizer;
+
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;

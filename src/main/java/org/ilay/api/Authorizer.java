@@ -1,4 +1,4 @@
-package org.ilay;
+package org.ilay.api;
 
 /**
  * Authorizer is the object responsible of deciding if a certain permission is granted in the current

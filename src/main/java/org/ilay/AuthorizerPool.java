@@ -1,5 +1,7 @@
 package org.ilay;
 
+import org.ilay.api.Authorizer;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

@@ -3,6 +3,8 @@ package org.ilay;
 import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
 
+import org.ilay.api.Authorizer;
+import org.ilay.api.InMemoryAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 

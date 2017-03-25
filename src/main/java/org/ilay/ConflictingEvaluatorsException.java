@@ -1,5 +1,7 @@
 package org.ilay;
 
+import org.ilay.api.Authorizer;
+
 import static java.lang.String.format;
 
 public class ConflictingEvaluatorsException extends RuntimeException {

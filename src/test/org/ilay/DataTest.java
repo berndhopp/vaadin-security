@@ -7,6 +7,8 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Grid;
 
+import org.ilay.api.Authorizer;
+import org.ilay.api.InMemoryAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -1,5 +1,6 @@
 package org.ilay;
 
+import org.ilay.api.Authorizer;
 import org.junit.Test;
 
 import java.io.Serializable;

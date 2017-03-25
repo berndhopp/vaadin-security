@@ -1,4 +1,4 @@
-package org.ilay;
+package org.ilay.api;
 
 import com.vaadin.server.SerializablePredicate;
 

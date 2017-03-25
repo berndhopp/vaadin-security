@@ -3,6 +3,8 @@ package org.ilay;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 
+import org.ilay.api.Authorizer;
+import org.ilay.api.InMemoryAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
