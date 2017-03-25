@@ -217,9 +217,9 @@ class AuthorizationContext implements ViewChangeListener {
             return authorizer;
         }
 
-        public static class ConflictingEvaluatorsException extends RuntimeException {
+        static class ConflictingEvaluatorsException extends RuntimeException {
 
-            public ConflictingEvaluatorsException(Authorizer authorizer1, Authorizer authorizer2, Class permissionClass) {
+            ConflictingEvaluatorsException(Authorizer authorizer1, Authorizer authorizer2, Class permissionClass) {
                 super(
                         format(
                                 "conflicting navigators: %s and %s are both assignable to %s",
