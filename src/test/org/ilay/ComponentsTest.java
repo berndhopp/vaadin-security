@@ -70,7 +70,7 @@ public class ComponentsTest {
         assertFalse(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        Authorization.applyAll();
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -78,7 +78,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.SECRET);
 
-        Authorization.applyAll();
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -86,7 +86,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.TOP_SECRET);
         user.getRoles().add("admin");
-        Authorization.applyAll();
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -98,7 +98,7 @@ public class ComponentsTest {
         assertTrue(button2.isVisible());
         assertTrue(button3.isVisible());
 
-        Authorization.applyAll();
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -106,7 +106,7 @@ public class ComponentsTest {
 
         Authorization.unbindComponent(button3).fromAll();
 
-        Authorization.applyAll();
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -181,7 +181,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.TOP_SECRET);
         user.getRoles().add("admin");
-        Authorization.applyAll();
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -254,6 +254,6 @@ public class ComponentsTest {
 
         button1.setVisible(false);
 
-        Authorization.applyAll();
+        Authorization.rebind();
     }
 }

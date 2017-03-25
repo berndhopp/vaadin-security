@@ -82,7 +82,7 @@ public class ApiTest {
         }
 
         try {
-            Authorization.applyAll();
+            Authorization.rebind();
             fail();
         } catch (IllegalStateException e) {
         }

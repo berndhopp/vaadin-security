@@ -196,41 +196,168 @@ public final class Authorization {
         authorizationContext.bindData(itemClass, hasItems);
     }
 
+    /**
+     * Reverses a {@link Authorization#bindComponents(Component...)} or {@link
+     * Authorization#bindComponent(Component)} operation. No exception is thrown if the {@link
+     * Component} was not bound. <code> Button button = new Button(); Label label = new Label();
+     * Authorization.bindComponents(button, label).to(Permission.ADMIN);
+     *
+     * //...
+     *
+     * Authorization.unbindComponens(button).from(Permission.ADMIN);
+     *
+     * //button is not under authorization anymore
+     *
+     * </code>
+     *
+     * @param component the component to be unbound
+     * @return a {@link ComponentUnbind} for a chained fluent API
+     */
     public static ComponentUnbind unbindComponent(Component component) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(component);
         return unbindComponents(component);
     }
 
+    /**
+     * Reverses a {@link Authorization#bindComponents(Component...)}
+     * or {@link Authorization#bindComponent(Component)} operation.
+     * No exception is thrown if the {@link Component} was not bound.
+     * *
+     * <code>
+     *     Button button = new Button();
+     *     Label label = new Label();
+     *     Authorization.bindComponents(button, label).to(Permission.ADMIN);
+     *
+     *     //...
+     *
+     *     Authorization.unbindComponents(button).from(Permission.ADMIN);
+     *
+     *     //button is not under authorization anymore
+     *
+     * </code>
+     *
+     * @param components the components to be unbound
+     * @return a {@link ComponentUnbind} for a chained fluent API
+     */
     public static ComponentUnbind unbindComponents(Component... components) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.arg(stream(components).allMatch(c -> c != null), "components cannot contain null");
         return new ComponentUnbind(components);
     }
 
+    /**
+     * Reverses a {@link Authorization#bindView(View)}
+     * or {@link Authorization#bindViews(View...)} operation.
+     * No exception is thrown if the {@link View} was not bound.
+     * *
+     * <code>
+     *     View view = createView();
+     *     Authorization.bindView(view).to(Permission.ADMIN);
+     *
+     *     //...
+     *
+     *     Authorization.unbindView(view).from(Permission.ADMIN);
+     *
+     *     //view is not under authorization anymore
+     *
+     * </code>
+     *
+     * @param view the view to be unbound
+     * @return a {@link ViewUnbind} for a chained fluent API
+     */
     public static ViewUnbind unbindView(View view) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
         return unbindViews(view);
     }
 
+
+    /**
+     * Reverses a {@link Authorization#bindView(View)}
+     * or {@link Authorization#bindViews(View...)} operation.
+     * No exception is thrown if the {@link View} was not bound.
+     * *
+     * <code>
+     *     View view1 = createView();
+     *     View view2 = createView();
+     *     Authorization.bindViews(view1, view2).to(Permission.ADMIN);
+     *
+     *     //...
+     *
+     *     Authorization.unbindViews(view1, view2).from(Permission.ADMIN);
+     *
+     *     //views are not under authorization anymore
+     *
+     * </code>
+     *
+     * @param views the view to be unbound
+     * @return a {@link ViewUnbind} for a chained fluent API
+     */
     public static ViewUnbind unbindViews(View... views) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         return new ViewUnbind(views);
     }
 
+    /**
+     * Reverses a {@link Authorization#bindData(Class, HasDataProvider)} operation.
+     * No exception is thrown if the {@link HasDataProvider} was not bound.
+     *
+     * <code>
+     *      Grid{@literal <}Foo{@literal >} fooGrid = new Grid{@literal <}Foo{@literal >}();
+     *
+     *      Authorization.bindData(fooGrid);
+     *
+     *      //foo-items will now only be displayed in the grid,
+     *      //if an Authorizer{@literal <}Foo, ?{@literal >}
+     *      //grants them authorization in the {@link Authorizer#isGranted(Object)}
+     *      //method
+     *
+     *      Authorization.unbindData(fooGrid);
+     *
+     *      //grid is not under authorization anymore
+     * </code>
+     * @param hasDataProvider the HasDataProvider to be unbound
+     */
     public static <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
         return AuthorizationContext.getCurrent().unbindData(hasDataProvider);
     }
 
-    public static void applyAll() {
+    /**
+     * All permissions will be re-evaluated. Call this method when
+     * for example the current users roles change or generally whenever
+     * there is reason to believe that an {@link Authorizer} would now
+     * grant permissions differently than in the past.
+     *
+     * <code>
+     *  User user = createUser();
+     *
+     *  user.setRole(Role.USER);
+     *
+     *  Button button = new Button("admin mode");
+     *
+     *  Authorization.bindComponent(button).to(Role.ADMIN);
+     *
+     *  assert !button.getVisible();
+     *
+     *  user.setRole(Role.ADMIN);
+     *
+     *  assert !button.getVisible();
+     *
+     *  Authorization.rebind();
+     *
+     *  assert button.getVisible();
+     * </code>
+     */
+    public static void rebind() {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         apply(componentsToPermissions, authorizationContext);
     }
 
-    public static void apply(Component... components) {
+    static void apply(Component... components) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(components);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
