@@ -71,11 +71,10 @@ public class ViewChangeListenerTest {
 
     @Test
     public void test_single_permission_should_work() throws ServiceException {
-        user.setClearance(Clearance.NON);
-
         View myView = e -> {
         };
 
+        user.getRoles().clear();
         user.getRoles().add("user");
 
         bindView(myView).to("admin");
