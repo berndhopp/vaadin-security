@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
-public class TestSupport {
+class TestSupport {
     interface NavigatorFacade {
         String getState();
 
