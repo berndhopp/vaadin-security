@@ -7,7 +7,7 @@ import static java.util.Objects.requireNonNull;
 
 class Check {
 
-    static <T extends Collection> T notEmpty(T collection) {
+    static <T extends Collection> T notNullOrEmpty(T collection) {
         requireNonNull(collection);
 
         if (collection.isEmpty()) {
