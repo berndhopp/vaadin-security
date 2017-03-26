@@ -1,5 +1,7 @@
 package org.ilay.api;
 
+import java.util.Optional;
+
 /**
  * Authorizer is the object responsible of deciding if a certain permission is granted in the current
  * context or not. Usually the "current context" is the currently logged in user and it's roles. A
@@ -30,4 +32,13 @@ public interface Authorizer<T, F> {
      * the filter to be used for DataProviders, see {@link com.vaadin.data.provider.DataProvider}
      */
     F asFilter();
+
+    /**
+     * returns the class of the filter if implemented, otherwise Optional.empty()
+     *
+     * @return an {@link Optional} containing the {@link Class} of the filter or Optional.empty()
+     */
+    default Optional<Class<F>> getFilterClass() {
+        return Optional.empty();
+    }
 }
