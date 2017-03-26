@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
-import static org.ilay.CollectionUtil.toSet;
+import static org.ilay.CollectionUtil.toNonEmptySet;
 
 /**
  * <b>Authorization</b> is the main entry point for the ILAY framework.
@@ -407,25 +407,23 @@ public final class Authorization {
 
         ComponentBind(Component[] components) {
             requireNonNull(components);
-            Check.arg(components.length != 0, "components must not be empty");
-
-            this.components = toSet(components);
+            this.components = toNonEmptySet(components);
         }
 
         ComponentBind(Component component) {
             requireNonNull(component);
-            this.components = toSet(component);
+            this.components = Collections.singleton(component);
         }
 
         public void to(Object permission) {
             requireNonNull(permission);
-            internalBind(toSet(permission));
+            internalBind(Collections.singleton(permission));
         }
 
         public void to(Object... permissions) {
             requireNonNull(permissions);
-            Check.arg(permissions.length != 0, "one ore more permissions needed");
-            internalBind(toSet(permissions));
+            final Set<Object> permissionSet = toNonEmptySet(permissions);
+            internalBind(permissionSet);
         }
 
         private void internalBind(Set<Object> permissions) {
@@ -449,31 +447,28 @@ public final class Authorization {
 
         ComponentUnbind(Component[] components) {
             requireNonNull(components);
-            Check.arg(components.length != 0, "components must not be empty");
 
-            this.components = toSet(components);
+            this.components = toNonEmptySet(components);
         }
 
         ComponentUnbind(Component component) {
             requireNonNull(component);
 
-            this.components = toSet(component);
+            this.components = Collections.singleton(component);
         }
 
         public void from(Object permission) {
             requireNonNull(permission);
-
-            unbindInternal(toSet(permission));
+            unbindInternal(Collections.singleton(permission));
         }
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
-            Check.arg(permissions.length != 0, "permissions cannot be empty");
-            unbindInternal(toSet(permissions));
+            final Set<Object> permissionSet = toNonEmptySet(permissions);
+            unbindInternal(permissionSet);
         }
 
         private void unbindInternal(Set<Object> permissions) {
-
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
             final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 
@@ -509,28 +504,28 @@ public final class Authorization {
         ViewUnbind(View[] views) {
             requireNonNull(views);
 
-            Check.arg(views.length != 0, "components must not be empty");
-
-            this.views = toSet(views);
+            this.views = toNonEmptySet(views);
         }
 
         ViewUnbind(View view) {
             requireNonNull(view);
 
-            this.views = toSet(view);
+            this.views = Collections.singleton(view);
         }
 
         public void from(Object permission) {
             requireNonNull(permission);
 
-            unbindInternal(toSet(permission));
+            final Set<Object> singletonSet = Collections.singleton(permission);
+
+            unbindInternal(singletonSet);
         }
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
-            Check.arg(permissions.length != 0, "permissions cannot be empty");
 
-            unbindInternal(toSet(permissions));
+            final Set<Object> permissionSet = toNonEmptySet(permissions);
+            unbindInternal(permissionSet);
         }
 
         private void unbindInternal(Set<Object> permissions) {
@@ -563,9 +558,8 @@ public final class Authorization {
 
         ViewBind(View[] views) {
             requireNonNull(views);
-            Check.arg(views.length != 0, "views must not be empty");
 
-            this.views = toSet(views);
+            this.views = toNonEmptySet(views);
         }
 
         ViewBind(View view) {
@@ -577,14 +571,14 @@ public final class Authorization {
         public void to(Object permission) {
             requireNonNull(permission);
 
-            bindInternal(toSet(permission));
+            bindInternal(Collections.singleton(permission));
         }
 
         public void to(Object... permissions) {
             requireNonNull(permissions);
-            Check.arg(permissions.length != 0, "one ore more permissions needed");
 
-            bindInternal(toSet(permissions));
+            final Set<Object> permissionSet = toNonEmptySet(permissions);
+            bindInternal(permissionSet);
         }
 
         private void bindInternal(Set<Object> permissions) {
