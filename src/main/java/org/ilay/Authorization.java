@@ -195,9 +195,9 @@ public final class Authorization {
      * T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be displayed
      * when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link Authorizer#isGranted(Object)}-method
      * returned true for t. If no {@link Authorizer} for the type T is available, an exception will be thrown.
-     * @param itemClass
-     * @param hasItems
-     * @param <T>
+     * @param itemClass the class of T ( the item's class )
+     * @param hasItems the {@link HasItems} to be bound
+     * @param <T> the Type of the items
      */
     public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
