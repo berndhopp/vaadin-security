@@ -167,7 +167,7 @@ public class ComponentsTest {
         assertFalse(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        Authorization.apply(button1, button2, button3);
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -175,10 +175,10 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.SECRET);
 
-        Authorization.apply(button1, button3);
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
-        assertFalse(button2.isVisible());
+        assertTrue(button2.isVisible());
         assertFalse(button3.isVisible());
 
         user.setClearance(Clearance.TOP_SECRET);
@@ -195,11 +195,11 @@ public class ComponentsTest {
         assertTrue(button2.isVisible());
         assertTrue(button3.isVisible());
 
-        Authorization.apply(button1, button2);
+        Authorization.rebind();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
-        assertTrue(button3.isVisible());
+        assertFalse(button3.isVisible());
     }
 
     @Test(expected = IllegalStateException.class)

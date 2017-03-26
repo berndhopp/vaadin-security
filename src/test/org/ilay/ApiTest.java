@@ -78,12 +78,6 @@ public class ApiTest {
         }
 
         try {
-            Authorization.apply(new Button());
-            fail();
-        } catch (IllegalStateException e) {
-        }
-
-        try {
             Authorization.rebind();
             fail();
         } catch (IllegalStateException e) {

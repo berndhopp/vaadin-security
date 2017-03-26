@@ -10,7 +10,9 @@ import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -114,9 +116,7 @@ public final class Authorization {
     public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
         requireNonNull(evaluatorSupplier);
 
-        if (initialized) {
-            throw new IllegalStateException("start() cannot be called more than once");
-        }
+        Check.state(!initialized, "start() cannot be called more than once");
 
         final TestSupport.SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
 
@@ -142,7 +142,7 @@ public final class Authorization {
     public static ComponentBind bindComponent(Component component) {
         requireNonNull(component);
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        return bindComponents(component);
+        return new ComponentBind(component);
     }
 
     /**
@@ -170,7 +170,7 @@ public final class Authorization {
      */
     public static ViewBind bindView(View view) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        return bindViews(view);
+        return new ViewBind(view);
     }
 
     /**
@@ -226,7 +226,7 @@ public final class Authorization {
     public static ComponentUnbind unbindComponent(Component component) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(component);
-        return unbindComponents(component);
+        return new ComponentUnbind(component);
     }
 
     /**
@@ -279,7 +279,7 @@ public final class Authorization {
     public static ViewUnbind unbindView(View view) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
-        return unbindViews(view);
+        return new ViewUnbind(view);
     }
 
 
@@ -367,20 +367,19 @@ public final class Authorization {
         apply(componentsToPermissions, authorizationContext);
     }
 
-    static void apply(Component... components) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+    static void apply(Collection<Component> components, AuthorizationContext authorizationContext) {
         requireNonNull(components);
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        apply(components, authorizationContext);
-    }
+        requireNonNull(authorizationContext);
 
-    static void apply(Component[] components, AuthorizationContext authorizationContext){
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-        final Map<Component, Set<Object>> reducedComponentsToPermissions = stream(components).collect(toMap(c -> c, componentsToPermissions::get));
+        final Map<Component, Set<Object>> reducedComponentsToPermissions = components.stream().collect(toMap(c -> c, componentsToPermissions::get));
         apply(reducedComponentsToPermissions, authorizationContext);
     }
 
     static void apply(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
+        requireNonNull(componentsToPermissions);
+        requireNonNull(authorizationContext);
+
         authorizationContext.applyComponents(componentsToPermissions);
         authorizationContext.applyData();
         reEvaluateCurrentViewAccess();
@@ -405,22 +404,23 @@ public final class Authorization {
      */
     public static class ComponentBind {
 
-        private final Component[] components;
+        private final Collection<Component> components;
 
         ComponentBind(Component[] components) {
             requireNonNull(components);
-            if (components.length == 0) {
-                throw new IllegalArgumentException("components must not be empty");
-            }
+            Check.arg(components.length != 0, "components must not be empty");
 
-            this.components = components;
+            this.components = Arrays.asList(components);
+        }
+
+        ComponentBind(Component component) {
+            requireNonNull(component);
+            this.components = Collections.singleton(component);
         }
 
         public void to(Object... permissions) {
             requireNonNull(permissions);
-            if (permissions.length == 0) {
-                throw new IllegalArgumentException("one ore more permissions needed");
-            }
+            Check.arg(permissions.length != 0, "one ore more permissions needed");
 
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
             final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
@@ -448,34 +448,34 @@ public final class Authorization {
      */
     public static class ComponentUnbind {
 
-        private final Component[] components;
+        private final Collection<Component> components;
 
         ComponentUnbind(Component[] components) {
             requireNonNull(components);
+            Check.arg(components.length != 0, "components must not be empty");
 
-            if (components.length == 0) {
-                throw new IllegalArgumentException("components must not be empty");
-            }
+            this.components = Arrays.asList(components);
+        }
 
-            this.components = components;
+        ComponentUnbind(Component component) {
+            requireNonNull(component);
+
+            this.components = Collections.singleton(component);
         }
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
-            if (permissions.length == 0) {
-                throw new IllegalArgumentException("permissions cannot be empty");
-            }
+            Check.arg(permissions.length != 0, "permissions cannot be empty");
 
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
             final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
+            final Collection<Object> permissionCollection = Arrays.asList(permissions);
 
-            for (Component component : components) {
-                final Collection<Object> componentPermissions = componentsToPermissions.get(component);
-
-                for (Object permission : permissions) {
-                    componentPermissions.remove(permission);
-                }
-            }
+            components
+                    .stream()
+                    .map(componentsToPermissions::get)
+                    .filter(componentPermissions -> componentPermissions != null)
+                    .forEach(componentPermissions -> componentPermissions.removeAll(permissionCollection));
 
             apply(components, authorizationContext);
         }
@@ -498,17 +498,22 @@ public final class Authorization {
      */
     public static class ViewUnbind {
 
-        private final View[] views;
+        private final Collection<View> views;
 
         ViewUnbind(View[] views) {
             requireNonNull(views);
 
-            if (views.length == 0) {
-                throw new IllegalArgumentException("components must not be empty");
-            }
+            Check.arg(views.length != 0, "components must not be empty");
 
-            this.views = views;
+            this.views = Arrays.asList(views);
         }
+
+        ViewUnbind(View view) {
+            requireNonNull(view);
+
+            this.views = Collections.singleton(view);
+        }
+
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
@@ -520,19 +525,18 @@ public final class Authorization {
                     .getCurrent()
                     .getViewsToPermissions();
 
-            stream(views)
+            views
+                    .stream()
                     .map(viewsToPermissions::get)
-                    .filter(p -> p != null)
-                    .forEach(p -> p.removeAll(permissionsCollection));
+                    .filter(viewPermissions -> viewPermissions != null)
+                    .forEach(viewPermissions -> viewPermissions.removeAll(permissionsCollection));
         }
 
         public void fromAll() {
-            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-            final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
+            final Map<View, Set<Object>> viewsToPermissions = AuthorizationContext.getCurrent()
+                    .getViewsToPermissions();
 
-            for (View view : views) {
-                viewsToPermissions.remove(view);
-            }
+            views.forEach(viewsToPermissions::remove);
         }
     }
 
@@ -541,23 +545,25 @@ public final class Authorization {
      * @see {@link Authorization#bindViews(View...)}
      */
     static class ViewBind {
-        private final View[] views;
+        private final Collection<View> views;
 
         ViewBind(View[] views) {
             requireNonNull(views);
-            if (views.length == 0) {
-                throw new IllegalArgumentException("views must not be empty");
-            }
+            Check.arg(views.length != 0, "views must not be empty");
 
-            this.views = views;
+            this.views = Arrays.asList(views);
+        }
+
+        ViewBind(View view) {
+            requireNonNull(view);
+
+            this.views = Collections.singleton(view);
         }
 
         public void to(Object... permissions) {
             requireNonNull(permissions);
 
-            if (permissions.length == 0) {
-                throw new IllegalArgumentException("one ore more permissions needed");
-            }
+            Check.arg(permissions.length != 0, "one ore more permissions needed");
 
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -612,12 +618,11 @@ public final class Authorization {
 
         @Override
         public boolean test(T t) {
-            if (!authorizer.isGranted(t)) {
-                //if we get here, filter ( M ) and Authorizer.isGranted() do not work in sync correctly
-                throw new IllegalStateException(
-                        "item " + t + " was not filtered out by " + authorizer + " but permission to it was not granted"
-                );
-            }
+            Check.state(
+                    authorizer.isGranted(t),
+                    "item %s was not included by %s's filter, but permission to it was not granted by isGranted() method",
+                    t, authorizer
+            );
 
             return true;
         }
