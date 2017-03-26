@@ -363,19 +363,19 @@ public final class Authorization {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-        apply(componentsToPermissions, authorizationContext);
+        rebind(componentsToPermissions, authorizationContext);
     }
 
-    static void apply(Collection<Component> components, AuthorizationContext authorizationContext) {
+    static void rebind(Collection<Component> components, AuthorizationContext authorizationContext) {
         requireNonNull(components);
         requireNonNull(authorizationContext);
 
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         final Map<Component, Set<Object>> reducedComponentsToPermissions = components.stream().collect(toMap(c -> c, componentsToPermissions::get));
-        apply(reducedComponentsToPermissions, authorizationContext);
+        rebind(reducedComponentsToPermissions, authorizationContext);
     }
 
-    static void apply(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
+    static void rebind(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
         requireNonNull(componentsToPermissions);
         requireNonNull(authorizationContext);
 
@@ -435,7 +435,7 @@ public final class Authorization {
                 authorizationContext.addPermissions(component, permissions);
             }
 
-            apply(components, authorizationContext);
+            rebind(components, authorizationContext);
         }
     }
 
@@ -483,7 +483,7 @@ public final class Authorization {
                     .filter(Objects::nonNull)
                     .forEach(componentPermissions -> componentPermissions.removeAll(permissions));
 
-            apply(components, authorizationContext);
+            rebind(components, authorizationContext);
         }
 
         public void fromAll() {

@@ -225,7 +225,11 @@ class AuthorizationContext implements ViewChangeListener {
 
             for (Authorizer<?, ?> anAuthorizer : authorizers.values()) {
 
-                //TODO this needs explanation, as soon as I can wrap my own head around it
+                /**
+                 * in a sentence: a match is found if either the permission's class is an interface
+                 * that the authorizer's permission-class implements or, if the permission's class
+                 * is not an interface, it is a subclass of the authorizer's permission-class
+                 */
                 boolean match = permissionClass.isInterface()
                         ? permissionClass.isAssignableFrom(anAuthorizer.getPermissionClass())
                         : anAuthorizer.getPermissionClass().isAssignableFrom(permissionClass);
