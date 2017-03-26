@@ -67,6 +67,7 @@ class AuthorizationContext implements ViewChangeListener {
         dataProviders.add(new WeakReference<>(newDataProvider));
     }
 
+    @SuppressWarnings("unchecked")
     <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
 
@@ -227,8 +228,8 @@ class AuthorizationContext implements ViewChangeListener {
 
                 /**
                  * in a sentence: a match is found if either the permission's class is an interface
-                 * that the authorizer's permission-class implements or, if the permission's class
-                 * is not an interface, it is a subclass of the authorizer's permission-class
+                 * that the authorizer's permission-class implements or if the permission's class
+                 * is a subclass of the authorizer's permission-class
                  */
                 boolean match = permissionClass.isInterface()
                         ? permissionClass.isAssignableFrom(anAuthorizer.getPermissionClass())
