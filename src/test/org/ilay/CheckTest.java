@@ -11,12 +11,12 @@ public class CheckTest {
 
     @Test(expected = NullPointerException.class)
     public void null_should_fail() {
-        Check.notEmpty(null);
+        Check.notNullOrEmpty(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void empty_should_fail() {
-        Check.notEmpty(new ArrayList<>());
+        Check.notNullOrEmpty(new ArrayList<>());
     }
 
     @Test
@@ -24,7 +24,7 @@ public class CheckTest {
         ArrayList<Integer> integers = new ArrayList<>();
         integers.add(1);
 
-        Check.notEmpty(integers);
+        Check.notNullOrEmpty(integers);
     }
 
     @Test

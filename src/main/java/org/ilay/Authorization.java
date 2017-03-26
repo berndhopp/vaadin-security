@@ -100,7 +100,7 @@ public final class Authorization {
      *                    Class}.
      */
     public static void start(Set<Authorizer> authorizers) {
-        Check.notEmpty(authorizers);
+        Check.notNullOrEmpty(authorizers);
         start(() -> authorizers);
     }
 
@@ -121,7 +121,11 @@ public final class Authorization {
 
         sessionInitNotifier.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
-                e -> AuthorizationContext.init(Check.notEmpty(evaluatorSupplier.get()))
+                e -> {
+                    final Set<Authorizer> authorizers = evaluatorSupplier.get();
+                    Check.notNullOrEmpty(authorizers);
+                    AuthorizationContext.init(authorizers);
+                }
         );
 
         initialized = true;
@@ -348,15 +352,16 @@ public final class Authorization {
      *
      *  Authorization.bindComponent(button).to(Role.ADMIN);
      *
-     *  assert !button.getVisible();
+     *  // button.getVisible() == false
      *
      *  user.setRole(Role.ADMIN);
      *
-     *  assert !button.getVisible();
+     *  // button.getVisible() == false
      *
      *  Authorization.rebind();
      *
-     *  assert button.getVisible();
+     *  // button.getVisible() == true
+     *
      * </code>
      */
     public static void rebind() {
@@ -491,7 +496,6 @@ public final class Authorization {
             }
         }
     }
-
 
     /**
      * @see {@link Authorization#unbindView(View)}
