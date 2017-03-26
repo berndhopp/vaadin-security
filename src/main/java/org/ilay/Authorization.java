@@ -10,20 +10,19 @@ import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
+import static org.ilay.CollectionUtil.toSet;
 
 /**
  * <b>Authorization</b> is the main entry point for the ILAY framework.
@@ -404,38 +403,36 @@ public final class Authorization {
      */
     public static class ComponentBind {
 
-        private final Collection<Component> components;
+        private final Set<Component> components;
 
         ComponentBind(Component[] components) {
             requireNonNull(components);
             Check.arg(components.length != 0, "components must not be empty");
 
-            this.components = Arrays.asList(components);
+            this.components = toSet(components);
         }
 
         ComponentBind(Component component) {
             requireNonNull(component);
-            this.components = Collections.singleton(component);
+            this.components = toSet(component);
+        }
+
+        public void to(Object permission) {
+            requireNonNull(permission);
+            internalBind(toSet(permission));
         }
 
         public void to(Object... permissions) {
             requireNonNull(permissions);
             Check.arg(permissions.length != 0, "one ore more permissions needed");
+            internalBind(toSet(permissions));
+        }
 
+        private void internalBind(Set<Object> permissions) {
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-            final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 
             for (Component component : components) {
-
-                Collection<Object> currentPermissions = componentsToPermissions.get(component);
-
-                final Set<Object> newPermissions = new HashSet<>(asList(permissions));
-
-                if (currentPermissions == null) {
-                    componentsToPermissions.put(component, newPermissions);
-                } else {
-                    currentPermissions.addAll(newPermissions);
-                }
+                authorizationContext.addPermissions(component, permissions);
             }
 
             apply(components, authorizationContext);
@@ -448,34 +445,43 @@ public final class Authorization {
      */
     public static class ComponentUnbind {
 
-        private final Collection<Component> components;
+        private final Set<Component> components;
 
         ComponentUnbind(Component[] components) {
             requireNonNull(components);
             Check.arg(components.length != 0, "components must not be empty");
 
-            this.components = Arrays.asList(components);
+            this.components = toSet(components);
         }
 
         ComponentUnbind(Component component) {
             requireNonNull(component);
 
-            this.components = Collections.singleton(component);
+            this.components = toSet(component);
+        }
+
+        public void from(Object permission) {
+            requireNonNull(permission);
+
+            unbindInternal(toSet(permission));
         }
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
             Check.arg(permissions.length != 0, "permissions cannot be empty");
+            unbindInternal(toSet(permissions));
+        }
+
+        private void unbindInternal(Set<Object> permissions) {
 
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
             final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-            final Collection<Object> permissionCollection = Arrays.asList(permissions);
 
             components
                     .stream()
                     .map(componentsToPermissions::get)
-                    .filter(componentPermissions -> componentPermissions != null)
-                    .forEach(componentPermissions -> componentPermissions.removeAll(permissionCollection));
+                    .filter(Objects::nonNull)
+                    .forEach(componentPermissions -> componentPermissions.removeAll(permissions));
 
             apply(components, authorizationContext);
         }
@@ -498,28 +504,36 @@ public final class Authorization {
      */
     public static class ViewUnbind {
 
-        private final Collection<View> views;
+        private final Set<View> views;
 
         ViewUnbind(View[] views) {
             requireNonNull(views);
 
             Check.arg(views.length != 0, "components must not be empty");
 
-            this.views = Arrays.asList(views);
+            this.views = toSet(views);
         }
 
         ViewUnbind(View view) {
             requireNonNull(view);
 
-            this.views = Collections.singleton(view);
+            this.views = toSet(view);
         }
 
+        public void from(Object permission) {
+            requireNonNull(permission);
+
+            unbindInternal(toSet(permission));
+        }
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
             Check.arg(permissions.length != 0, "permissions cannot be empty");
 
-            Collection<Object> permissionsCollection = asList(permissions);
+            unbindInternal(toSet(permissions));
+        }
+
+        private void unbindInternal(Set<Object> permissions) {
 
             final Map<View, Set<Object>> viewsToPermissions = AuthorizationContext
                     .getCurrent()
@@ -528,8 +542,8 @@ public final class Authorization {
             views
                     .stream()
                     .map(viewsToPermissions::get)
-                    .filter(viewPermissions -> viewPermissions != null)
-                    .forEach(viewPermissions -> viewPermissions.removeAll(permissionsCollection));
+                    .filter(Objects::nonNull)
+                    .forEach(viewPermissions -> viewPermissions.removeAll(permissions));
         }
 
         public void fromAll() {
@@ -545,13 +559,13 @@ public final class Authorization {
      * @see {@link Authorization#bindViews(View...)}
      */
     static class ViewBind {
-        private final Collection<View> views;
+        private final Set<View> views;
 
         ViewBind(View[] views) {
             requireNonNull(views);
             Check.arg(views.length != 0, "views must not be empty");
 
-            this.views = Arrays.asList(views);
+            this.views = toSet(views);
         }
 
         ViewBind(View view) {
@@ -560,25 +574,24 @@ public final class Authorization {
             this.views = Collections.singleton(view);
         }
 
+        public void to(Object permission) {
+            requireNonNull(permission);
+
+            bindInternal(toSet(permission));
+        }
+
         public void to(Object... permissions) {
             requireNonNull(permissions);
-
             Check.arg(permissions.length != 0, "one ore more permissions needed");
 
+            bindInternal(toSet(permissions));
+        }
+
+        private void bindInternal(Set<Object> permissions) {
             final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-            final Map<View, Set<Object>> viewsToPermissions = authorizationContext.getViewsToPermissions();
-
             for (View view : views) {
-                final Set<Object> currentPermissions = viewsToPermissions.get(view);
-
-                final Set<Object> newPermissions = new HashSet<>(asList(permissions));
-
-                if (currentPermissions == null) {
-                    viewsToPermissions.put(view, newPermissions);
-                } else {
-                    currentPermissions.addAll(newPermissions);
-                }
+                authorizationContext.addPermissions(view, permissions);
             }
         }
     }

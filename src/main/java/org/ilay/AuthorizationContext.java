@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -133,6 +134,34 @@ class AuthorizationContext implements ViewChangeListener {
     boolean evaluate(Object permission) {
         final Authorizer authorizer = authorizerPool.getAuthorizer(permission.getClass());
         return authorizer.isGranted(permission);
+    }
+
+    void addPermissions(Component component, Set<Object> permissions) {
+        requireNonNull(component);
+        requireNonNull(permissions);
+
+        Set<Object> currentPermissions = componentsToPermissions.get(component);
+
+        if (currentPermissions == null) {
+            Set<Object> newPermissions = new CopyOnWriteArraySet<>(permissions);
+            componentsToPermissions.put(component, newPermissions);
+        } else {
+            currentPermissions.addAll(permissions);
+        }
+    }
+
+    void addPermissions(View view, Set<Object> permissions) {
+        requireNonNull(view);
+        requireNonNull(permissions);
+
+        final Set<Object> currentPermissions = viewsToPermissions.get(view);
+
+        if (currentPermissions == null) {
+            Set<Object> newPermissions = new CopyOnWriteArraySet<>(permissions);
+            viewsToPermissions.put(view, newPermissions);
+        } else {
+            currentPermissions.addAll(permissions);
+        }
     }
 
     void ensureViewChangeListenerRegistered() {

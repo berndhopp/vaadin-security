@@ -5,7 +5,6 @@ import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
-import org.hamcrest.Matchers;
 import org.ilay.api.Authorizer;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,8 +14,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.ilay.Authorization.bindComponent;
 import static org.ilay.Authorization.unbindComponent;
+import static org.ilay.Authorization.unbindComponents;
 import static org.ilay.Authorization.unbindView;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -153,14 +154,14 @@ public class BindTest {
 
         assertNotNull(permissions1);
         assertEquals(4, permissions1.size());
-        assertThat(permissions1, Matchers.containsInAnyOrder("hello", "world", 23, "foo"));
+        assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo"));
 
         //check that permissions of component2 are as expected
         Collection<Object> permissions2 = componentsToPermissions.get(component2);
 
         assertNotNull(permissions2);
         assertEquals(4, permissions2.size());
-        assertThat(permissions2, Matchers.containsInAnyOrder("hello", "world", 23, "bar"));
+        assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
         bindComponent(component).to(42);
@@ -169,7 +170,7 @@ public class BindTest {
 
         assertNotNull(permissions1);
         assertEquals(5, permissions1.size());
-        assertThat(permissions1, Matchers.containsInAnyOrder("hello", "world", 23, "foo", 42));
+        assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo", 42));
 
         //remove some permissions from component1 and check they are gone
 
@@ -179,7 +180,15 @@ public class BindTest {
 
         assertNotNull(permissions1);
         assertEquals(3, permissions1.size());
-        assertThat(permissions1, Matchers.containsInAnyOrder("world", "foo", 42));
+        assertThat(permissions1, containsInAnyOrder("world", "foo", 42));
+
+        unbindComponents(component).from("world");
+
+        permissions1 = componentsToPermissions.get(component);
+
+        assertNotNull(permissions1);
+        assertEquals(2, permissions1.size());
+        assertThat(permissions1, containsInAnyOrder("foo", 42));
 
         unbindComponent(component).fromAll();
 
@@ -219,14 +228,14 @@ public class BindTest {
 
         assertNotNull(permissions1);
         assertEquals(4, permissions1.size());
-        assertThat(permissions1, Matchers.containsInAnyOrder("hello", "world", 23, "foo"));
+        assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo"));
 
         //check that permissions of view2 are as expected
         Collection<Object> permissions2 = viewsToPermissions.get(view2);
 
         assertNotNull(permissions2);
         assertEquals(4, permissions2.size());
-        assertThat(permissions2, Matchers.containsInAnyOrder("hello", "world", 23, "bar"));
+        assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to view 1 and check that it is there
         Authorization.bindView(view).to(42);
@@ -235,7 +244,7 @@ public class BindTest {
 
         assertNotNull(permissions1);
         assertEquals(5, permissions1.size());
-        assertThat(permissions1, Matchers.containsInAnyOrder("hello", "world", 23, "foo", 42));
+        assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo", 42));
 
         //remove some permissions from view1 and check they are gone
 
@@ -245,7 +254,15 @@ public class BindTest {
 
         assertNotNull(permissions1);
         assertEquals(3, permissions1.size());
-        assertThat(permissions1, Matchers.containsInAnyOrder("world", "foo", 42));
+        assertThat(permissions1, containsInAnyOrder("world", "foo", 42));
+
+        unbindView(view).from("world");
+
+        permissions1 = viewsToPermissions.get(view);
+
+        assertNotNull(permissions1);
+        assertEquals(2, permissions1.size());
+        assertThat(permissions1, containsInAnyOrder("foo", 42));
 
         unbindView(view).fromAll();
 
