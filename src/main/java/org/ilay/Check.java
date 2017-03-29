@@ -8,13 +8,30 @@ import static java.util.Objects.requireNonNull;
 class Check {
 
     static <T extends Collection> T notNullOrEmpty(T collection) {
-        requireNonNull(collection);
-
-        if (collection.isEmpty()) {
-            throw new IllegalArgumentException("collection cannot be empty");
+        if (collection == null || collection.isEmpty()) {
+            throw new IllegalArgumentException("collection must not be null or empty");
         }
 
         return collection;
+    }
+
+    static <T> T[] arraySanity(T[] array) {
+        requireNonNull(array, "array cannot be null");
+        arg(array.length > 0, "array must nor be empty");
+
+        for (T t : array) {
+            requireNonNull(t, "elements in array must not be null");
+        }
+
+        return array;
+    }
+
+    static String notNullOrEmpty(String input) {
+        if (input == null || input.isEmpty()) {
+            throw new IllegalArgumentException("input String must not be null or empty");
+        }
+
+        return input;
     }
 
     static void arg(boolean condition, String message, Object... parameters) {

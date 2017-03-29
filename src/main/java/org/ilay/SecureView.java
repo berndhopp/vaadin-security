@@ -6,41 +6,52 @@ import com.vaadin.ui.CustomComponent;
 
 import java.util.logging.Logger;
 
-public abstract class AuthorizedView<T> extends CustomComponent implements View {
+import static java.util.Objects.requireNonNull;
+
+/**
+ * @author Bernd Hopp
+ */
+public abstract class SecureView<T> extends CustomComponent implements View {
 
     protected abstract T parse(String parameters) throws ParseException;
+
+    protected abstract void onSuccessfulAuthorization(T t);
 
     protected void onFailedAuthorization(T t) {
         Authorization.navigatorSupplier.get().navigateTo("");
     }
-
-    protected abstract void onSuccessfulAuthorization(T t);
 
     protected void onParseException(ParseException parseException) {
         Logger.getAnonymousLogger().warning(parseException.getMessage());
     }
 
     public final void enter(ViewChangeEvent event) {
+
+        final String parameters = event.getParameters();
+
+        Check.notNullOrEmpty(parameters);
+
+        final T t;
+
         try {
-            T t = parse(event.getParameters());
-
-            if (t == null) {
-                throw new NullPointerException("AuthorizedView.parse() must not return null, throw ParseException instead");
-            }
-
-            final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-
-            if (authorizationContext.evaluate(t)) {
-                onSuccessfulAuthorization(t);
-            } else {
-                onFailedAuthorization(t);
-            }
+            t = parse(parameters);
         } catch (ParseException e) {
             onParseException(e);
+            return;
+        }
+
+        requireNonNull(t, "method SecureView#parse(T) must not return null, throw ParseException instead");
+
+        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+
+        if (authorizationContext.evaluate(t)) {
+            onSuccessfulAuthorization(t);
+        } else {
+            onFailedAuthorization(t);
         }
     }
 
-    protected static class ParseException extends Exception {
+    public static class ParseException extends Exception {
         public ParseException() {
         }
 

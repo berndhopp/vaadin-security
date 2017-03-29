@@ -15,8 +15,9 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class AuthorizedViewTest {
+public class SecureViewTest {
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException {
@@ -43,13 +44,15 @@ public class AuthorizedViewTest {
 
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
-        AuthorizedView<Foo> authorizedView = Mockito.spy(new FooAuthorizedView(true));
+        SecureView<Foo> secureView = Mockito.spy(new FooSecureView(true));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
-        authorizedView.enter(viewChangeEvent);
+        when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
 
-        verify(authorizedView, times(1)).onSuccessfulAuthorization(any());
+        secureView.enter(viewChangeEvent);
+
+        verify(secureView, times(1)).onSuccessfulAuthorization(any());
     }
 
     @Test
@@ -72,29 +75,33 @@ public class AuthorizedViewTest {
 
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
-        AuthorizedView<Foo> authorizedView = Mockito.spy(new FooAuthorizedView(true));
+        SecureView<Foo> secureView = Mockito.spy(new FooSecureView(true));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
-        authorizedView.enter(viewChangeEvent);
+        when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
 
-        verify(authorizedView, times(1)).onFailedAuthorization(any());
+        secureView.enter(viewChangeEvent);
+
+        verify(secureView, times(1)).onFailedAuthorization(any());
     }
 
     @Test
     public void test_parseException() {
-        AuthorizedView<Foo> authorizedView = Mockito.spy(new FooAuthorizedView(false));
+        SecureView<Foo> secureView = Mockito.spy(new FooSecureView(false));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
-        authorizedView.enter(viewChangeEvent);
+        when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
 
-        verify(authorizedView, times(1)).onParseException(any());
+        secureView.enter(viewChangeEvent);
+
+        verify(secureView, times(1)).onParseException(any());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void test_null_parse() {
-        AuthorizedView<Foo> authorizedView = new FooAuthorizedView(false) {
+        SecureView<Foo> secureView = new FooSecureView(false) {
             @Override
             protected Foo parse(String parameters) throws ParseException {
                 return null;
@@ -103,6 +110,6 @@ public class AuthorizedViewTest {
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
-        authorizedView.enter(viewChangeEvent);
+        secureView.enter(viewChangeEvent);
     }
 }

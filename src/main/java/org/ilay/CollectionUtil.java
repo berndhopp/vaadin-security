@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import static java.util.Arrays.asList;
 
 final class CollectionUtil {
 
@@ -16,5 +19,11 @@ final class CollectionUtil {
         Set<T> set = new HashSet<>(array.length);
         Collections.addAll(set, array);
         return set;
+    }
+
+    static <T> Set<T> toNonEmptyCOWSet(T[] array) {
+        Objects.requireNonNull(array);
+        Check.arg(array.length != 0, "array must not be empty");
+        return new CopyOnWriteArraySet<>(asList(array));
     }
 }

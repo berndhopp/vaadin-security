@@ -11,6 +11,11 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * a couple of abstractions to support testing
+ *
+ * @author Bernd Hopp
+ */
 class TestSupport {
     interface NavigatorFacade {
         String getState();

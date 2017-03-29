@@ -3,20 +3,31 @@ package org.ilay;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class CheckTest {
 
-    @Test(expected = NullPointerException.class)
-    public void null_should_fail() {
-        Check.notNullOrEmpty(null);
+    @Test(expected = IllegalArgumentException.class)
+    public void null_collection_should_fail() {
+        Check.notNullOrEmpty((Collection) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void empty_should_fail() {
+    public void empty_collection_should_fail() {
         Check.notNullOrEmpty(new ArrayList<>());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void null_string_should_fail() {
+        Check.notNullOrEmpty((String) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void empty_string_should_fail() {
+        Check.notNullOrEmpty("");
     }
 
     @Test

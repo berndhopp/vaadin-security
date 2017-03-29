@@ -23,6 +23,13 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * the {@link com.vaadin.server.VaadinSession}-bound AuthorizationContext contains all bindings of
+ * {@link View}s and {@link Component}s to permissions, the set of {@link Authorizer}s and some more
+ * contextual data.
+ *
+ * @author Bernd Hopp
+ */
 class AuthorizationContext implements ViewChangeListener {
 
     static TestSupport.Vessel<AuthorizationContext> currentInstanceVessel = new TestSupport.ProductionAuthorizationContextVessel();
@@ -43,7 +50,7 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     static AuthorizationContext getCurrent() {
-        return currentInstanceVessel.get();
+        return requireNonNull(currentInstanceVessel.get());
     }
 
     Map<Component, Set<Object>> getComponentsToPermissions() {
@@ -61,7 +68,7 @@ class AuthorizationContext implements ViewChangeListener {
 
         final Authorizer<T, F> authorizer = authorizerPool.getAuthorizer(itemClass);
         final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
-        final DataProvider<T, F> newDataProvider = new Authorization.AuthorizingDataProvider<>(oldDataProvider, authorizer);
+        final DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
 
         hasDataProvider.setDataProvider(newDataProvider);
 
@@ -78,8 +85,8 @@ class AuthorizationContext implements ViewChangeListener {
             return false;
         }
 
-        if (dataProvider instanceof Authorization.AuthorizingDataProvider) {
-            Authorization.AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (Authorization.AuthorizingDataProvider<T, ?, ?>) dataProvider;
+        if (dataProvider instanceof AuthorizingDataProvider) {
+            AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (AuthorizingDataProvider<T, ?, ?>) dataProvider;
 
             final DataProvider<T, ?> wrappedDataProvider = authorizingDataProvider.getWrappedDataProvider();
 
