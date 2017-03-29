@@ -13,14 +13,12 @@ final class CollectionUtil {
     }
 
     static <T> Set<T> toNonEmptySet(T[] array) {
-        Check.arraySanity(array);
         Set<T> set = new HashSet<>(array.length);
         Collections.addAll(set, array);
         return set;
     }
 
     static <T> Set<T> toNonEmptyCOWSet(T[] array) {
-        Check.arraySanity(array);
         List<T> tList = Arrays.asList(array);
         return new CopyOnWriteArraySet<>(tList);
     }

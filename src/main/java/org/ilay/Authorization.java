@@ -412,7 +412,6 @@ public final class Authorization {
         final Set<T> tSet;
 
         HasSet(T[] tArray) {
-            Check.arraySanity(tArray);
             this.tSet = toNonEmptySet(tArray);
             OpenBind.setCurrent(this);
         }
@@ -443,6 +442,7 @@ public final class Authorization {
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
+            Check.arraySanity(permissions);
             Check.openBindIs(this);
             final Set<Object> permissionSet = toNonEmptySet(permissions);
             unbindInternal(permissionSet);

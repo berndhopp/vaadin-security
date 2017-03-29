@@ -192,12 +192,14 @@ public class BindTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void component_unbind_to_empty_permissions_throws_illegal_argument_exception() {
+    public void component_unbind_to_empty_permissions_throws_illegal_argument_exception() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
         authorizers.add(Authorizers.STRING_AUTHORIZER);
         authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
         Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         Authorization.unbindComponents(new Button()).from();
     }
@@ -238,12 +240,14 @@ public class BindTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void view_unbind_to_empty_permissions_throws_illegal_argument_exception() {
+    public void view_unbind_to_empty_permissions_throws_illegal_argument_exception() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
         authorizers.add(Authorizers.STRING_AUTHORIZER);
         authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
         Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         Authorization.unbindViews(e -> {
         }).from();
