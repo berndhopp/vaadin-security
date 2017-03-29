@@ -31,6 +31,144 @@ public class BindTest {
         TestUtil.beforeTest();
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_component_bind_should_throw_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Button button = new Button();
+        Button button2 = new Button();
+
+        Authorization.bindComponent(button);
+        Authorization.bindComponent(button2);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_components_bind_should_throw_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Button button = new Button();
+        Button button2 = new Button();
+
+        Authorization.bindComponents(button, button2);
+        Authorization.bindComponents(button2, button);
+    }
+
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_component_unbind_should_throw_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        Button button = new Button();
+        Button button2 = new Button();
+
+        Authorization.unbindComponent(button);
+        Authorization.unbindComponent(button2);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_components_unbind_should_throw_exception() {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+        Button button = new Button();
+        Button button2 = new Button();
+
+        Authorization.unbindComponents(button, button2);
+        Authorization.unbindComponents(button2, button);
+    }
+
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_view_bind_should_throw_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        View view = e -> {
+        };
+        View view2 = e -> {
+        };
+
+        Authorization.bindView(view);
+        Authorization.bindView(view2);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_views_bind_should_throw_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        View view = e -> {
+        };
+        View view2 = e -> {
+        };
+
+        Authorization.bindViews(view, view2);
+        Authorization.bindViews(view2, view);
+    }
+
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_view_unbind_should_throw_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        View view = e -> {
+        };
+        View view2 = e -> {
+        };
+
+        Authorization.unbindView(view);
+        Authorization.unbindView(view2);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void unclosed_views_unbind_should_throw_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        View view = e -> {
+        };
+        View view2 = e -> {
+        };
+
+        Authorization.unbindViews(view, view2);
+        Authorization.unbindViews(view2, view);
+    }
+    
     @Test(expected = IllegalArgumentException.class)
     public void component_bind_empty_throws_illegal_argument_exception() {
         Set<Authorizer> authorizers = new HashSet<>();

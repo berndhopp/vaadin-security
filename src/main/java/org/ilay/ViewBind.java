@@ -21,6 +21,8 @@ class ViewBind extends Authorization.Bind<View> {
     protected void bindInternal(Set<Object> permissions) {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
+        authorizationContext.ensureViewChangeListenerRegistered();
+
         for (View view : super.tSet) {
             authorizationContext.addPermissions(view, permissions);
         }

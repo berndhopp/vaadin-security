@@ -189,7 +189,6 @@ public final class Authorization {
     public static Bind<View> bindViews(View... views) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.arraySanity(views);
-        AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
         return new ViewBind(views);
     }
 
@@ -338,6 +337,7 @@ public final class Authorization {
      */
     public static <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
         requireNonNull(hasDataProvider);
+        Check.noOpenBind();
         return AuthorizationContext.getCurrent().unbindData(hasDataProvider);
     }
 
@@ -370,6 +370,7 @@ public final class Authorization {
      */
     public static void rebind() {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.noOpenBind();
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         rebindInternal(componentsToPermissions, authorizationContext);
@@ -411,14 +412,15 @@ public final class Authorization {
         final Set<T> tSet;
 
         HasSet(T[] tArray) {
-            requireNonNull(tArray);
             Check.arraySanity(tArray);
             this.tSet = toNonEmptySet(tArray);
+            OpenBind.setCurrent(this);
         }
 
         HasSet(T view) {
             requireNonNull(view);
             this.tSet = Collections.singleton(view);
+            OpenBind.setCurrent(this);
         }
     }
 
@@ -434,18 +436,29 @@ public final class Authorization {
 
         public void from(Object permission) {
             requireNonNull(permission);
+            Check.openBindIs(this);
             unbindInternal(Collections.singleton(permission));
+            OpenBind.unsetCurrent();
         }
 
         public void from(Object... permissions) {
             requireNonNull(permissions);
+            Check.openBindIs(this);
             final Set<Object> permissionSet = toNonEmptySet(permissions);
             unbindInternal(permissionSet);
+            OpenBind.unsetCurrent();
         }
 
+        public void fromAll() {
+            Check.openBindIs(this);
+            unbindInternalAll();
+            OpenBind.unsetCurrent();
+        }
+
+
+        protected abstract void unbindInternalAll();
         protected abstract void unbindInternal(Set<Object> permissions);
 
-        public abstract void fromAll();
     }
 
     public static abstract class Bind<T> extends HasSet<T> {
@@ -460,12 +473,15 @@ public final class Authorization {
 
         public void to(Object permission) {
             requireNonNull(permission);
+            Check.openBindIs(this);
             bindInternal(Collections.singleton(permission));
+            OpenBind.unsetCurrent();
         }
 
         public void to(Object... permissions) {
             requireNonNull(permissions);
             Check.arraySanity(permissions);
+            Check.openBindIs(this);
 
             boolean needCopyOnWrite = super.tSet.size() > 1;
 
@@ -474,6 +490,7 @@ public final class Authorization {
                     : toNonEmptySet(permissions);
 
             bindInternal(permissionSet);
+            OpenBind.unsetCurrent();
         }
 
         protected abstract void bindInternal(Set<Object> permissions);

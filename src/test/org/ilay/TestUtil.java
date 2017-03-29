@@ -7,6 +7,7 @@ class TestUtil {
         AuthorizationContext.currentInstanceVessel = new TestAuthorizationContextVessel();
         Authorization.navigatorSupplier = new TestNavigatorSupplier();
         Authorization.sessionInitNotifierSupplier = new TestSessionInitNotifierSupplier();
+        OpenBind.openBindVessel = new TestOpenBindVessel();
         final Field initialized = Authorization.class.getDeclaredField("initialized");
         initialized.setAccessible(true);
         initialized.set(null, false);

@@ -33,7 +33,9 @@ class ComponentUnbind extends Authorization.Unbind<Component> {
         Authorization.rebindInternal(super.tSet, authorizationContext);
     }
 
-    public void fromAll() {
+
+    @Override
+    protected void unbindInternalAll() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
 

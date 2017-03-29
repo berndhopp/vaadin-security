@@ -33,7 +33,9 @@ class ViewUnbind extends Authorization.Unbind<View> {
                 .forEach(viewPermissions -> viewPermissions.removeAll(permissions));
     }
 
-    public void fromAll() {
+
+    @Override
+    protected void unbindInternalAll() {
         final Map<View, Set<Object>> viewsToPermissions = AuthorizationContext.getCurrent()
                 .getViewsToPermissions();
 
