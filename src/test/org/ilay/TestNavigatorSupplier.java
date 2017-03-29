@@ -4,11 +4,11 @@ import com.vaadin.navigator.ViewChangeListener;
 
 import java.util.function.Supplier;
 
-class TestNavigatorSupplier implements Supplier<TestSupport.NavigatorFacade> {
+class TestNavigatorSupplier implements Supplier<VaadinAbstraction.NavigatorFacade> {
 
     @Override
-    public TestSupport.NavigatorFacade get() {
-        return new TestSupport.NavigatorFacade() {
+    public VaadinAbstraction.NavigatorFacade get() {
+        return new VaadinAbstraction.NavigatorFacade() {
             @Override
             public String getState() {
                 return null;

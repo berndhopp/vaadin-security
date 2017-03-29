@@ -77,8 +77,8 @@ import static org.ilay.CollectionUtil.toNonEmptySet;
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
-    static Supplier<TestSupport.NavigatorFacade> navigatorSupplier = new TestSupport.ProductionNavigatorFacadeSupplier();
-    static Supplier<TestSupport.SessionInitNotifier> sessionInitNotifierSupplier = new TestSupport.ProductionSessionInitNotifierSupplier();
+    static Supplier<VaadinAbstraction.NavigatorFacade> navigatorSupplier = new VaadinAbstraction.ProductionNavigatorFacadeSupplier();
+    static Supplier<VaadinAbstraction.SessionInitNotifier> sessionInitNotifierSupplier = new VaadinAbstraction.ProductionSessionInitNotifierSupplier();
     private static boolean initialized = false;
 
     private Authorization() {
@@ -113,7 +113,7 @@ public final class Authorization {
 
         Check.state(!initialized, "start() cannot be called more than once");
 
-        final TestSupport.SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
+        final VaadinAbstraction.SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
 
         sessionInitNotifier.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
@@ -396,7 +396,7 @@ public final class Authorization {
     }
 
     private static void reEvaluateCurrentViewAccess() {
-        final TestSupport.NavigatorFacade navigator = navigatorSupplier.get();
+        final VaadinAbstraction.NavigatorFacade navigator = navigatorSupplier.get();
 
         if (navigator == null) {
             //no navigator -> no views to check

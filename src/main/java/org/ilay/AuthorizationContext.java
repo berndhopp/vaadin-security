@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toMap;
  */
 class AuthorizationContext implements ViewChangeListener {
 
-    static TestSupport.Vessel<AuthorizationContext> currentInstanceVessel = new TestSupport.ProductionAuthorizationContextVessel();
+    static VaadinAbstraction.Vessel<AuthorizationContext> currentInstanceVessel = new VaadinAbstraction.ProductionAuthorizationContextVessel();
     private final Map<Component, Set<Object>> componentsToPermissions = new WeakHashMap<>();
     private final Map<View, Set<Object>> viewsToPermissions = new WeakHashMap<>();
     private final AuthorizerPool authorizerPool;
@@ -179,7 +179,7 @@ class AuthorizationContext implements ViewChangeListener {
             return;
         }
 
-        final TestSupport.NavigatorFacade navigator = Authorization.navigatorSupplier.get();
+        final VaadinAbstraction.NavigatorFacade navigator = Authorization.navigatorSupplier.get();
 
         requireNonNull(navigator, "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
 

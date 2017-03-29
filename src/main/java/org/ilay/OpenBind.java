@@ -7,7 +7,7 @@ import static java.util.Objects.requireNonNull;
 
 final class OpenBind implements Supplier<Authorization.HasSet> {
 
-    static TestSupport.Vessel<OpenBind> openBindVessel = new TestSupport.ProductionOpenBindVessel();
+    static VaadinAbstraction.Vessel<OpenBind> openBindVessel = new VaadinAbstraction.ProductionOpenBindVessel();
     private final Authorization.HasSet hasSet;
 
     OpenBind(Authorization.HasSet hasSet) {

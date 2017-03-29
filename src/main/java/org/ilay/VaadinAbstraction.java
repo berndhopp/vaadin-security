@@ -16,7 +16,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Bernd Hopp
  */
-class TestSupport {
+class VaadinAbstraction {
     interface NavigatorFacade {
         String getState();
 

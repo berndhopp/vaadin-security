@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TestSessionInitNotifierSupplier implements TestSupport.SessionInitNotifier, Supplier<TestSupport.SessionInitNotifier> {
+public class TestSessionInitNotifierSupplier implements VaadinAbstraction.SessionInitNotifier, Supplier<VaadinAbstraction.SessionInitNotifier> {
 
     private List<SessionInitListener> sessionInitListeners = new ArrayList<>();
 
     @Override
-    public TestSupport.SessionInitNotifier get() {
+    public VaadinAbstraction.SessionInitNotifier get() {
         return this;
     }
 

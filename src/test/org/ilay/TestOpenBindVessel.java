@@ -1,6 +1,6 @@
 package org.ilay;
 
-class TestOpenBindVessel implements TestSupport.Vessel<OpenBind> {
+class TestOpenBindVessel implements VaadinAbstraction.Vessel<OpenBind> {
 
     private OpenBind openBind;
 
