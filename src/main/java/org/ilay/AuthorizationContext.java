@@ -181,6 +181,8 @@ class AuthorizationContext implements ViewChangeListener {
 
         final TestSupport.NavigatorFacade navigator = Authorization.navigatorSupplier.get();
 
+        requireNonNull(navigator, "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
+
         navigator.addViewChangeListener(this);
 
         registeredAsViewChangeListener = true;
