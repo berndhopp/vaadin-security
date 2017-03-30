@@ -11,7 +11,7 @@ import org.junit.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.ilay.Authorization.bindView;
+import static org.ilay.Authorization.restrictView;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -79,7 +79,7 @@ public class ViewChangeListenerTest {
         user.getRoles().clear();
         user.getRoles().add("user");
 
-        bindView(myView).to("admin");
+        restrictView(myView).to("admin");
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -99,7 +99,7 @@ public class ViewChangeListenerTest {
 
         user.getRoles().add("user");
 
-        bindView(myView).to(Clearance.TOP_SECRET, "admin", "user");
+        restrictView(myView).to(Clearance.TOP_SECRET, "admin", "user");
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 

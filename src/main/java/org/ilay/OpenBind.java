@@ -5,16 +5,16 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
-final class OpenBind implements Supplier<Authorization.HasSet> {
+final class OpenBind implements Supplier<Restrict> {
 
     static VaadinAbstraction.Vessel<OpenBind> openBindVessel = new VaadinAbstraction.ProductionOpenBindVessel();
-    private final Authorization.HasSet hasSet;
+    private final Restrict hasSet;
 
-    OpenBind(Authorization.HasSet hasSet) {
+    OpenBind(Restrict hasSet) {
         this.hasSet = hasSet;
     }
 
-    static Optional<Authorization.HasSet> getCurrent() {
+    static Optional<Restrict> getCurrent() {
         final OpenBind openBind = openBindVessel.get();
 
         if (openBind != null) {
@@ -24,7 +24,7 @@ final class OpenBind implements Supplier<Authorization.HasSet> {
         }
     }
 
-    static void setCurrent(Authorization.HasSet hasSet) {
+    static void setCurrent(Restrict hasSet) {
         Check.noOpenBind();
         requireNonNull(hasSet);
 
@@ -40,7 +40,7 @@ final class OpenBind implements Supplier<Authorization.HasSet> {
     }
 
     @Override
-    public Authorization.HasSet get() {
+    public Restrict get() {
         return hasSet;
     }
 }

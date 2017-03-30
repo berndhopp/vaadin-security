@@ -1,6 +1,7 @@
 package org.ilay;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -16,31 +17,36 @@ class Check {
         return collection;
     }
 
-    static void openBindIs(Authorization.HasSet bind) {
+    static <T extends Map<U, V>, U, V> T notNullOrEmpty(T map) {
+        if (map == null || map.isEmpty()) {
+            throw new IllegalArgumentException("map must not be null or empty");
+        }
+
+        return map;
+    }
+
+
+    static void openBindIs(Restrict bind) {
         requireNonNull(bind);
 
-        final Optional<Authorization.HasSet> current = OpenBind.getCurrent();
+        final Optional<Restrict> current = OpenBind.getCurrent();
         state(current.isPresent());
         state(current.get() == bind);
     }
 
     static void noOpenBind() {
-        final Optional<Authorization.HasSet> currentOptional = OpenBind.getCurrent();
+        final Optional<Restrict> currentOptional = OpenBind.getCurrent();
 
         if (currentOptional.isPresent()) {
-            Authorization.HasSet current = currentOptional.get();
+            Restrict current = currentOptional.get();
 
-            if (current instanceof ComponentBind) {
-                throw new IllegalStateException("Authorization.bindComponent() or Authorization.bindComponents() has been called without calling to() on the returned Bind-object");
-            } else if (current instanceof ComponentUnbind) {
-                throw new IllegalStateException("Authorization.unbindComponent() or Authorization.unbindComponents() has been called without calling from() on the returned Bind-object");
-            } else if (current instanceof ViewBind) {
-                throw new IllegalStateException("Authorization.bindView() or Authorization.bindViews() has been called without calling to() on the returned Bind-object");
-            } else if (current instanceof ViewUnbind) {
-                throw new IllegalStateException("Authorization.unbindView() or Authorization.unbindViews() has been called without calling from() on the returned Bind-object");
+            if (current instanceof ComponentRestrict) {
+                throw new IllegalStateException("Authorization.bindComponent() or Authorization.bindComponents() has been called without calling to() on the returned Restrict-object");
+            } else if (current instanceof ViewRestrict) {
+                throw new IllegalStateException("Authorization.bindView() or Authorization.bindViews() has been called without calling to() on the returned Restrict-object");
             } else {
                 //will never come here
-                throw new IllegalStateException("unknown Bind");
+                throw new IllegalStateException("unknown Restrict");
             }
         }
     }

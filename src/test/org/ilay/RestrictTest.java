@@ -15,16 +15,12 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.ilay.Authorization.bindComponent;
-import static org.ilay.Authorization.unbindComponent;
-import static org.ilay.Authorization.unbindComponents;
-import static org.ilay.Authorization.unbindView;
+import static org.ilay.Authorization.restrictComponent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-public class BindTest {
+public class RestrictTest {
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException {
@@ -42,8 +38,8 @@ public class BindTest {
         Button button = new Button();
         Button button2 = new Button();
 
-        Authorization.bindComponent(button);
-        Authorization.bindComponent(button2);
+        Authorization.restrictComponent(button);
+        Authorization.restrictComponent(button2);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -57,40 +53,9 @@ public class BindTest {
         Button button = new Button();
         Button button2 = new Button();
 
-        Authorization.bindComponents(button, button2);
-        Authorization.bindComponents(button2, button);
+        Authorization.restrictComponents(button, button2);
+        Authorization.restrictComponents(button2, button);
     }
-
-
-    @Test(expected = IllegalStateException.class)
-    public void unclosed_component_unbind_should_throw_exception() {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        Button button = new Button();
-        Button button2 = new Button();
-
-        Authorization.unbindComponent(button);
-        Authorization.unbindComponent(button2);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void unclosed_components_unbind_should_throw_exception() {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-        Button button = new Button();
-        Button button2 = new Button();
-
-        Authorization.unbindComponents(button, button2);
-        Authorization.unbindComponents(button2, button);
-    }
-
 
     @Test(expected = IllegalStateException.class)
     public void unclosed_view_bind_should_throw_exception() throws ServiceException {
@@ -107,8 +72,8 @@ public class BindTest {
         View view2 = e -> {
         };
 
-        Authorization.bindView(view);
-        Authorization.bindView(view2);
+        Authorization.restrictView(view);
+        Authorization.restrictView(view2);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -126,49 +91,10 @@ public class BindTest {
         View view2 = e -> {
         };
 
-        Authorization.bindViews(view, view2);
-        Authorization.bindViews(view2, view);
+        Authorization.restrictViews(view, view2);
+        Authorization.restrictViews(view2, view);
     }
 
-
-    @Test(expected = IllegalStateException.class)
-    public void unclosed_view_unbind_should_throw_exception() throws ServiceException {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
-
-        View view = e -> {
-        };
-        View view2 = e -> {
-        };
-
-        Authorization.unbindView(view);
-        Authorization.unbindView(view2);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void unclosed_views_unbind_should_throw_exception() throws ServiceException {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
-
-        View view = e -> {
-        };
-        View view2 = e -> {
-        };
-
-        Authorization.unbindViews(view, view2);
-        Authorization.unbindViews(view2, view);
-    }
-    
     @Test(expected = IllegalArgumentException.class)
     public void component_bind_empty_throws_illegal_argument_exception() {
         Set<Authorizer> authorizers = new HashSet<>();
@@ -177,31 +103,7 @@ public class BindTest {
 
         Authorization.start(authorizers);
 
-        Authorization.bindComponents();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void component_unbind_empty_throws_illegal_argument_exception() {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        Authorization.unbindComponents();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void component_unbind_to_empty_permissions_throws_illegal_argument_exception() throws ServiceException {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
-
-        Authorization.unbindComponents(new Button()).from();
+        Authorization.restrictComponents();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -212,7 +114,7 @@ public class BindTest {
 
         Authorization.start(authorizers);
 
-        Authorization.bindComponents(new Button()).to();
+        Authorization.restrictComponents(new Button()).to();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -225,32 +127,7 @@ public class BindTest {
 
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
-        Authorization.bindViews();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void view_unbind_empty_throws_illegal_argument_exception() {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        Authorization.unbindViews();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void view_unbind_to_empty_permissions_throws_illegal_argument_exception() throws ServiceException {
-        Set<Authorizer> authorizers = new HashSet<>();
-        authorizers.add(Authorizers.STRING_AUTHORIZER);
-        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-
-        Authorization.start(authorizers);
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
-
-        Authorization.unbindViews(e -> {
-        }).from();
+        Authorization.restrictViews();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -263,7 +140,7 @@ public class BindTest {
 
         ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
-        Authorization.bindViews(e -> {
+        Authorization.restrictViews(e -> {
         }).to();
     }
 
@@ -283,9 +160,9 @@ public class BindTest {
         Component component = new Button();
         Component component2 = new Button();
 
-        Authorization.bindComponents(component, component2).to("hello", "world", 23);
-        bindComponent(component).to("foo");
-        bindComponent(component2).to("bar");
+        Authorization.restrictComponents(component, component2).to("hello", "world", 23);
+        restrictComponent(component).to("foo");
+        restrictComponent(component2).to("bar");
 
         AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -306,7 +183,7 @@ public class BindTest {
         assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
-        bindComponent(component).to(42);
+        final Registration registration = restrictComponent(component).to(42);
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -316,27 +193,13 @@ public class BindTest {
 
         //remove some permissions from component1 and check they are gone
 
-        unbindComponent(component).from("hello", 23);
+        registration.revert();
 
         permissions1 = componentsToPermissions.get(component);
 
         assertNotNull(permissions1);
         assertEquals(3, permissions1.size());
         assertThat(permissions1, containsInAnyOrder("world", "foo", 42));
-
-        unbindComponents(component).from("world");
-
-        permissions1 = componentsToPermissions.get(component);
-
-        assertNotNull(permissions1);
-        assertEquals(2, permissions1.size());
-        assertThat(permissions1, containsInAnyOrder("foo", 42));
-
-        unbindComponent(component).fromAll();
-
-        permissions1 = componentsToPermissions.get(component);
-
-        assertNull(permissions1);
     }
 
     @Test
@@ -357,9 +220,9 @@ public class BindTest {
 
         ((TestSessionInitNotifierSupplier)Authorization.sessionInitNotifierSupplier).newSession();
 
-        Authorization.bindViews(view, view2).to("hello", "world", 23);
-        Authorization.bindView(view).to("foo");
-        Authorization.bindView(view2).to("bar");
+        Authorization.restrictViews(view, view2).to("hello", "world", 23);
+        Authorization.restrictView(view).to("foo");
+        Authorization.restrictView(view2).to("bar");
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -380,7 +243,7 @@ public class BindTest {
         assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to view 1 and check that it is there
-        Authorization.bindView(view).to(42);
+        final Registration registration = Authorization.restrictView(view).to(42);
 
         permissions1 = viewsToPermissions.get(view);
 
@@ -390,26 +253,12 @@ public class BindTest {
 
         //remove some permissions from view1 and check they are gone
 
-        Authorization.unbindView(view).from("hello", 23);
+        registration.revert();
 
         permissions1 = viewsToPermissions.get(view);
 
         assertNotNull(permissions1);
         assertEquals(3, permissions1.size());
-        assertThat(permissions1, containsInAnyOrder("world", "foo", 42));
-
-        unbindView(view).from("world");
-
-        permissions1 = viewsToPermissions.get(view);
-
-        assertNotNull(permissions1);
-        assertEquals(2, permissions1.size());
-        assertThat(permissions1, containsInAnyOrder("foo", 42));
-
-        unbindView(view).fromAll();
-
-        permissions1 = viewsToPermissions.get(view);
-
-        assertNull(permissions1);
+        assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo"));
     }
 }

@@ -7,16 +7,11 @@ import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toMap;
-import static org.ilay.CollectionUtil.toNonEmptyCOWSet;
-import static org.ilay.CollectionUtil.toNonEmptySet;
 
 /**
  * <b>Authorization</b> is the main entry point for the ILAY framework.
@@ -59,8 +54,8 @@ import static org.ilay.CollectionUtil.toNonEmptySet;
  * </code>
  *
  * Then, {@link Component}s, {@link View}s and {@link HasItems}' can be bound with
- * the {@link Authorization#bindComponents(Component...)}, {@link Authorization#bindViews(View...)} and
- * {@link Authorization#bindData(Class, HasDataProvider)} methods.
+ * the {@link Authorization#restrictComponents(Component...)}, {@link Authorization#restrictViews(View...)} and
+ * {@link Authorization#restrictData(Class, HasDataProvider)} methods.
  *
  * <code>
  *     Button button = new Button();
@@ -91,7 +86,7 @@ public final class Authorization {
      * same set can be used for all {@link com.vaadin.server.VaadinSession}s.
      *
      * @param authorizers the {@link Authorizer}s needed. For every object passed in {@link
-     *                    ComponentBind#to(Object...)}, there must be a evaluator in the set where the {@link
+     *                    ComponentRestrict#to(Object...)}, there must be a evaluator in the set where the {@link
      *                    Authorizer#getPermissionClass()} is assignable from the objects {@link
      *                    Class}.
      */
@@ -105,7 +100,7 @@ public final class Authorization {
      * called before any other method in {@link Authorization} is called. Use this method instead of
      * {@link Authorization#start(Set)} if the set of {@link Authorizer}s is not immutable and a different
      * set may be used for all {@link com.vaadin.server.VaadinSession}s.
-     * @param evaluatorSupplier the {@link Authorizer}s needed. For every object passed in {@link ComponentBind#to(Object...)}, there
+     * @param evaluatorSupplier the {@link Authorizer}s needed. For every object passed in {@link ComponentRestrict#to(Object...)}, there
      * must be a evaluator in the set where the {@link Authorizer#getPermissionClass()} is assignable from the objects {@link Class}.
      */
     public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
@@ -128,7 +123,7 @@ public final class Authorization {
     }
 
     /**
-     * returns a {@link ComponentBind} to connect
+     * returns a {@link ComponentRestrict} to connect
      * a {@link Component} to one or more permissions
      *
      * <code>
@@ -136,46 +131,46 @@ public final class Authorization {
      *   Authorization.bindComponent(button).to(Permission.ADMIN);
      * </code>
      * @param component the component to be bound to one or more permission, cannot be null
-     * @return a {@link ComponentBind} for a chained fluent API
+     * @return a {@link ComponentRestrict} for a chained fluent API
      */
-    public static Bind<Component> bindComponent(Component component) {
-        requireNonNull(component);
+    public static Restrict restrictComponent(Component component) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        return new ComponentBind(component);
+        requireNonNull(component);
+        return new ComponentRestrict(component);
     }
 
     /**
-     * returns a {@link ComponentBind} to connect {@link Component}s to one or more permissions
+     * returns a {@link ComponentRestrict} to connect {@link Component}s to one or more permissions
      *
      * <code> Button button = new Button(); Label label = new Label();
      * Authorization.bindComponents(button, label).to(Permission.ADMIN); </code>
      *
      * @param components the {@link Component}s to be bound to one or more permission, cannot be
      *                   null or empty
-     * @return a {@link ComponentBind} for a chained fluent API
+     * @return a {@link ComponentRestrict} for a chained fluent API
      */
-    public static Bind<Component> bindComponents(Component... components) {
+    public static Restrict restrictComponents(Component... components) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.arraySanity(components);
-        return new ComponentBind(components);
+        return new ComponentRestrict(components);
     }
 
     /**
-     * returns a {@link ViewBind} to connect a {@link View} to one or more permissions
+     * returns a {@link ViewRestrict} to connect a {@link View} to one or more permissions
      *
      * <code> View view = createView(); Authorization.bindView(view).to(Permission.ADMIN); </code>
      *
      * @param view the {@link View} to be bound to one or more permission, cannot be null or empty
-     * @return a {@link ViewBind} for a chained fluent API
+     * @return a {@link ViewRestrict} for a chained fluent API
      */
-    public static Bind<View> bindView(View view) {
+    public static Restrict restrictView(View view) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
-        return new ViewBind(view);
+        return new ViewRestrict(view);
     }
 
     /**
-     * returns a {@link ViewBind} to connect
+     * returns a {@link ViewRestrict} to connect
      * {@link View}s to one or more permissions
      *
      * <code>
@@ -184,12 +179,12 @@ public final class Authorization {
      *   Authorization.bindViews(view, view2).to(Permission.ADMIN);
      * </code>
      * @param views the {@link View}s to be bound to one or more permission, cannot be null or empty
-     * @return a {@link ViewBind} for a chained fluent API
+     * @return a {@link ViewRestrict} for a chained fluent API
      */
-    public static Bind<View> bindViews(View... views) {
+    public static Restrict restrictViews(View... views) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.arraySanity(views);
-        return new ViewBind(views);
+        return new ViewRestrict(views);
     }
 
     /**
@@ -201,144 +196,13 @@ public final class Authorization {
      * @param hasItems the {@link HasItems} to be bound
      * @param <T> the Type of the items
      */
-    public static <T> void bindData(Class<T> itemClass, HasDataProvider<T> hasItems) {
+    public static <T> Registration restrictData(Class<T> itemClass, HasDataProvider<T> hasItems) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(itemClass);
         requireNonNull(hasItems);
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        authorizationContext.bindData(itemClass, hasItems);
-    }
-
-    /**
-     * Reverses a {@link Authorization#bindComponents(Component...)} or {@link
-     * Authorization#bindComponent(Component)} operation. No exception is thrown if the {@link
-     * Component} was not bound. <code> Button button = new Button(); Label label = new Label();
-     * Authorization.bindComponents(button, label).to(Permission.ADMIN);
-     *
-     * //...
-     *
-     * Authorization.unbindComponens(button).from(Permission.ADMIN);
-     *
-     * //button is not under authorization anymore
-     *
-     * </code>
-     *
-     * @param component the component to be unbound
-     * @return a {@link ComponentUnbind} for a chained fluent API
-     */
-    public static Unbind<Component> unbindComponent(Component component) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        requireNonNull(component);
-        return new ComponentUnbind(component);
-    }
-
-    /**
-     * Reverses a {@link Authorization#bindComponents(Component...)}
-     * or {@link Authorization#bindComponent(Component)} operation.
-     * No exception is thrown if the {@link Component} was not bound.
-     * *
-     * <code>
-     *     Button button = new Button();
-     *     Label label = new Label();
-     *     Authorization.bindComponents(button, label).to(Permission.ADMIN);
-     *
-     *     //...
-     *
-     *     Authorization.unbindComponents(button).from(Permission.ADMIN);
-     *
-     *     //button is not under authorization anymore
-     *
-     * </code>
-     *
-     * @param components the components to be unbound
-     * @return a {@link ComponentUnbind} for a chained fluent API
-     */
-    public static Unbind<Component> unbindComponents(Component... components) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        Check.arraySanity(components);
-        return new ComponentUnbind(components);
-    }
-
-    /**
-     * Reverses a {@link Authorization#bindView(View)}
-     * or {@link Authorization#bindViews(View...)} operation.
-     * No exception is thrown if the {@link View} was not bound.
-     * *
-     * <code>
-     *     View view = createView();
-     *     Authorization.bindView(view).to(Permission.ADMIN);
-     *
-     *     //...
-     *
-     *     Authorization.unbindView(view).from(Permission.ADMIN);
-     *
-     *     //view is not under authorization anymore
-     *
-     * </code>
-     *
-     * @param view the view to be unbound
-     * @return a {@link ViewUnbind} for a chained fluent API
-     */
-    public static Unbind<View> unbindView(View view) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        requireNonNull(view);
-        return new ViewUnbind(view);
-    }
-
-
-    /**
-     * Reverses a {@link Authorization#bindView(View)}
-     * or {@link Authorization#bindViews(View...)} operation.
-     * No exception is thrown if the {@link View} was not bound.
-     * *
-     * <code>
-     *     View view1 = createView();
-     *     View view2 = createView();
-     *     Authorization.bindViews(view1, view2).to(Permission.ADMIN);
-     *
-     *     //...
-     *
-     *     Authorization.unbindViews(view1, view2).from(Permission.ADMIN);
-     *
-     *     //views are not under authorization anymore
-     *
-     * </code>
-     *
-     * @param views the view to be unbound
-     * @return a {@link ViewUnbind} for a chained fluent API
-     */
-    public static Unbind<View> unbindViews(View... views) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        Check.arraySanity(views);
-
-        return new ViewUnbind(views);
-    }
-
-    /**
-     * Reverses a {@link Authorization#bindData(Class, HasDataProvider)} operation.
-     * No exception is thrown if the {@link HasDataProvider} was not bound.
-     *
-     * <code>
-     *      Grid{@literal <}Foo{@literal >} fooGrid = new Grid{@literal <}Foo{@literal >}();
-     *
-     *      Authorization.bindData(fooGrid);
-     *
-     *      //foo-items will now only be displayed in the grid,
-     *      //if an Authorizer{@literal <}Foo, ?{@literal >}
-     *      //grants them authorization in the {@link Authorizer#isGranted(Object)}
-     *      //method
-     *
-     *      Authorization.unbindData(fooGrid);
-     *
-     *      //grid is not under authorization anymore
-     * </code>
-     * @param hasDataProvider the HasDataProvider to be unbound
-     */
-    public static <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
-        requireNonNull(hasDataProvider);
-        Check.noOpenBind();
-        return AuthorizationContext.getCurrent().unbindData(hasDataProvider);
+        return authorizationContext.bindData(itemClass, hasItems);
     }
 
     /**
@@ -368,25 +232,15 @@ public final class Authorization {
      *
      * </code>
      */
-    public static void rebind() {
+    public static void reapplyRestrictions() {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.noOpenBind();
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-        rebindInternal(componentsToPermissions, authorizationContext);
+        reapplyInternal(componentsToPermissions, authorizationContext);
     }
 
-    static void rebindInternal(Collection<Component> components, AuthorizationContext authorizationContext) {
-        Check.notNullOrEmpty(components);
-        requireNonNull(authorizationContext);
-
-        final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
-
-        final Map<Component, Set<Object>> reducedComponentsToPermissions = components.stream().collect(toMap(c -> c, componentsToPermissions::get));
-        rebindInternal(reducedComponentsToPermissions, authorizationContext);
-    }
-
-    static void rebindInternal(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
+    static void reapplyInternal(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
         requireNonNull(componentsToPermissions);
         requireNonNull(authorizationContext);
 
@@ -406,93 +260,5 @@ public final class Authorization {
         final String state = navigator.getState();
         navigator.navigateTo("");
         navigator.navigateTo(state);
-    }
-
-    static abstract class HasSet<T> {
-        final Set<T> tSet;
-
-        HasSet(T[] tArray) {
-            this.tSet = toNonEmptySet(tArray);
-            OpenBind.setCurrent(this);
-        }
-
-        HasSet(T view) {
-            requireNonNull(view);
-            this.tSet = Collections.singleton(view);
-            OpenBind.setCurrent(this);
-        }
-    }
-
-    public static abstract class Unbind<T> extends HasSet<T> {
-
-        Unbind(T[] tArray) {
-            super(tArray);
-        }
-
-        Unbind(T view) {
-            super(view);
-        }
-
-        public void from(Object permission) {
-            requireNonNull(permission);
-            Check.openBindIs(this);
-            unbindInternal(Collections.singleton(permission));
-            OpenBind.unsetCurrent();
-        }
-
-        public void from(Object... permissions) {
-            requireNonNull(permissions);
-            Check.arraySanity(permissions);
-            Check.openBindIs(this);
-            final Set<Object> permissionSet = toNonEmptySet(permissions);
-            unbindInternal(permissionSet);
-            OpenBind.unsetCurrent();
-        }
-
-        public void fromAll() {
-            Check.openBindIs(this);
-            unbindInternalAll();
-            OpenBind.unsetCurrent();
-        }
-
-
-        protected abstract void unbindInternalAll();
-        protected abstract void unbindInternal(Set<Object> permissions);
-
-    }
-
-    public static abstract class Bind<T> extends HasSet<T> {
-
-        Bind(T[] tArray) {
-            super(tArray);
-        }
-
-        Bind(T view) {
-            super(view);
-        }
-
-        public void to(Object permission) {
-            requireNonNull(permission);
-            Check.openBindIs(this);
-            bindInternal(Collections.singleton(permission));
-            OpenBind.unsetCurrent();
-        }
-
-        public void to(Object... permissions) {
-            requireNonNull(permissions);
-            Check.arraySanity(permissions);
-            Check.openBindIs(this);
-
-            boolean needCopyOnWrite = super.tSet.size() > 1;
-
-            final Set<Object> permissionSet = needCopyOnWrite
-                    ? toNonEmptyCOWSet(permissions)
-                    : toNonEmptySet(permissions);
-
-            bindInternal(permissionSet);
-            OpenBind.unsetCurrent();
-        }
-
-        protected abstract void bindInternal(Set<Object> permissions);
     }
 }

@@ -64,15 +64,15 @@ public class ComponentsTest {
         Button button2 = new Button();
         Button button3 = new Button();
 
-        Authorization.bindComponent(button1).to("user", Clearance.NON);
-        Authorization.bindComponent(button2).to("user", Clearance.SECRET);
-        Authorization.bindComponent(button3).to("admin", Clearance.TOP_SECRET);
+        Authorization.restrictComponent(button1).to("user", Clearance.NON);
+        Authorization.restrictComponent(button2).to("user", Clearance.SECRET);
+        final Registration registration = Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -80,7 +80,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.SECRET);
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -88,7 +88,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.TOP_SECRET);
         user.getRoles().add("admin");
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -100,15 +100,15 @@ public class ComponentsTest {
         assertTrue(button2.isVisible());
         assertTrue(button3.isVisible());
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        Authorization.unbindComponent(button3).fromAll();
+        registration.revert();
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -159,15 +159,15 @@ public class ComponentsTest {
         Button button2 = new Button();
         Button button3 = new Button();
 
-        Authorization.bindComponent(button1).to("user", Clearance.NON);
-        Authorization.bindComponent(button2).to("user", Clearance.SECRET);
-        Authorization.bindComponent(button3).to("admin", Clearance.TOP_SECRET);
+        Authorization.restrictComponent(button1).to("user", Clearance.NON);
+        Authorization.restrictComponent(button2).to("user", Clearance.SECRET);
+        Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -175,7 +175,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.SECRET);
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -183,7 +183,7 @@ public class ComponentsTest {
 
         user.setClearance(Clearance.TOP_SECRET);
         user.getRoles().add("admin");
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -195,7 +195,7 @@ public class ComponentsTest {
         assertTrue(button2.isVisible());
         assertTrue(button3.isVisible());
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
 
         assertTrue(button1.isVisible());
         assertTrue(button2.isVisible());
@@ -246,9 +246,9 @@ public class ComponentsTest {
         Button button2 = new Button();
         Button button3 = new Button();
 
-        Authorization.bindComponent(button1).to("user", Clearance.NON);
-        Authorization.bindComponent(button2).to("user", Clearance.SECRET);
-        Authorization.bindComponent(button3).to("admin", Clearance.TOP_SECRET);
+        Authorization.restrictComponent(button1).to("user", Clearance.NON);
+        Authorization.restrictComponent(button2).to("user", Clearance.SECRET);
+        Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -256,6 +256,6 @@ public class ComponentsTest {
 
         button1.setVisible(false);
 
-        Authorization.rebind();
+        Authorization.reapplyRestrictions();
     }
 }

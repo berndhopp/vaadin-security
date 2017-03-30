@@ -1,6 +1,5 @@
 package org.ilay;
 
-import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.data.provider.QuerySortOrder;
@@ -21,11 +20,8 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsNot.not;
-import static org.ilay.Authorization.bindData;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class DataTest {
 
@@ -71,7 +67,7 @@ public class DataTest {
 
         fooGrid.setItems(foo1, foo2, foo3);
 
-        bindData(Foo.class, fooGrid);
+        final Registration registration = Authorization.restrictData(Foo.class, fooGrid);
 
         DataProvider<Foo, ?> dataProvider = fooGrid.getDataProvider();
 
@@ -84,9 +80,7 @@ public class DataTest {
         assertThat(items, hasItem(foo2));
         assertThat(items, not(hasItem(foo3)));
 
-        boolean unbound = Authorization.unbindData(fooGrid);
-
-        assertTrue(unbound);
+        registration.revert();
 
         dataProvider = fooGrid.getDataProvider();
 
@@ -96,31 +90,5 @@ public class DataTest {
         assertThat(items, hasItem(foo1));
         assertThat(items, hasItem(foo2));
         assertThat(items, hasItem(foo3));
-    }
-
-    @Test
-    public void unbind_null_returns_false() {
-
-        HasDataProvider<Foo> hasFooItems = new Grid<Foo>(Foo.class) {
-            @Override
-            public DataProvider getDataProvider() {
-                return null;
-            }
-        };
-
-        final boolean unbound = Authorization.unbindData(hasFooItems);
-
-        assertFalse(unbound);
-    }
-
-
-    @Test
-    public void unbind_unbound_dataprovider_returns_false() {
-
-        HasDataProvider<Foo> hasFooItems = new Grid<>(Foo.class);
-
-        final boolean unbound = Authorization.unbindData(hasFooItems);
-
-        assertFalse(unbound);
     }
 }

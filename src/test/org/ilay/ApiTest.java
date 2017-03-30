@@ -45,26 +45,26 @@ public class ApiTest {
     public void call_without_start_throws_exception() {
 
         try {
-            Authorization.bindComponent(new Button()).to("");
+            Authorization.restrictComponent(new Button()).to("");
             fail();
         } catch (IllegalStateException e) {
         }
 
         try {
-            Authorization.bindComponents(new Button(), new Button()).to("");
+            Authorization.restrictComponents(new Button(), new Button()).to("");
             fail();
         } catch (IllegalStateException e) {
         }
 
         try {
-            Authorization.bindView(e -> {
+            Authorization.restrictView(e -> {
             }).to("");
             fail();
         } catch (IllegalStateException e) {
         }
 
         try {
-            Authorization.bindViews(e -> {
+            Authorization.restrictViews(e -> {
             }, e -> {
             }).to("");
             fail();
@@ -72,13 +72,13 @@ public class ApiTest {
         }
 
         try {
-            Authorization.bindData(Foo.class, new Grid<>(Foo.class));
+            Authorization.restrictData(Foo.class, new Grid<>(Foo.class));
             fail();
         } catch (IllegalStateException e) {
         }
 
         try {
-            Authorization.rebind();
+            Authorization.reapplyRestrictions();
             fail();
         } catch (IllegalStateException e) {
         }
