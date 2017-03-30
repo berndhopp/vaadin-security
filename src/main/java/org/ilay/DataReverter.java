@@ -5,11 +5,11 @@ import com.vaadin.data.HasDataProvider;
 import java.lang.ref.Reference;
 import java.util.Objects;
 
-class DataRegistration extends OneTimeUsableRegistration {
+class DataReverter extends OneTimeUsableReverter {
 
     private final Reference<HasDataProvider> hasDataProvider;
 
-    DataRegistration(Reference<HasDataProvider> hasDataProvider) {
+    DataReverter(Reference<HasDataProvider> hasDataProvider) {
         this.hasDataProvider = Objects.requireNonNull(hasDataProvider);
     }
 

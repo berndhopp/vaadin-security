@@ -5,6 +5,7 @@ import com.vaadin.ui.Button;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,7 +67,7 @@ public class ComponentsTest {
 
         Authorization.restrictComponent(button1).to("user", Clearance.NON);
         Authorization.restrictComponent(button2).to("user", Clearance.SECRET);
-        final Registration registration = Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
+        final Reverter reverter = Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -106,7 +107,7 @@ public class ComponentsTest {
         assertTrue(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        registration.revert();
+        reverter.revert();
 
         Authorization.reapplyRestrictions();
 

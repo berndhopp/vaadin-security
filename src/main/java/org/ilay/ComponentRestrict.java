@@ -20,8 +20,8 @@ class ComponentRestrict extends RestrictImpl<Component> {
     }
 
     @Override
-    protected ObjectsRegistration<Component> asRegistration() {
-        return new ComponentObjectsRegistration(restrictionMap);
+    protected ObjectsReverter<Component> createReverter() {
+        return new ComponentObjectsReverter(restrictionMap);
     }
 
     @Override

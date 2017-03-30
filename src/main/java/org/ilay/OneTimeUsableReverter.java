@@ -1,6 +1,8 @@
 package org.ilay;
 
-abstract class OneTimeUsableRegistration implements Registration {
+import org.ilay.api.Reverter;
+
+abstract class OneTimeUsableReverter implements Reverter {
 
     private boolean used = false;
 

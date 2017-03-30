@@ -19,7 +19,7 @@ class ViewRestrict extends RestrictImpl<View> {
     }
 
     @Override
-    protected ObjectsRegistration<View> asRegistration() {
+    protected ObjectsReverter<View> createReverter() {
         return new ViewObjectsRegistration(this);
     }
 

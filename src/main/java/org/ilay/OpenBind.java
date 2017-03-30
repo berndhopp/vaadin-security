@@ -1,5 +1,7 @@
 package org.ilay;
 
+import org.ilay.api.Restrict;
+
 import java.util.Optional;
 import java.util.function.Supplier;
 

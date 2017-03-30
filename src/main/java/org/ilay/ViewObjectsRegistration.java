@@ -5,7 +5,7 @@ import com.vaadin.navigator.View;
 import java.util.Map;
 import java.util.Set;
 
-class ViewObjectsRegistration extends ObjectsRegistration<View> {
+class ViewObjectsRegistration extends ObjectsReverter<View> {
 
     ViewObjectsRegistration(ViewRestrict viewRestrict) {
         super(viewRestrict.restrictionMap);

@@ -6,6 +6,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
+import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -183,7 +184,7 @@ public class RestrictTest {
         assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
-        final Registration registration = restrictComponent(component).to(42);
+        final Reverter reverter = restrictComponent(component).to(42);
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -193,7 +194,7 @@ public class RestrictTest {
 
         //remove some permissions from component1 and check they are gone
 
-        registration.revert();
+        reverter.revert();
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -243,7 +244,7 @@ public class RestrictTest {
         assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to view 1 and check that it is there
-        final Registration registration = Authorization.restrictView(view).to(42);
+        final Reverter reverter = Authorization.restrictView(view).to(42);
 
         permissions1 = viewsToPermissions.get(view);
 
@@ -253,7 +254,7 @@ public class RestrictTest {
 
         //remove some permissions from view1 and check they are gone
 
-        registration.revert();
+        reverter.revert();
 
         permissions1 = viewsToPermissions.get(view);
 

@@ -1,5 +1,8 @@
 package org.ilay;
 
+import org.ilay.api.Restrict;
+import org.ilay.api.Reverter;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -25,7 +28,7 @@ abstract class RestrictImpl<T> implements Restrict {
     }
 
     @Override
-    public Registration to(Object permission) {
+    public Reverter to(Object permission) {
         requireNonNull(permission);
         Check.openBindIs(this);
         final Set<Object> permissionSet = new CopyOnWriteArraySet<>();
@@ -38,11 +41,11 @@ abstract class RestrictImpl<T> implements Restrict {
 
         bindInternal();
         OpenBind.unsetCurrent();
-        return asRegistration();
+        return createReverter();
     }
 
     @Override
-    public Registration to(Object... permissions) {
+    public Reverter to(Object... permissions) {
         Check.arraySanity(permissions);
         Check.openBindIs(this);
 
@@ -55,10 +58,10 @@ abstract class RestrictImpl<T> implements Restrict {
 
         bindInternal();
         OpenBind.unsetCurrent();
-        return asRegistration();
+        return createReverter();
     }
 
-    protected abstract ObjectsRegistration<T> asRegistration();
+    protected abstract Reverter createReverter();
 
     protected abstract void bindInternal();
 }

@@ -7,6 +7,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
+import org.ilay.api.Reverter;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -62,7 +63,7 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> Registration bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
+    <T, F> Reverter bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
         requireNonNull(itemClass);
         requireNonNull(hasDataProvider);
 
@@ -74,7 +75,7 @@ class AuthorizationContext implements ViewChangeListener {
 
         dataProviders.add(new WeakReference<>(newDataProvider));
 
-        return new DataRegistration(new WeakReference<>(hasDataProvider));
+        return new DataReverter(new WeakReference<>(hasDataProvider));
     }
 
     @SuppressWarnings("unchecked")

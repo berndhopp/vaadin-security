@@ -8,6 +8,7 @@ import com.vaadin.ui.Grid;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,7 +68,7 @@ public class DataTest {
 
         fooGrid.setItems(foo1, foo2, foo3);
 
-        final Registration registration = Authorization.restrictData(Foo.class, fooGrid);
+        final Reverter reverter = Authorization.restrictData(Foo.class, fooGrid);
 
         DataProvider<Foo, ?> dataProvider = fooGrid.getDataProvider();
 
@@ -80,7 +81,7 @@ public class DataTest {
         assertThat(items, hasItem(foo2));
         assertThat(items, not(hasItem(foo3)));
 
-        registration.revert();
+        reverter.revert();
 
         dataProvider = fooGrid.getDataProvider();
 

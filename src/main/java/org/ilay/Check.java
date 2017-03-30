@@ -1,5 +1,7 @@
 package org.ilay;
 
+import org.ilay.api.Restrict;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;

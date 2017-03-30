@@ -6,6 +6,8 @@ import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
+import org.ilay.api.Restrict;
+import org.ilay.api.Reverter;
 
 import java.util.Map;
 import java.util.Set;
@@ -196,7 +198,7 @@ public final class Authorization {
      * @param hasItems the {@link HasItems} to be bound
      * @param <T> the Type of the items
      */
-    public static <T> Registration restrictData(Class<T> itemClass, HasDataProvider<T> hasItems) {
+    public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasItems) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(itemClass);
         requireNonNull(hasItems);

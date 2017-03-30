@@ -5,9 +5,9 @@ import com.vaadin.ui.Component;
 import java.util.Map;
 import java.util.Set;
 
-class ComponentObjectsRegistration extends ObjectsRegistration<Component> {
+class ComponentObjectsReverter extends ObjectsReverter<Component> {
 
-    ComponentObjectsRegistration(Map<Component, Set<Object>> permissions) {
+    ComponentObjectsReverter(Map<Component, Set<Object>> permissions) {
         super(permissions);
     }
 
