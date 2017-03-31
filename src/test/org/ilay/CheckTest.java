@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -29,6 +31,18 @@ public class CheckTest {
     public void empty_string_should_fail() {
         Check.notNullOrEmpty("");
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void empty_map_should_fail() {
+        Check.notNullOrEmpty(new HashMap<>());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void null_map_should_fail() {
+        Check.notNullOrEmpty((Map<Object, Object>) null);
+    }
+
+
 
     @Test
     public void not_empty_should_work() {

@@ -60,7 +60,7 @@ class AuthorizerPool {
             }
         }
 
-        Check.state(authorizer != null, "no authorizer found for %s", permissionClass);
+        Check.arg(authorizer != null, "no authorizer found for %s", permissionClass);
 
         authorizers.put(permissionClass, authorizer);
 

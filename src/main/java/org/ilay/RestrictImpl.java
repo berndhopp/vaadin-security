@@ -3,10 +3,11 @@ package org.ilay;
 import org.ilay.api.Restrict;
 import org.ilay.api.Reverter;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
@@ -18,12 +19,20 @@ abstract class RestrictImpl<T> implements Restrict {
     RestrictImpl(T[] tArray) {
         Check.arraySanity(tArray);
         this.restrictionMap = new WeakHashMap<>(tArray.length);
+
+        for (T t : tArray) {
+            restrictionMap.put(t, new HashSet<>());
+        }
+
         OpenBind.setCurrent(this);
     }
 
-    RestrictImpl(T view) {
-        requireNonNull(view);
+    RestrictImpl(T t) {
+        requireNonNull(t);
         this.restrictionMap = new WeakHashMap<>(1);
+
+        restrictionMap.put(t, new HashSet<>());
+
         OpenBind.setCurrent(this);
     }
 
@@ -31,12 +40,10 @@ abstract class RestrictImpl<T> implements Restrict {
     public Reverter to(Object permission) {
         requireNonNull(permission);
         Check.openBindIs(this);
-        final Set<Object> permissionSet = new CopyOnWriteArraySet<>();
-        permissionSet.add(permission);
 
         for (Map.Entry<T, Set<Object>> tSetEntry : restrictionMap.entrySet()) {
-            Set<Object> permissionForEntry = new CopyOnWriteArraySet<>(permissionSet);
-            tSetEntry.setValue(permissionForEntry);
+            Set<Object> permissionForEntry = tSetEntry.getValue();
+            permissionForEntry.add(permission);
         }
 
         bindInternal();
@@ -49,11 +56,10 @@ abstract class RestrictImpl<T> implements Restrict {
         Check.arraySanity(permissions);
         Check.openBindIs(this);
 
-        Set<Object> permissionSet = new CopyOnWriteArraySet<>(asList(permissions));
+        List<Object> permissionList = asList(permissions);
 
-        for (Map.Entry<T, Set<Object>> tSetEntry : restrictionMap.entrySet()) {
-            Set<Object> permissionForEntry = new CopyOnWriteArraySet<>(permissionSet);
-            tSetEntry.setValue(permissionForEntry);
+        for (Set<Object> permissionsEntry : restrictionMap.values()) {
+            permissionsEntry.addAll(permissionList);
         }
 
         bindInternal();

@@ -5,6 +5,7 @@ import com.vaadin.data.provider.DataProviderWrapper;
 import com.vaadin.data.provider.Query;
 
 import org.ilay.api.Authorizer;
+import org.ilay.api.InMemoryAuthorizer;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -22,7 +23,7 @@ class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> impl
 
         //inMemory-DataProviders should use an InMemoryAuthorizer,
         //where an integrity check on the data would not make sense
-        integrityCheck = !dataProvider.isInMemory();
+        integrityCheck = !(authorizer instanceof InMemoryAuthorizer);
     }
 
     @Override

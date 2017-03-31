@@ -13,8 +13,8 @@
         <vaadin.version>[8.0.0,)</vaadin.version>
         <servlet-api.version>[2.5,)</servlet-api.version>
         <project.build.encoding>UTF-8</project.build.encoding>
-        <project.build.target>1.7</project.build.target>
-        <project.build.source>1.7</project.build.source>
+        <project.build.target>1.8</project.build.target>
+        <project.build.source>1.8</project.build.source>
         <Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
         <Implementation-Title>ILAY - authorization for Vaadin</Implementation-Title>
         <maven-surefire-plugin.version>2.10</maven-surefire-plugin.version>

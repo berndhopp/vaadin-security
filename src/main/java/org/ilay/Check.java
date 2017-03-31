@@ -27,7 +27,6 @@ class Check {
         return map;
     }
 
-
     static void openBindIs(Restrict bind) {
         requireNonNull(bind);
 

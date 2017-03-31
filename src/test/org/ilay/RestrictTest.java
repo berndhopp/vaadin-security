@@ -192,15 +192,15 @@ public class RestrictTest {
         assertEquals(5, permissions1.size());
         assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo", 42));
 
-        //remove some permissions from component1 and check they are gone
+        //remove one permissions from component1 and check it is gone
 
         reverter.revert();
 
         permissions1 = componentsToPermissions.get(component);
 
         assertNotNull(permissions1);
-        assertEquals(3, permissions1.size());
-        assertThat(permissions1, containsInAnyOrder("world", "foo", 42));
+        assertEquals(4, permissions1.size());
+        assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo"));
     }
 
     @Test
@@ -259,7 +259,7 @@ public class RestrictTest {
         permissions1 = viewsToPermissions.get(view);
 
         assertNotNull(permissions1);
-        assertEquals(3, permissions1.size());
+        assertEquals(4, permissions1.size());
         assertThat(permissions1, containsInAnyOrder("hello", "world", 23, "foo"));
     }
 }
