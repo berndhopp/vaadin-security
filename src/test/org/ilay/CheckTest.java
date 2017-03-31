@@ -42,8 +42,6 @@ public class CheckTest {
         Check.notNullOrEmpty((Map<Object, Object>) null);
     }
 
-
-
     @Test
     public void not_empty_should_work() {
         ArrayList<Integer> integers = new ArrayList<>();

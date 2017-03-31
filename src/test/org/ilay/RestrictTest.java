@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.ilay.Authorization.restrictComponent;
+import static org.ilay.Authorization.restrictComponents;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -54,8 +55,27 @@ public class RestrictTest {
         Button button = new Button();
         Button button2 = new Button();
 
-        Authorization.restrictComponents(button, button2);
-        Authorization.restrictComponents(button2, button);
+        restrictComponents(button, button2);
+        restrictComponents(button2, button);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void call_revert_twice_should_throw_exception() throws ServiceException {
+        Set<Authorizer> authorizers = new HashSet<>();
+        authorizers.add(Authorizers.STRING_AUTHORIZER);
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+
+        Button button = new Button();
+        Button button2 = new Button();
+
+        final Reverter reverter = restrictComponents(button, button2).to("whatever");
+
+        reverter.revert();
+        reverter.revert();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -104,7 +124,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        Authorization.restrictComponents();
+        restrictComponents();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -115,7 +135,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        Authorization.restrictComponents(new Button()).to();
+        restrictComponents(new Button()).to();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -161,7 +181,7 @@ public class RestrictTest {
         Component component = new Button();
         Component component2 = new Button();
 
-        Authorization.restrictComponents(component, component2).to("hello", "world", 23);
+        restrictComponents(component, component2).to("hello", "world", 23);
         restrictComponent(component).to("foo");
         restrictComponent(component2).to("bar");
 

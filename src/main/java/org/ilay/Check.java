@@ -53,8 +53,8 @@ class Check {
     }
 
     static <T> T[] arraySanity(T[] array) {
-        requireNonNull(array, "array cannot be null");
-        arg(array.length > 0, "array must nor be empty");
+        requireNonNull(array, "array must not be null");
+        arg(array.length > 0, "array must not be empty");
 
         for (T t : array) {
             requireNonNull(t, "elements in array must not be null");
