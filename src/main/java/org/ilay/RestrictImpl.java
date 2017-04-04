@@ -5,11 +5,11 @@ import com.vaadin.util.CurrentInstance;
 import org.ilay.api.Restrict;
 import org.ilay.api.Reverter;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
@@ -25,7 +25,7 @@ abstract class RestrictImpl<T> implements Restrict {
         this.restrictionMap = new WeakHashMap<>(tArray.length);
 
         for (T t : tArray) {
-            restrictionMap.put(t, new HashSet<>());
+            restrictionMap.put(t, new CopyOnWriteArraySet<>());
         }
 
         CurrentInstance.set(Restrict.class, this);
@@ -37,7 +37,7 @@ abstract class RestrictImpl<T> implements Restrict {
 
         this.restrictionMap = new WeakHashMap<>(1);
 
-        restrictionMap.put(t, new HashSet<>());
+        restrictionMap.put(t, new CopyOnWriteArraySet<>());
 
         CurrentInstance.set(Restrict.class, this);
     }
