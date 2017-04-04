@@ -1,5 +1,9 @@
 package org.ilay;
 
+import com.vaadin.util.CurrentInstance;
+
+import org.ilay.api.Restrict;
+
 import java.lang.reflect.Field;
 
 class TestUtil {
@@ -7,7 +11,7 @@ class TestUtil {
         AuthorizationContext.currentInstanceVessel = new TestAuthorizationContextVessel();
         Authorization.navigatorSupplier = new TestNavigatorSupplier();
         Authorization.sessionInitNotifierSupplier = new TestSessionInitNotifierSupplier();
-        OpenBind.openBindVessel = new TestOpenBindVessel();
+        CurrentInstance.set(Restrict.class, null);
         final Field initialized = Authorization.class.getDeclaredField("initialized");
         initialized.setAccessible(true);
         initialized.set(null, false);

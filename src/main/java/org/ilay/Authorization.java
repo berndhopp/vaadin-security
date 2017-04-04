@@ -107,7 +107,6 @@ public final class Authorization {
      */
     public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
         requireNonNull(evaluatorSupplier);
-
         Check.state(!initialized, "start() cannot be called more than once");
 
         final VaadinAbstraction.SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
@@ -200,6 +199,7 @@ public final class Authorization {
      */
     public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasItems) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.noRestrictOpen();
         requireNonNull(itemClass);
         requireNonNull(hasItems);
 
@@ -236,7 +236,7 @@ public final class Authorization {
      */
     public static void reapplyRestrictions() {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        Check.noOpenBind();
+        Check.noRestrictOpen();
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         reapplyInternal(componentsToPermissions, authorizationContext);

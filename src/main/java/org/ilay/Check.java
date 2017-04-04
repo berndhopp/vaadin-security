@@ -1,10 +1,11 @@
 package org.ilay;
 
+import com.vaadin.util.CurrentInstance;
+
 import org.ilay.api.Restrict;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -27,23 +28,22 @@ class Check {
         return map;
     }
 
-    static void openBindIs(Restrict bind) {
-        requireNonNull(bind);
+    static void currentRestrictIs(Restrict restrict) {
+        requireNonNull(restrict);
 
-        final Optional<Restrict> current = OpenBind.getCurrent();
-        state(current.isPresent());
-        state(current.get() == bind);
+        final Restrict current = CurrentInstance.get(Restrict.class);
+        state(current != null);
+        state(current == restrict);
     }
 
-    static void noOpenBind() {
-        final Optional<Restrict> currentOptional = OpenBind.getCurrent();
+    static void noRestrictOpen() {
+        final Restrict restrict = CurrentInstance.get(Restrict.class);
 
-        if (currentOptional.isPresent()) {
-            Restrict current = currentOptional.get();
+        if (restrict != null) {
 
-            if (current instanceof ComponentRestrict) {
+            if (restrict instanceof ComponentRestrict) {
                 throw new IllegalStateException("Authorization.bindComponent() or Authorization.bindComponents() has been called without calling to() on the returned Restrict-object");
-            } else if (current instanceof ViewRestrict) {
+            } else if (restrict instanceof ViewRestrict) {
                 throw new IllegalStateException("Authorization.bindView() or Authorization.bindViews() has been called without calling to() on the returned Restrict-object");
             } else {
                 //will never come here

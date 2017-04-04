@@ -36,23 +36,6 @@ class VaadinAbstraction {
         void set(T t);
     }
 
-    static class ProductionOpenBindVessel implements Vessel<OpenBind> {
-
-        @Override
-        public void set(OpenBind openBind) {
-            VaadinSession.getCurrent().setAttribute(OpenBind.class, openBind);
-        }
-
-        @Override
-        public OpenBind get() {
-            final VaadinSession vaadinSession = VaadinSession.getCurrent();
-
-            requireNonNull(vaadinSession, "no VaadinSession available");
-
-            return vaadinSession.getAttribute(OpenBind.class);
-        }
-    }
-
     static class ProductionAuthorizationContextVessel implements Vessel<AuthorizationContext> {
         @Override
         public AuthorizationContext get() {
