@@ -40,15 +40,15 @@ public class SecureViewTest {
             }
         });
 
-        Authorization.start(authorizers);
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
-
         SecureView<Foo> secureView = Mockito.spy(new FooSecureView(true));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
         when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
+
+        Authorization.start(authorizers);
+
+        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
 
         secureView.enter(viewChangeEvent);
 

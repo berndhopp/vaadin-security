@@ -5,6 +5,7 @@ import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
+import com.vaadin.util.CurrentInstance;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.Reverter;
@@ -32,7 +33,6 @@ import static java.util.stream.Collectors.toMap;
  */
 class AuthorizationContext implements ViewChangeListener {
 
-    static VaadinAbstraction.Vessel<AuthorizationContext> currentInstanceVessel = new VaadinAbstraction.ProductionAuthorizationContextVessel();
     private final Map<Component, Set<Object>> componentsToPermissions = new WeakHashMap<>();
     private final Map<View, Set<Object>> viewsToPermissions = new WeakHashMap<>();
     private final AuthorizerPool authorizerPool;
@@ -47,11 +47,11 @@ class AuthorizationContext implements ViewChangeListener {
     static void init(Set<Authorizer> authorizers) {
         requireNonNull(authorizers);
         final AuthorizationContext authorizationContext = new AuthorizationContext(authorizers);
-        currentInstanceVessel.set(authorizationContext);
+        CurrentInstance.set(AuthorizationContext.class, authorizationContext);
     }
 
     static AuthorizationContext getCurrent() {
-        return currentInstanceVessel.get();
+        return CurrentInstance.get(AuthorizationContext.class);
     }
 
     Map<Component, Set<Object>> getComponentsToPermissions() {
