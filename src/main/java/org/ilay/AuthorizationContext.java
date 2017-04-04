@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -213,11 +214,14 @@ class AuthorizationContext implements ViewChangeListener {
             return;
         }
 
-        final VaadinAbstraction.NavigatorFacade navigator = Authorization.navigatorSupplier.get();
+        final Optional<VaadinAbstraction.NavigatorFacade> navigator = Authorization.navigatorSupplier.get();
 
-        requireNonNull(navigator, "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
+        Check.state(navigator.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
 
-        navigator.addViewChangeListener(this);
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        final VaadinAbstraction.NavigatorFacade navigatorFacade = navigator.get();
+
+        navigatorFacade.addViewChangeListener(this);
 
         registeredAsViewChangeListener = true;
     }

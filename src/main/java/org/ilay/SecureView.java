@@ -4,6 +4,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CustomComponent;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
@@ -18,7 +19,14 @@ public abstract class SecureView<T> extends CustomComponent implements View {
     protected abstract void onSuccessfulAuthorization(T t);
 
     protected void onFailedAuthorization(T t) {
-        Authorization.navigatorSupplier.get().navigateTo("");
+        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = Authorization.navigatorSupplier.get();
+
+        Check.state(optionalNavigator.isPresent());
+
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        final VaadinAbstraction.NavigatorFacade navigator = optionalNavigator.get();
+
+        navigator.navigateTo("");
     }
 
     protected void onParseException(ParseException parseException) {

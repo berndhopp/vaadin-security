@@ -10,6 +10,7 @@ import org.ilay.api.Restrict;
 import org.ilay.api.Reverter;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -74,7 +75,7 @@ import static java.util.Objects.requireNonNull;
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
-    static Supplier<VaadinAbstraction.NavigatorFacade> navigatorSupplier = new VaadinAbstraction.ProductionNavigatorFacadeSupplier();
+    static Supplier<Optional<VaadinAbstraction.NavigatorFacade>> navigatorSupplier = new VaadinAbstraction.ProductionNavigatorFacadeSupplier();
     static Supplier<VaadinAbstraction.SessionInitNotifier> sessionInitNotifierSupplier = new VaadinAbstraction.ProductionSessionInitNotifierSupplier();
     private static boolean initialized = false;
 
@@ -252,15 +253,14 @@ public final class Authorization {
     }
 
     private static void reEvaluateCurrentViewAccess() {
-        final VaadinAbstraction.NavigatorFacade navigator = navigatorSupplier.get();
+        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = navigatorSupplier.get();
 
-        if (navigator == null) {
-            //no navigator -> no views to check
-            return;
+        if (optionalNavigator.isPresent()) {
+            VaadinAbstraction.NavigatorFacade navigator = optionalNavigator.get();
+
+            final String state = navigator.getState();
+            navigator.navigateTo("");
+            navigator.navigateTo(state);
         }
-
-        final String state = navigator.getState();
-        navigator.navigateTo("");
-        navigator.navigateTo(state);
     }
 }

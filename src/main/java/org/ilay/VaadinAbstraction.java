@@ -6,6 +6,7 @@ import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.UI;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -28,18 +29,18 @@ class VaadinAbstraction {
         void addSessionInitListener(SessionInitListener listener);
     }
 
-    static class ProductionNavigatorFacadeSupplier implements Supplier<NavigatorFacade> {
+    static class ProductionNavigatorFacadeSupplier implements Supplier<Optional<NavigatorFacade>> {
         @Override
-        public NavigatorFacade get() {
+        public Optional<NavigatorFacade> get() {
             final UI ui = requireNonNull(UI.getCurrent());
 
             Navigator navigator = ui.getNavigator();
 
             if (navigator == null) {
-                return null;
+                return Optional.empty();
             }
 
-            return new NavigatorFacade() {
+            return Optional.of(new NavigatorFacade() {
                 @Override
                 public String getState() {
                     return navigator.getState();
@@ -54,7 +55,7 @@ class VaadinAbstraction {
                 public void addViewChangeListener(ViewChangeListener viewChangeListener) {
                     navigator.addViewChangeListener(viewChangeListener);
                 }
-            };
+            });
         }
     }
 
