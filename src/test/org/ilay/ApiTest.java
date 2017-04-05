@@ -102,7 +102,7 @@ public class ApiTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -127,8 +127,7 @@ public class ApiTest {
 
         Authorization.start(() -> authorizers);
 
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
@@ -148,6 +147,6 @@ public class ApiTest {
     @Test(expected = IllegalArgumentException.class)
     public void test_start_supplier_negative() throws ServiceException {
         Authorization.start(HashSet::new);
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
     }
 }

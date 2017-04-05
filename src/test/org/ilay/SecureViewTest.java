@@ -48,7 +48,7 @@ public class SecureViewTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         secureView.enter(viewChangeEvent);
 
@@ -73,7 +73,7 @@ public class SecureViewTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         SecureView<Foo> secureView = Mockito.spy(new FooSecureView(true));
 

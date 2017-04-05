@@ -1,7 +1,5 @@
 package org.ilay;
 
-import com.vaadin.util.CurrentInstance;
-
 import org.ilay.api.Restrict;
 import org.ilay.api.Reverter;
 
@@ -20,7 +18,7 @@ abstract class RestrictImpl<T> implements Restrict {
 
     RestrictImpl(T[] tArray) {
         Check.arraySanity(tArray);
-        Check.noRestrictOpen();
+        Check.noUnclosedRestrict();
 
         this.restrictionMap = new WeakHashMap<>(tArray.length);
 
@@ -28,18 +26,18 @@ abstract class RestrictImpl<T> implements Restrict {
             restrictionMap.put(t, new CopyOnWriteArraySet<>());
         }
 
-        CurrentInstance.set(Restrict.class, this);
+        Check.setCurrentRestrict(this);
     }
 
     RestrictImpl(T t) {
         requireNonNull(t);
-        Check.noRestrictOpen();
+        Check.noUnclosedRestrict();
 
         this.restrictionMap = new WeakHashMap<>(1);
 
         restrictionMap.put(t, new CopyOnWriteArraySet<>());
 
-        CurrentInstance.set(Restrict.class, this);
+        Check.setCurrentRestrict(this);
     }
 
     @Override
@@ -54,7 +52,8 @@ abstract class RestrictImpl<T> implements Restrict {
 
         bindInternal();
 
-        CurrentInstance.set(Restrict.class, null);
+        Check.setCurrentRestrict(null);
+
         return createReverter();
     }
 
@@ -70,7 +69,7 @@ abstract class RestrictImpl<T> implements Restrict {
         }
 
         bindInternal();
-        CurrentInstance.set(Restrict.class, null);
+        Check.setCurrentRestrict(null);
         return createReverter();
     }
 

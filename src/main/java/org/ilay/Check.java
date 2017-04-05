@@ -1,11 +1,10 @@
 package org.ilay;
 
-import com.vaadin.util.CurrentInstance;
-
 import org.ilay.api.Restrict;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -28,18 +27,46 @@ class Check {
         return map;
     }
 
+    static void setCurrentRestrict(Restrict restrict) {
+        final Optional<CurrentRestrict> currentRestrictOptional = VaadinAbstraction.getFromSessionStore(CurrentRestrict.class);
+
+        if (currentRestrictOptional.isPresent()) {
+            final CurrentRestrict currentRestrict = currentRestrictOptional.get();
+
+            currentRestrict.setRestrict(restrict);
+        } else {
+            CurrentRestrict currentRestrict = new CurrentRestrict();
+            currentRestrict.setRestrict(restrict);
+            VaadinAbstraction.storeInSession(CurrentRestrict.class, currentRestrict);
+        }
+    }
+
     static void currentRestrictIs(Restrict restrict) {
         requireNonNull(restrict);
 
-        final Restrict current = CurrentInstance.get(Restrict.class);
-        state(current != null);
-        state(current == restrict);
+        final Optional<CurrentRestrict> currentRestrictOptional = VaadinAbstraction.getFromSessionStore(CurrentRestrict.class);
+
+        state(currentRestrictOptional.isPresent());
+
+        //noinspection OptionalGetWithoutIsPresent
+        final CurrentRestrict currentRestrict = currentRestrictOptional.get();
+
+        state(currentRestrict.getRestrict() == restrict);
     }
 
-    static void noRestrictOpen() {
-        final Restrict restrict = CurrentInstance.get(Restrict.class);
+    static void noUnclosedRestrict() {
+        final Optional<CurrentRestrict> currentRestrictOptional = VaadinAbstraction.getFromSessionStore(CurrentRestrict.class);
 
-        if (restrict != null) {
+        if (!currentRestrictOptional.isPresent()) {
+            return;
+        }
+
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        CurrentRestrict currentRestrict = currentRestrictOptional.get();
+
+        if (currentRestrict.getRestrict() != null) {
+
+            final Restrict restrict = currentRestrict.getRestrict();
 
             if (restrict instanceof ComponentRestrict) {
                 throw new IllegalStateException("Authorization.bindComponent() or Authorization.bindComponents() has been called without calling to() on the returned Restrict-object");
@@ -77,6 +104,24 @@ class Check {
         }
     }
 
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
+    static <T> T present(Optional<T> optional) {
+        requireNonNull(optional);
+
+        state(optional.isPresent());
+
+        return optional.get();
+    }
+
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
+    static <T> T present(Optional<T> optional, String message) {
+        requireNonNull(optional);
+
+        state(optional.isPresent(), message);
+
+        return optional.get();
+    }
+
     static void state(boolean condition) {
         if (!condition) {
             throw new IllegalStateException();
@@ -86,6 +131,18 @@ class Check {
     static void state(boolean condition, String message, Object... parameters) {
         if (!condition) {
             throw new IllegalStateException(format(message, parameters));
+        }
+    }
+
+    private static class CurrentRestrict {
+        private Restrict currentRestrict;
+
+        Restrict getRestrict() {
+            return currentRestrict;
+        }
+
+        void setRestrict(Restrict currentRestrict) {
+            this.currentRestrict = currentRestrict;
         }
     }
 }

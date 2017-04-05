@@ -75,8 +75,6 @@ import static java.util.Objects.requireNonNull;
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
-    static Supplier<Optional<VaadinAbstraction.NavigatorFacade>> navigatorSupplier = new VaadinAbstraction.ProductionNavigatorFacadeSupplier();
-    static Supplier<VaadinAbstraction.SessionInitNotifier> sessionInitNotifierSupplier = new VaadinAbstraction.ProductionSessionInitNotifierSupplier();
     private static boolean initialized = false;
 
     private Authorization() {
@@ -110,14 +108,14 @@ public final class Authorization {
         requireNonNull(evaluatorSupplier);
         Check.state(!initialized, "start() cannot be called more than once");
 
-        final VaadinAbstraction.SessionInitNotifier sessionInitNotifier = sessionInitNotifierSupplier.get();
+        final VaadinAbstraction.SessionInitNotifier sessionInitNotifier = VaadinAbstraction.getSessionInitNotifier();
 
         sessionInitNotifier.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
                 e -> {
                     final Set<Authorizer> authorizers = evaluatorSupplier.get();
                     Check.notNullOrEmpty(authorizers);
-                    AuthorizationContext.init(authorizers);
+                    AuthorizationContext.initSession(authorizers);
                 }
         );
 
@@ -200,7 +198,7 @@ public final class Authorization {
      */
     public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasItems) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        Check.noRestrictOpen();
+        Check.noUnclosedRestrict();
         requireNonNull(itemClass);
         requireNonNull(hasItems);
 
@@ -237,7 +235,7 @@ public final class Authorization {
      */
     public static void reapplyRestrictions() {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        Check.noRestrictOpen();
+        Check.noUnclosedRestrict();
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         reapplyInternal(componentsToPermissions, authorizationContext);
@@ -253,7 +251,7 @@ public final class Authorization {
     }
 
     private static void reEvaluateCurrentViewAccess() {
-        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = navigatorSupplier.get();
+        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = VaadinAbstraction.getNavigatorFacade();
 
         if (optionalNavigator.isPresent()) {
             VaadinAbstraction.NavigatorFacade navigator = optionalNavigator.get();

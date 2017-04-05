@@ -4,6 +4,7 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 
 import java.util.Optional;
@@ -17,6 +18,57 @@ import static java.util.Objects.requireNonNull;
  * @author Bernd Hopp
  */
 class VaadinAbstraction {
+
+    private static Supplier<Optional<NavigatorFacade>> navigatorSupplier = new ProductionNavigatorFacadeSupplier();
+    private static Supplier<SessionInitNotifier> sessionInitNotifierSupplier = new ProductionSessionInitNotifierSupplier();
+    private static SessionStore sessionStore = new SessionStore() {
+        @Override
+        public <T> Optional<T> get(Class<T> tClass) {
+            return Optional.ofNullable(VaadinSession.getCurrent().getAttribute(tClass));
+        }
+
+        @Override
+        public <T> void set(Class<T> tClass, T t) {
+            VaadinSession.getCurrent().setAttribute(tClass, t);
+        }
+    };
+
+    static void setNavigatorSupplier(Supplier<Optional<NavigatorFacade>> navigatorSupplier) {
+        requireNonNull(navigatorSupplier);
+        VaadinAbstraction.navigatorSupplier = navigatorSupplier;
+    }
+
+    static void setSessionInitNotifierSupplier(Supplier<SessionInitNotifier> sessionInitNotifierSupplier) {
+        requireNonNull(sessionInitNotifierSupplier);
+        VaadinAbstraction.sessionInitNotifierSupplier = sessionInitNotifierSupplier;
+    }
+
+    static Optional<NavigatorFacade> getNavigatorFacade() {
+        return navigatorSupplier.get();
+    }
+
+    static SessionInitNotifier getSessionInitNotifier() {
+        return sessionInitNotifierSupplier.get();
+    }
+
+    static void setSessionStore(SessionStore sessionStore) {
+        VaadinAbstraction.sessionStore = sessionStore;
+    }
+
+    static <T> void storeInSession(Class<T> tClass, T t) {
+        sessionStore.set(tClass, t);
+    }
+
+    static <T> Optional<T> getFromSessionStore(Class<T> tClass) {
+        return sessionStore.get(tClass);
+    }
+
+    interface SessionStore {
+        <T> Optional<T> get(Class<T> tClass);
+
+        <T> void set(Class<T> tClass, T t);
+    }
+
     interface NavigatorFacade {
         String getState();
 

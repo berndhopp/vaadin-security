@@ -19,7 +19,7 @@ public abstract class SecureView<T> extends CustomComponent implements View {
     protected abstract void onSuccessfulAuthorization(T t);
 
     protected void onFailedAuthorization(T t) {
-        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = Authorization.navigatorSupplier.get();
+        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = VaadinAbstraction.getNavigatorFacade();
 
         Check.state(optionalNavigator.isPresent());
 

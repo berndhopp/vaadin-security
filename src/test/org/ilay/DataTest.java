@@ -57,7 +57,7 @@ public class DataTest {
         Authorization.start(authorizers);
 
 
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
     }
 
     @Test

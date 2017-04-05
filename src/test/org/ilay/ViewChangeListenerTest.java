@@ -55,8 +55,7 @@ public class ViewChangeListenerTest {
 
         Authorization.start(authorizers);
 
-
-        ((TestSessionInitNotifierSupplier) Authorization.sessionInitNotifierSupplier).newSession();
+        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
     }
 
     @Test

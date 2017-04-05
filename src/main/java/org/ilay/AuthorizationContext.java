@@ -5,7 +5,6 @@ import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
-import com.vaadin.util.CurrentInstance;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.Reverter;
@@ -45,14 +44,16 @@ class AuthorizationContext implements ViewChangeListener {
         this.authorizerPool = new AuthorizerPool(authorizers);
     }
 
-    static void init(Set<Authorizer> authorizers) {
+    static void initSession(Set<Authorizer> authorizers) {
         requireNonNull(authorizers);
         final AuthorizationContext authorizationContext = new AuthorizationContext(authorizers);
-        CurrentInstance.set(AuthorizationContext.class, authorizationContext);
+        VaadinAbstraction.storeInSession(AuthorizationContext.class, authorizationContext);
     }
 
     static AuthorizationContext getCurrent() {
-        return CurrentInstance.get(AuthorizationContext.class);
+        final Optional<AuthorizationContext> authorizationContext = VaadinAbstraction.getFromSessionStore(AuthorizationContext.class);
+
+        return Check.present(authorizationContext);
     }
 
     Map<Component, Set<Object>> getComponentsToPermissions() {
@@ -214,7 +215,7 @@ class AuthorizationContext implements ViewChangeListener {
             return;
         }
 
-        final Optional<VaadinAbstraction.NavigatorFacade> navigator = Authorization.navigatorSupplier.get();
+        final Optional<VaadinAbstraction.NavigatorFacade> navigator = VaadinAbstraction.getNavigatorFacade();
 
         Check.state(navigator.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
 
