@@ -1,6 +1,5 @@
 package org.ilay;
 
-import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -65,33 +64,33 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> Reverter bindData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
+    <T, F> Reverter bindData(Class<T> itemClass, VaadinAbstraction.DataProviderHolder dataProviderHolder) {
         requireNonNull(itemClass);
-        requireNonNull(hasDataProvider);
+        requireNonNull(dataProviderHolder);
 
         final Authorizer<T, F> authorizer = authorizerPool.getAuthorizer(itemClass);
-        final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) hasDataProvider.getDataProvider();
+        final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) dataProviderHolder.getDataProvider();
         final DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
 
-        hasDataProvider.setDataProvider(newDataProvider);
+        dataProviderHolder.setDataProvider(newDataProvider);
 
         dataProviders.add(new WeakReference<>(newDataProvider));
 
-        return new DataReverter(new WeakReference<>(hasDataProvider));
+        return new DataReverter(new WeakReference<>(dataProviderHolder));
     }
 
     @SuppressWarnings("unchecked")
-    <T, U> void unbindData(HasDataProvider hasDataProvider) {
-        requireNonNull(hasDataProvider);
+    <T, U> void unbindData(VaadinAbstraction.DataProviderHolder dataProviderHolder) {
+        requireNonNull(dataProviderHolder);
 
-        final DataProvider<T, U> dataProvider = hasDataProvider.getDataProvider();
+        final DataProvider<T, U> dataProvider = dataProviderHolder.getDataProvider();
 
         if (dataProvider instanceof AuthorizingDataProvider) {
             AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (AuthorizingDataProvider<T, ?, ?>) dataProvider;
 
             final DataProvider<T, ?> wrappedDataProvider = authorizingDataProvider.getWrappedDataProvider();
 
-            hasDataProvider.setDataProvider(wrappedDataProvider);
+            dataProviderHolder.setDataProvider(wrappedDataProvider);
 
             Check.state(dataProviders.removeIf(r -> r.get() == dataProvider));
         }

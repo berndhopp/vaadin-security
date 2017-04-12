@@ -1,5 +1,8 @@
 package org.ilay;
 
+import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.HasFilterableDataProvider;
+import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.SessionInitListener;
@@ -80,6 +83,53 @@ class VaadinAbstraction {
     interface SessionInitNotifier {
         void addSessionInitListener(SessionInitListener listener);
     }
+
+    interface DataProviderHolder {
+        DataProvider getDataProvider();
+
+        void setDataProvider(DataProvider dataProvider);
+    }
+
+    static class HasDataProviderHolder implements DataProviderHolder {
+
+        private final HasDataProvider hasDataProvider;
+
+        HasDataProviderHolder(HasDataProvider hasDataProvider) {
+            this.hasDataProvider = requireNonNull(hasDataProvider);
+        }
+
+        @Override
+        public DataProvider getDataProvider() {
+            return hasDataProvider.getDataProvider();
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void setDataProvider(DataProvider dataProvider) {
+            hasDataProvider.setDataProvider(dataProvider);
+        }
+    }
+
+    static class HasFilterableDataProviderHolder implements DataProviderHolder {
+
+        private final HasFilterableDataProvider hasDataProvider;
+
+        HasFilterableDataProviderHolder(HasFilterableDataProvider hasDataProvider) {
+            this.hasDataProvider = requireNonNull(hasDataProvider);
+        }
+
+        @Override
+        public DataProvider getDataProvider() {
+            return hasDataProvider.getDataProvider();
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void setDataProvider(DataProvider dataProvider) {
+            hasDataProvider.setDataProvider(dataProvider);
+        }
+    }
+
 
     static class ProductionNavigatorFacadeSupplier implements Supplier<Optional<NavigatorFacade>> {
         @Override

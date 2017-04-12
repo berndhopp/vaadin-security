@@ -1,7 +1,5 @@
 package org.ilay;
 
-import com.vaadin.data.HasDataProvider;
-
 import java.lang.ref.Reference;
 import java.util.Objects;
 
@@ -9,19 +7,19 @@ import java.util.Objects;
 //Authorization.restrictData()
 class DataReverter extends OneTimeUsableReverter {
 
-    private final Reference<HasDataProvider> hasDataProvider;
+    private final Reference<VaadinAbstraction.DataProviderHolder> hasDataProvider;
 
-    DataReverter(Reference<HasDataProvider> hasDataProvider) {
+    DataReverter(Reference<VaadinAbstraction.DataProviderHolder> hasDataProvider) {
         this.hasDataProvider = Objects.requireNonNull(hasDataProvider);
     }
 
     @Override
     void revertInternal() {
 
-        final HasDataProvider hasDataProvider = this.hasDataProvider.get();
+        final VaadinAbstraction.DataProviderHolder dataProviderHolder = this.hasDataProvider.get();
 
-        if (hasDataProvider != null) {
-            AuthorizationContext.getCurrent().unbindData(hasDataProvider);
+        if (dataProviderHolder != null) {
+            AuthorizationContext.getCurrent().unbindData(dataProviderHolder);
         }
     }
 }

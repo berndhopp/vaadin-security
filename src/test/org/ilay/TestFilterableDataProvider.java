@@ -5,16 +5,9 @@ import com.vaadin.data.provider.DataProviderListener;
 import com.vaadin.data.provider.Query;
 import com.vaadin.shared.Registration;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
-class TestDataProvider implements DataProvider<Foo, Bar> {
-
-    private final Foo[] items;
-
-    TestDataProvider(Foo... items) {
-        this.items = items;
-    }
+public class TestFilterableDataProvider implements DataProvider<Foo, Bar> {
 
     @Override
     public boolean isInMemory() {
@@ -23,26 +16,26 @@ class TestDataProvider implements DataProvider<Foo, Bar> {
 
     @Override
     public int size(Query<Foo, Bar> query) {
-        return items.length;
+        return 0;
     }
 
     @Override
     public Stream<Foo> fetch(Query<Foo, Bar> query) {
-        return Arrays.stream(items);
+        return null;
     }
 
     @Override
-    public void refreshItem(Foo item) {
-        throw new RuntimeException("not implemented");
+    public void refreshItem(Foo foo) {
+
     }
 
     @Override
     public void refreshAll() {
-        throw new RuntimeException("not implemented");
+
     }
 
     @Override
-    public Registration addDataProviderListener(DataProviderListener<Foo> listener) {
-        throw new RuntimeException("not implemented");
+    public Registration addDataProviderListener(DataProviderListener<Foo> dataProviderListener) {
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 package org.ilay;
 
 import com.vaadin.data.HasDataProvider;
+import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.HasItems;
 import com.vaadin.navigator.View;
 import com.vaadin.ui.Component;
@@ -193,17 +194,42 @@ public final class Authorization {
      * when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link Authorizer#isGranted(Object)}-method
      * returned true for t. If no {@link Authorizer} for the type T is available, an exception will be thrown.
      * @param itemClass the class of T ( the item's class )
-     * @param hasItems the {@link HasItems} to be bound
+     * @param hasDataProvider the {@link HasItems} to be bound
      * @param <T> the Type of the items
      */
-    public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasItems) {
+    public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        Check.noUnclosedRestrict();
         requireNonNull(itemClass);
-        requireNonNull(hasItems);
+        requireNonNull(hasDataProvider);
+        Check.noUnclosedRestrict();
+
+        VaadinAbstraction.DataProviderHolder holder = new VaadinAbstraction.HasDataProviderHolder(hasDataProvider);
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        return authorizationContext.bindData(itemClass, hasItems);
+        return authorizationContext.bindData(itemClass, holder);
+    }
+
+    /**
+     * binds the data, or items, in the {@link HasDataProvider} to authorization. Each item t of
+     * type T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be
+     * displayed when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link
+     * Authorizer#isGranted(Object)}-method returned true for t. If no {@link Authorizer} for the
+     * type T is available, an exception will be thrown.
+     *
+     * @param itemClass                 the class of T ( the item's class )
+     * @param hasFilterableDataProvider the {@link HasItems} to be bound
+     * @param <T>                       the Type of the items
+     */
+    public static <T, F> Reverter restrictData(Class<T> itemClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
+        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        requireNonNull(itemClass);
+        requireNonNull(hasFilterableDataProvider);
+        Check.noUnclosedRestrict();
+
+        VaadinAbstraction.DataProviderHolder holder = new VaadinAbstraction.HasFilterableDataProviderHolder(hasFilterableDataProvider);
+
+        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+        return authorizationContext.bindData(itemClass, holder);
     }
 
     /**
