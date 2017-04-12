@@ -12,6 +12,4 @@ abstract class ObjectsReverter<T> extends OneTimeUsableReverter {
     ObjectsReverter(Map<T, Set<Object>> restrictionsMap) {
         this.restrictionsMap = Check.notNullOrEmpty(restrictionsMap);
     }
-
-    abstract void revertInternal();
 }
