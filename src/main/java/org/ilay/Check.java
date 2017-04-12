@@ -48,7 +48,6 @@ class Check {
 
         state(currentRestrictOptional.isPresent());
 
-        //noinspection OptionalGetWithoutIsPresent
         final CurrentRestrict currentRestrict = currentRestrictOptional.get();
 
         state(currentRestrict.getRestrict() == restrict);
@@ -109,15 +108,6 @@ class Check {
         requireNonNull(optional);
 
         state(optional.isPresent());
-
-        return optional.get();
-    }
-
-    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
-    static <T> T present(Optional<T> optional, String message) {
-        requireNonNull(optional);
-
-        state(optional.isPresent(), message);
 
         return optional.get();
     }

@@ -81,14 +81,10 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    <T> boolean unbindData(HasDataProvider<T> hasDataProvider) {
+    <T, U> void unbindData(HasDataProvider hasDataProvider) {
         requireNonNull(hasDataProvider);
 
-        final DataProvider<T, ?> dataProvider = hasDataProvider.getDataProvider();
-
-        if (dataProvider == null) {
-            return false;
-        }
+        final DataProvider<T, U> dataProvider = hasDataProvider.getDataProvider();
 
         if (dataProvider instanceof AuthorizingDataProvider) {
             AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (AuthorizingDataProvider<T, ?, ?>) dataProvider;
@@ -97,18 +93,8 @@ class AuthorizationContext implements ViewChangeListener {
 
             hasDataProvider.setDataProvider(wrappedDataProvider);
 
-            dataProviders
-                    .stream()
-                    .map(Reference::get)
-                    .filter(Objects::nonNull)
-                    .filter(dp -> dp == dataProvider)
-                    .findFirst()
-                    .ifPresent(dataProviders::remove);
-
-            return true;
+            Check.state(dataProviders.removeIf(r -> r.get() == dataProvider));
         }
-
-        return false;
     }
 
     void applyComponents(Map<Component, Set<Object>> componentsToPermissions) throws IllegalStateException {

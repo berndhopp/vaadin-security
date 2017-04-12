@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @see {@link Authorization#restrictComponent(Component)}
- * @see {@link Authorization#restrictComponents(Component...)}
+ * @see Authorization#restrictComponent(Component)
+ * @see Authorization#restrictComponents(Component...)
  */
 class ComponentRestrict extends RestrictImpl<Component> {
 
