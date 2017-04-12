@@ -194,7 +194,7 @@ public final class Authorization {
      * when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link Authorizer#isGranted(Object)}-method
      * returned true for t. If no {@link Authorizer} for the type T is available, an exception will be thrown.
      * @param itemClass the class of T ( the item's class )
-     * @param hasDataProvider the {@link HasItems} to be bound
+     * @param hasDataProvider the {@link HasFilterableDataProvider} to be bound
      * @param <T> the Type of the items
      */
     public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
@@ -210,14 +210,14 @@ public final class Authorization {
     }
 
     /**
-     * binds the data, or items, in the {@link HasDataProvider} to authorization. Each item t of
-     * type T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be
+     * binds the data, or items, in the {@link HasFilterableDataProvider} to authorization. Each item t of
+     * type T in an HasFilterableDataProvider{@literal <}T, F{@literal >} is it's own permission and will only be
      * displayed when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link
      * Authorizer#isGranted(Object)}-method returned true for t. If no {@link Authorizer} for the
      * type T is available, an exception will be thrown.
      *
      * @param itemClass                 the class of T ( the item's class )
-     * @param hasFilterableDataProvider the {@link HasItems} to be bound
+     * @param hasFilterableDataProvider the {@link HasFilterableDataProvider} to be bound
      * @param <T>                       the Type of the items
      */
     public static <T, F> Reverter restrictData(Class<T> itemClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
