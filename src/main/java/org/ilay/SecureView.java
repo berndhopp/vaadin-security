@@ -123,7 +123,7 @@ public abstract class SecureView<T> extends CustomComponent implements View {
     }
 
     /**
-     * this exception indicates that an {@link ViewChangeEvent#parameters} was not parseable
+     * this exception indicates that an {@link ViewChangeEvent#parameters} was not parsable
      * by {@link SecureView#parse(String)}
      */
     public static class ParseException extends Exception {
