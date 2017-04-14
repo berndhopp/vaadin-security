@@ -5,9 +5,9 @@ import com.vaadin.navigator.View;
 import java.util.Map;
 import java.util.Set;
 
-class ViewObjectsRegistration extends ObjectsReverter<View> {
+class ViewObjectBasedPermissionAssignmentRegistration extends ObjectBasedPermissionAssignmentReverter<View> {
 
-    ViewObjectsRegistration(ViewRestrict viewRestrict) {
+    ViewObjectBasedPermissionAssignmentRegistration(ViewRestrict viewRestrict) {
         super(viewRestrict.restrictionMap);
     }
 
@@ -15,7 +15,7 @@ class ViewObjectsRegistration extends ObjectsReverter<View> {
     void revertInternal() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        for (Map.Entry<View, Set<Object>> entry : restrictionsMap.entrySet()) {
+        for (Map.Entry<View, Set<Object>> entry : getRestrictionsMap().entrySet()) {
             final View view = entry.getKey();
             final Set<Object> permissions = entry.getValue();
 

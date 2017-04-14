@@ -5,9 +5,9 @@ import com.vaadin.ui.Component;
 import java.util.Map;
 import java.util.Set;
 
-class ComponentObjectsReverter extends ObjectsReverter<Component> {
+class ComponentObjectBasedPermissionAssignmentReverter extends ObjectBasedPermissionAssignmentReverter<Component> {
 
-    ComponentObjectsReverter(Map<Component, Set<Object>> permissions) {
+    ComponentObjectBasedPermissionAssignmentReverter(Map<Component, Set<Object>> permissions) {
         super(permissions);
     }
 
@@ -15,7 +15,7 @@ class ComponentObjectsReverter extends ObjectsReverter<Component> {
     void revertInternal() {
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        for (Map.Entry<Component, Set<Object>> entry : restrictionsMap.entrySet()) {
+        for (Map.Entry<Component, Set<Object>> entry : getRestrictionsMap().entrySet()) {
             final Component component = entry.getKey();
             final Set<Object> restrictions = entry.getValue();
 

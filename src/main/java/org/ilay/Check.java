@@ -82,8 +82,19 @@ class Check {
         requireNonNull(array, "array must not be null");
         arg(array.length > 0, "array must not be empty");
 
-        for (T t : array) {
+        for (int i = 0; i < array.length; i++) {
+            T t = array[i];
             requireNonNull(t, "elements in array must not be null");
+
+            for (int i1 = 0; i1 < array.length; i1++) {
+                if (i == i1) {
+                    continue;
+                }
+
+                T t2 = array[i1];
+
+                arg(!t2.equals(t), "");
+            }
         }
 
         return array;

@@ -20,8 +20,8 @@ class ComponentRestrict extends RestrictImpl<Component> {
     }
 
     @Override
-    protected ObjectsReverter<Component> createReverter() {
-        return new ComponentObjectsReverter(restrictionMap);
+    protected ObjectBasedPermissionAssignmentReverter<Component> createReverter() {
+        return new ComponentObjectBasedPermissionAssignmentReverter(restrictionMap);
     }
 
     @Override

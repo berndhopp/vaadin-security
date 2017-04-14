@@ -6,10 +6,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @see {@link Authorization#restrictView(View)}
- * @see {@link Authorization#restrictViews(View...)}
+ * @see Authorization#restrictView(View)
+ * @see Authorization#restrictViews(View...)
  */
 class ViewRestrict extends RestrictImpl<View> {
+
     ViewRestrict(View[] views) {
         super(views);
     }
@@ -19,8 +20,8 @@ class ViewRestrict extends RestrictImpl<View> {
     }
 
     @Override
-    protected ObjectsReverter<View> createReverter() {
-        return new ViewObjectsRegistration(this);
+    protected ObjectBasedPermissionAssignmentReverter<View> createReverter() {
+        return new ViewObjectBasedPermissionAssignmentRegistration(this);
     }
 
     @Override
