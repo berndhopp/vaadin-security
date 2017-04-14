@@ -66,9 +66,9 @@ import static java.util.Objects.requireNonNull;
  *     AdminView adminView = new AdminView();
  *     Grid{@literal <}Foo{@literal >} fooGrid = new Grid{@literal <}Foo{@literal >}(Foo.class);
  *
- *     Authorization.bindComponent(button).to(UserRole.USER);
- *     Authorization.bindView(myView).to(UserRole.ADMIN);
- *     Authorization.bindData(fooGrid);
+ *     Authorization.restrictComponent(button).to(UserRole.USER);
+ *     Authorization.restrictView(myView).to(UserRole.ADMIN);
+ *     Authorization.restrictData(fooGrid);
  * </code>
  *
  * @author Bernd Hopp

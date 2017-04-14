@@ -24,7 +24,33 @@ import static java.util.Objects.requireNonNull;
  *
  * OnSuccessfulAuthorization can be used to set up the views content, for example by using
  * {@link CustomComponent#setCompositionRoot(Component)}.
+ * <code>
+ *     class MySecureItemsView extends SecureView{@literal <}ItemId{@literal >} {
  *
+ *         {@literal @}Overwrite
+ *         protected ItemId parse(String parameters){
+ *             return ItemId.parse(parameters);
+ *         }
+ *
+ *         {@literal @}Overwrite
+ *         protected void onSuccessfulAuthorization(ItemId itemId){
+ *             Item item = ItemDao.getItem(itemId);
+ *
+ *             setItem(item);
+ *         }
+ *
+ *         {@literal @}Overwrite
+ *         protected void onFailedAuthorization(ItemId itemId){
+ *             //navigate to permission-denied-view.
+ *             UI.getCurrent().getNavigator().navigateTo("permissionDenied");
+ *         }
+ *
+ *         private void setItem(Item item){
+ *             //make components diplay the item
+ *             ...
+ *         }
+ *     }
+ * </code>
  * @author Bernd Hopp
  */
 public abstract class SecureView<T> extends CustomComponent implements View {
@@ -32,7 +58,6 @@ public abstract class SecureView<T> extends CustomComponent implements View {
     /**
      * parses the given parameters into an instance of T, which is usually some
      * sort of identifier for the content to be displayed in the view.
-     *
      * @param parameters the parameters taken from {@link ViewChangeEvent#parameters}
      * @return The parsed instance of T
      * @throws ParseException if the input does not comply to what is expected by the parser
