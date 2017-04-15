@@ -20,20 +20,16 @@ final class Check {
     private Check() {
     }
 
-    static <T extends Collection> T notNullOrEmpty(T collection) {
+    static <T extends Collection> void notNullOrEmpty(T collection) {
         if (collection == null || collection.isEmpty()) {
             throw new IllegalArgumentException("collection must not be null or empty");
         }
-
-        return collection;
     }
 
-    static <T extends Map<U, V>, U, V> T notNullOrEmpty(T map) {
+    static <T extends Map<U, V>, U, V> void notNullOrEmpty(T map) {
         if (map == null || map.isEmpty()) {
             throw new IllegalArgumentException("map must not be null or empty");
         }
-
-        return map;
     }
 
     static void setCurrentRestrict(Restrict restrict) {
@@ -87,7 +83,7 @@ final class Check {
         }
     }
 
-    static <T> T[] arraySanity(T[] array) {
+    static <T> void arraySanity(T[] array) {
         requireNonNull(array, "array must not be null");
         arg(array.length > 0, "array must not be empty");
 
@@ -105,16 +101,12 @@ final class Check {
                 arg(!t2.equals(t), "duplicate entries found in array");
             }
         }
-
-        return array;
     }
 
-    static String notNullOrEmpty(String input) {
+    static void notNullOrEmpty(String input) {
         if (input == null || input.isEmpty()) {
             throw new IllegalArgumentException("input String must not be null or empty");
         }
-
-        return input;
     }
 
     static void arg(boolean condition, String message, Object... parameters) {

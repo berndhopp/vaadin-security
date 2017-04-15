@@ -13,7 +13,8 @@ abstract class ObjectBasedPermissionAssignmentReverter<T> extends OneTimeUsableR
     private final Map<T, Set<Object>> restrictionsMap;
 
     ObjectBasedPermissionAssignmentReverter(Map<T, Set<Object>> restrictionsMap) {
-        this.restrictionsMap = Check.notNullOrEmpty(restrictionsMap);
+        Check.notNullOrEmpty(restrictionsMap);
+        this.restrictionsMap = restrictionsMap;
     }
 
     Map<T, Set<Object>> getRestrictionsMap() {
