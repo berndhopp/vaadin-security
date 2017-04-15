@@ -102,7 +102,7 @@ final class Check {
 
                 T t2 = array[i1];
 
-                arg(!t2.equals(t), "");
+                arg(!t2.equals(t), "duplicate entries found in array");
             }
         }
 
