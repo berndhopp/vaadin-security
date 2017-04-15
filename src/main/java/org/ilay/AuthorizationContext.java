@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.toMap;
  * {@link View}s and {@link Component}s to permissions, the set of {@link Authorizer}s and some more
  * contextual data.
  *
- * @author Bernd Hopp
+ * @author Bernd Hopp bernd@vaadin.com
  */
 class AuthorizationContext implements ViewChangeListener {
 

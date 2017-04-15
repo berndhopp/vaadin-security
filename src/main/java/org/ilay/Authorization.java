@@ -71,7 +71,7 @@ import static java.util.Objects.requireNonNull;
  *     Authorization.restrictData(fooGrid);
  * </code>
  *
- * @author Bernd Hopp
+ * @author Bernd Hopp bernd@vaadin.com
  */
 public final class Authorization {
 

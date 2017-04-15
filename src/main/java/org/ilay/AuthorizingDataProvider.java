@@ -12,6 +12,11 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * a special DataProviderWrapper to enable authorization-based filtering
+ *
+ * @author Bernd Hopp bernd@vaadin.com
+ */
 class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> implements Predicate<T> {
 
     private final Authorizer<T, M> authorizer;

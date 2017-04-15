@@ -65,7 +65,7 @@ public class AuthorizerPoolTest {
         authorizer.isGranted("");
     }
 
-    @Test(expected = AuthorizerPool.ConflictingEvaluatorsException.class)
+    @Test(expected = AuthorizerPool.ConflictingAuthorizersException.class)
     public void conflicting_evaluators_should_throw_exception() {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
@@ -74,7 +74,7 @@ public class AuthorizerPoolTest {
         new AuthorizerPool(authorizerList);
     }
 
-    @Test(expected = AuthorizerPool.ConflictingEvaluatorsException.class)
+    @Test(expected = AuthorizerPool.ConflictingAuthorizersException.class)
     public void undecideable_interfaces_should_throw_exception() {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);

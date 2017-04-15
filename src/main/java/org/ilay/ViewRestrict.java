@@ -8,7 +8,9 @@ import java.util.Set;
 /**
  * @see Authorization#restrictView(View)
  * @see Authorization#restrictViews(View...)
- */
+ *
+ * @author Bernd Hopp bernd@vaadin.com
+ * */
 class ViewRestrict extends RestrictImpl<View> {
 
     ViewRestrict(View[] views) {

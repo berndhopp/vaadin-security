@@ -5,6 +5,9 @@ import com.vaadin.navigator.View;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Bernd Hopp bernd@vaadin.com
+ */
 class ViewObjectBasedPermissionAssignmentRegistration extends ObjectBasedPermissionAssignmentReverter<View> {
 
     ViewObjectBasedPermissionAssignmentRegistration(ViewRestrict viewRestrict) {

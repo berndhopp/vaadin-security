@@ -5,6 +5,9 @@ import com.vaadin.ui.Component;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Bernd Hopp bernd@vaadin.com
+ */
 class ComponentObjectBasedPermissionAssignmentReverter extends ObjectBasedPermissionAssignmentReverter<Component> {
 
     ComponentObjectBasedPermissionAssignmentReverter(Map<Component, Set<Object>> permissions) {

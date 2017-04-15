@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  * // if "admin" is not granted, myAdmminButton will be invisible
  * </code>
  *
- * @author Bernd Hopp
+ * @author Bernd Hopp bernd@vaadin.com
  */
 public interface Restrict {
     /**

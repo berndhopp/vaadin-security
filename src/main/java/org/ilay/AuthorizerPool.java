@@ -9,6 +9,11 @@ import java.util.Map;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+/**
+ * the pool of available authorizers
+ *
+ * @author Bernd Hopp bernd@vaadin.com
+ */
 class AuthorizerPool {
 
     private final Map<Class<?>, Authorizer<?, ?>> authorizers;
@@ -24,7 +29,7 @@ class AuthorizerPool {
             Authorizer<?, ?> alreadyRegistered = this.authorizers.put(authorizer.getPermissionClass(), authorizer);
 
             if (alreadyRegistered != null) {
-                throw new ConflictingEvaluatorsException(authorizer, alreadyRegistered, authorizer.getPermissionClass());
+                throw new ConflictingAuthorizersException(authorizer, alreadyRegistered, authorizer.getPermissionClass());
             }
         }
     }
@@ -53,7 +58,7 @@ class AuthorizerPool {
 
             if (match) {
                 if (authorizer != null) {
-                    throw new ConflictingEvaluatorsException(authorizer, anAuthorizer, permissionClass);
+                    throw new ConflictingAuthorizersException(authorizer, anAuthorizer, permissionClass);
                 }
 
                 authorizer = (Authorizer<T, F>) anAuthorizer;
@@ -67,12 +72,16 @@ class AuthorizerPool {
         return authorizer;
     }
 
-    static class ConflictingEvaluatorsException extends RuntimeException {
-
-        ConflictingEvaluatorsException(Authorizer authorizer1, Authorizer authorizer2, Class permissionClass) {
+    /**
+     * if more than one authorizers are applicable for a given type, this exception is thrown
+     *
+     * @author Bernd Hopp bernd@vaadin.com
+     */
+    static class ConflictingAuthorizersException extends RuntimeException {
+        ConflictingAuthorizersException(Authorizer authorizer1, Authorizer authorizer2, Class permissionClass) {
             super(
                     format(
-                            "conflicting navigators: %s and %s are both assignable to %s",
+                            "conflicting authorizers: %s and %s are both assignable to %s",
                             authorizer1,
                             authorizer2,
                             permissionClass)

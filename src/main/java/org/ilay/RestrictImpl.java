@@ -12,6 +12,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
+/**
+ * @author Bernd Hopp bernd@vaadin.com
+ */
 abstract class RestrictImpl<T> implements Restrict {
 
     final Map<T, Set<Object>> restrictionMap;

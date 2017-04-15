@@ -7,7 +7,7 @@ import com.vaadin.server.SerializablePredicate;
  * com.vaadin.data.provider.DataProvider} except {@link com.vaadin.data.provider.ListDataProvider}
  * is filtered by the evaluator.
  *
- * @author Bernd Hopp
+ * @author Bernd Hopp bernd@vaadin.com
  */
 public interface InMemoryAuthorizer<T> extends Authorizer<T, SerializablePredicate<T>> {
 

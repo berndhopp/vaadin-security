@@ -5,6 +5,7 @@ import org.ilay.api.Reverter;
 /**
  * a reverter that will throw an exception if revert() is
  * attempted to be called more than once
+ * @author Bernd Hopp bernd@vaadin.com
  */
 abstract class OneTimeUsableReverter implements Reverter {
 

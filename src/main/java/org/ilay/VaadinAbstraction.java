@@ -18,7 +18,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * a couple of abstractions to support testing
  *
- * @author Bernd Hopp
+ * @author Bernd Hopp bernd@vaadin.com
  */
 class VaadinAbstraction {
 

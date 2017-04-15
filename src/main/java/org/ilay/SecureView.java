@@ -51,7 +51,7 @@ import static java.util.Objects.requireNonNull;
  *         }
  *     }
  * </code>
- * @author Bernd Hopp
+ * @author Bernd Hopp bernd@vaadin.com
  */
 public abstract class SecureView<T> extends CustomComponent implements View {
 

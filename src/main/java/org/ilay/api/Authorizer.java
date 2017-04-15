@@ -7,7 +7,11 @@ package org.ilay.api;
  * {@link Authorizer} is responsible for evaluating the permissions that are assignable to the type
  * T.
  *
- * @author Bernd Hopp
+ * If the type T is not used in any {@link com.vaadin.data.provider.DataProvider} that is not a
+ * {@link com.vaadin.data.provider.ListDataProvider}, i.e. in all cases where no filtering on
+ * a backend-level like an external database is involved, consider using {@link InMemoryAuthorizer}.
+ *
+ * @author Bernd Hopp bernd@vaadin.com
  */
 public interface Authorizer<T, F> {
 

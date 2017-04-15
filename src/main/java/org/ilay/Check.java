@@ -9,7 +9,16 @@ import java.util.Optional;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-class Check {
+
+/**
+ * a set of precondition checks
+ *
+ * @author Bernd Hopp bernd@vaadin.com
+ */
+final class Check {
+
+    private Check() {
+    }
 
     static <T extends Collection> T notNullOrEmpty(T collection) {
         if (collection == null || collection.isEmpty()) {

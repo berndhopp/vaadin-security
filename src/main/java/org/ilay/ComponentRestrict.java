@@ -8,6 +8,8 @@ import java.util.Set;
 /**
  * @see Authorization#restrictComponent(Component)
  * @see Authorization#restrictComponents(Component...)
+ *
+ * @author Bernd Hopp bernd@vaadin.com
  */
 class ComponentRestrict extends RestrictImpl<Component> {
 
