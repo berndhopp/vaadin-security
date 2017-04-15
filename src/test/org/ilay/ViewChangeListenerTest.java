@@ -1,12 +1,14 @@
 package org.ilay;
 
 import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.InMemoryAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +16,7 @@ import java.util.Set;
 import static org.ilay.Authorization.restrictView;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 public class ViewChangeListenerTest {
 
@@ -55,7 +58,7 @@ public class ViewChangeListenerTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
     }
 
     @Test
@@ -87,6 +90,23 @@ public class ViewChangeListenerTest {
         user.getRoles().add("admin");
 
         assertTrue(authorizationContext.isViewAuthorized(myView));
+    }
+
+    @Test
+    public void view_change_should_invoke_isViewAuthorized(){
+        AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+
+        authorizationContext = spy(authorizationContext);
+
+        ViewChangeListener.ViewChangeEvent viewChangeEvent = mock(ViewChangeListener.ViewChangeEvent.class);
+
+        View view = e -> {};
+
+        when(viewChangeEvent.getNewView()).thenReturn(view);
+
+        authorizationContext.beforeViewChange(viewChangeEvent);
+
+        verify(authorizationContext, times(1)).isViewAuthorized(view);
     }
 
     @Test

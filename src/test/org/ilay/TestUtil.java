@@ -1,10 +1,12 @@
 package org.ilay;
 
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.ServiceException;
+import com.vaadin.server.SessionInitListener;
+
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Supplier;
 
 class TestUtil {
     static void beforeTest() throws NoSuchFieldException, IllegalAccessException {
@@ -33,5 +35,47 @@ class TestUtil {
         final Field initialized = Authorization.class.getDeclaredField("initialized");
         initialized.setAccessible(true);
         initialized.set(null, false);
+    }
+
+    public static class TestSessionInitNotifierSupplier implements VaadinAbstraction.SessionInitNotifier, Supplier<VaadinAbstraction.SessionInitNotifier> {
+
+        private List<SessionInitListener> sessionInitListeners = new ArrayList<>();
+
+        @Override
+        public VaadinAbstraction.SessionInitNotifier get() {
+            return this;
+        }
+
+        @Override
+        public void addSessionInitListener(SessionInitListener listener) {
+            sessionInitListeners.add(listener);
+        }
+
+        public void newSession() throws ServiceException {
+            for (SessionInitListener sessionInitListener : sessionInitListeners) {
+                sessionInitListener.sessionInit(null);
+            }
+        }
+    }
+
+    static class TestNavigatorSupplier implements Supplier<Optional<VaadinAbstraction.NavigatorFacade>> {
+
+        @Override
+        public Optional<VaadinAbstraction.NavigatorFacade> get() {
+            return Optional.of(new VaadinAbstraction.NavigatorFacade() {
+                @Override
+                public String getState() {
+                    return null;
+                }
+
+                @Override
+                public void navigateTo(String s) {
+                }
+
+                @Override
+                public void addViewChangeListener(ViewChangeListener viewChangeListener) {
+                }
+            });
+        }
     }
 }

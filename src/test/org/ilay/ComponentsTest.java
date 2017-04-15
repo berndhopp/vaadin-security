@@ -59,7 +59,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();
@@ -153,7 +153,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();
@@ -239,7 +239,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();

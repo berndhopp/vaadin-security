@@ -67,7 +67,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Button button = new Button();
         Button button2 = new Button();
@@ -86,7 +86,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         View view = e -> {
         };
@@ -105,7 +105,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         View view = e -> {
         };
@@ -146,7 +146,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Authorization.restrictViews();
     }
@@ -159,7 +159,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Authorization.restrictViews(e -> {
         }).to();
@@ -175,7 +175,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Component component = new Button();
         Component component2 = new Button();
@@ -238,7 +238,7 @@ public class RestrictTest {
         Authorization.start(authorizers);
 
 
-        ((TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
         Authorization.restrictViews(view, view2).to("hello", "world", 23);
         Authorization.restrictView(view).to("foo");
