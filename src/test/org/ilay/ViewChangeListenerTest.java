@@ -8,7 +8,6 @@ import org.ilay.api.Authorizer;
 import org.ilay.api.InMemoryAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,11 +15,12 @@ import java.util.Set;
 import static org.ilay.Authorization.restrictView;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ViewChangeListenerTest {
 
-    User user;
+    private User user;
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException, ServiceException {
@@ -70,7 +70,11 @@ public class ViewChangeListenerTest {
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        assertTrue(authorizationContext.isViewAuthorized(myView));
+        ViewChangeListener.ViewChangeEvent viewChangeEvent = mock(ViewChangeListener.ViewChangeEvent.class);
+
+        when(viewChangeEvent.getNewView()).thenReturn(myView);
+
+        assertTrue(authorizationContext.beforeViewChange(viewChangeEvent));
     }
 
     @Test
@@ -85,28 +89,15 @@ public class ViewChangeListenerTest {
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        assertFalse(authorizationContext.isViewAuthorized(myView));
+        ViewChangeListener.ViewChangeEvent viewChangeEvent = mock(ViewChangeListener.ViewChangeEvent.class);
+
+        when(viewChangeEvent.getNewView()).thenReturn(myView);
+
+        assertFalse(authorizationContext.beforeViewChange(viewChangeEvent));
 
         user.getRoles().add("admin");
 
-        assertTrue(authorizationContext.isViewAuthorized(myView));
-    }
-
-    @Test
-    public void view_change_should_invoke_isViewAuthorized(){
-        AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-
-        authorizationContext = spy(authorizationContext);
-
-        ViewChangeListener.ViewChangeEvent viewChangeEvent = mock(ViewChangeListener.ViewChangeEvent.class);
-
-        View view = e -> {};
-
-        when(viewChangeEvent.getNewView()).thenReturn(view);
-
-        authorizationContext.beforeViewChange(viewChangeEvent);
-
-        verify(authorizationContext, times(1)).isViewAuthorized(view);
+        assertTrue(authorizationContext.beforeViewChange(viewChangeEvent));
     }
 
     @Test
@@ -122,22 +113,26 @@ public class ViewChangeListenerTest {
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
 
-        assertFalse(authorizationContext.isViewAuthorized(myView));
+        ViewChangeListener.ViewChangeEvent viewChangeEvent = mock(ViewChangeListener.ViewChangeEvent.class);
+
+        when(viewChangeEvent.getNewView()).thenReturn(myView);
+
+        assertFalse(authorizationContext.beforeViewChange(viewChangeEvent));
 
         user.getRoles().add("admin");
 
-        assertFalse(authorizationContext.isViewAuthorized(myView));
+        assertFalse(authorizationContext.beforeViewChange(viewChangeEvent));
 
         user.setClearance(Clearance.SECRET);
 
-        assertFalse(authorizationContext.isViewAuthorized(myView));
+        assertFalse(authorizationContext.beforeViewChange(viewChangeEvent));
 
         user.setClearance(Clearance.TOP_SECRET);
 
-        assertTrue(authorizationContext.isViewAuthorized(myView));
+        assertTrue(authorizationContext.beforeViewChange(viewChangeEvent));
 
         user.getRoles().remove("admin");
 
-        assertFalse(authorizationContext.isViewAuthorized(myView));
+        assertFalse(authorizationContext.beforeViewChange(viewChangeEvent));
     }
 }

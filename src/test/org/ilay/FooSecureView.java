@@ -18,16 +18,6 @@ public class FooSecureView extends SecureView<Foo> {
     }
 
     @Override
-    public void onSuccessfulAuthorization(Foo foo) {
-    }
-
-    @Override
-    public void onParseException(ParseException parseException) {
-        super.onParseException(parseException);
-    }
-
-    @Override
-    public void onFailedAuthorization(Foo foo) {
-        super.onFailedAuthorization(foo);
+    public void enter(Foo foo) {
     }
 }

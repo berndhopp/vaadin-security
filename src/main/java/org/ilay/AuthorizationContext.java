@@ -11,6 +11,7 @@ import org.ilay.api.Reverter;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -104,7 +105,7 @@ class AuthorizationContext implements ViewChangeListener {
                 .stream() //streaming all bound permissions
                 .flatMap(Collection::stream) //unrolling them from the collections
                 .distinct() // have each permission only once
-                .collect(toMap(p -> p, this::evaluate));//mapping all permissions to their evaluation
+                .collect(toMap(p -> p, this::isGranted));//mapping all permissions to their evaluation
 
         for (Map.Entry<Component, Set<Object>> entry : componentsToPermissions.entrySet()) {
             final Collection<Object> permissions = entry.getValue();
@@ -138,7 +139,7 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    boolean evaluate(Object permission) {
+    boolean isGranted(Object permission) {
         requireNonNull(permission);
         final Authorizer authorizer = authorizerPool.getAuthorizer(permission.getClass());
         return authorizer.isGranted(permission);
@@ -213,17 +214,41 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean beforeViewChange(ViewChangeEvent event) {
         requireNonNull(event);
 
         final View newView = requireNonNull(event.getNewView());
 
-        return isViewAuthorized(newView);
-    }
+        final Collection<Object> permissions = Optional.ofNullable(viewsToPermissions.get(newView))
+                .orElse(Collections.EMPTY_SET);
 
-    boolean isViewAuthorized(View newView) {
-        final Collection<Object> permissions = viewsToPermissions.get(newView);
+        if (!permissions.stream().allMatch(this::isGranted)) {
+            return false;
+        }
 
-        return permissions == null || permissions.stream().allMatch(this::evaluate);
+        if (newView instanceof SecureView) {
+            Check.notNullOrEmpty(event.getParameters());
+
+            SecureView secureView = (SecureView) newView;
+
+            Object parsed;
+
+            try {
+                parsed = secureView.parse(event.getParameters());
+            } catch (SecureView.ParseException e) {
+                return false;
+            }
+
+            requireNonNull(parsed, () -> format("%s#parse() must not return null", newView.getClass()));
+
+            if (isGranted(parsed)) {
+                secureView.enter(parsed);
+            } else {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

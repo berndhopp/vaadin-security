@@ -5,12 +5,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * A SecureView is a special kind of {@link View} that parses the given
@@ -19,8 +15,7 @@ import static java.util.Objects.requireNonNull;
  * An {@link org.ilay.api.Authorizer} for the type T must be available ( see
  * {@link Authorization#start(Supplier)} and {@link Authorization#start(Set)}).
  * The instance of T returned from {@link SecureView#parse(String)} is then evaluated
- * as a permission and if granted, passed to {@link SecureView#onSuccessfulAuthorization(Object)},
- * otherwise passed to {@link SecureView#onFailedAuthorization(Object)}.
+ * as a permission and if granted, passed to {@link SecureView#enter(Object)}.
  *
  * OnSuccessfulAuthorization can be used to set up the views content, for example by using
  * {@link CustomComponent#setCompositionRoot(Component)}.
@@ -33,27 +28,22 @@ import static java.util.Objects.requireNonNull;
  *         }
  *
  *         {@literal @}Overwrite
- *         protected void onSuccessfulAuthorization(ItemId itemId){
+ *         protected void enter(ItemId itemId){
  *             Item item = ItemDao.getItem(itemId);
  *
- *             setItem(item);
- *         }
- *
- *         {@literal @}Overwrite
- *         protected void onFailedAuthorization(ItemId itemId){
- *             //navigate to permission-denied-view.
- *             UI.getCurrent().getNavigator().navigateTo("permissionDenied");
- *         }
- *
- *         private void setItem(Item item){
  *             //make components diplay the item
  *             ...
  *         }
  *     }
  * </code>
+ *
  * @author Bernd Hopp bernd@vaadin.com
  */
 public abstract class SecureView<T> extends CustomComponent implements View {
+
+    protected SecureView() {
+        AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
+    }
 
     /**
      * parses the given parameters into an instance of T, which is usually some
@@ -70,56 +60,10 @@ public abstract class SecureView<T> extends CustomComponent implements View {
      * instance of T.
      * @param t the instance of T returned by {@link SecureView#parse(String)}
      */
-    protected abstract void onSuccessfulAuthorization(T t);
-
-    /**
-     * this method is called when an instance of T was parsed and did not pass authorization,
-     * i.e. the according {@link org.ilay.api.Authorizer#isGranted(Object)} returned false for
-     * the instance of T.
-     * @param t the instance of T returned by {@link SecureView#parse(String)}
-     */
-    protected void onFailedAuthorization(T t) {
-        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = VaadinAbstraction.getNavigatorFacade();
-
-        Check.state(optionalNavigator.isPresent());
-
-        @SuppressWarnings("OptionalGetWithoutIsPresent") final VaadinAbstraction.NavigatorFacade navigator = optionalNavigator.get();
-
-        navigator.navigateTo("");
-    }
-
-    /**
-     * this method is called when {@link SecureView#parse(String)} threw a {@link ParseException}
-     * @param parseException the ParseException thrown by {@link SecureView#parse(String)}.
-     */
-    protected void onParseException(ParseException parseException) {
-        Logger.getAnonymousLogger().warning(parseException.getMessage());
-    }
+    protected abstract void enter(T t);
 
     public final void enter(ViewChangeEvent event) {
-
-        final String parameters = event.getParameters();
-
-        Check.notNullOrEmpty(parameters);
-
-        final T t;
-
-        try {
-            t = parse(parameters);
-        } catch (ParseException e) {
-            onParseException(e);
-            return;
-        }
-
-        requireNonNull(t, "method SecureView#parse(T) must not return null, throw ParseException instead");
-
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-
-        if (authorizationContext.evaluate(t)) {
-            onSuccessfulAuthorization(t);
-        } else {
-            onFailedAuthorization(t);
-        }
+        //nothing to do here, view has been set up in AuthorizationContext#beforeViewChange
     }
 
     /**
