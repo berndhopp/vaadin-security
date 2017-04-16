@@ -86,8 +86,9 @@ public class SecureViewTest {
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
         when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
+        when(viewChangeEvent.getNewView()).thenReturn(secureView);
 
-        secureView.enter(viewChangeEvent);
+        AuthorizationContext.getCurrent().beforeViewChange(viewChangeEvent);
 
         verify(secureView, never()).enter(any(Foo.class));
     }
