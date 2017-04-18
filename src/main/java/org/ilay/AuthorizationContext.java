@@ -227,23 +227,23 @@ class AuthorizationContext implements ViewChangeListener {
             return false;
         }
 
-        if (newView instanceof SecureView) {
+        if (newView instanceof TypedAuthorizationView) {
             Check.notNullOrEmpty(event.getParameters());
 
-            SecureView secureView = (SecureView) newView;
+            TypedAuthorizationView typedAuthorizationView = (TypedAuthorizationView) newView;
 
             Object parsed;
 
             try {
-                parsed = secureView.parse(event.getParameters());
-            } catch (SecureView.ParseException e) {
+                parsed = typedAuthorizationView.parse(event.getParameters());
+            } catch (TypedAuthorizationView.ParseException e) {
                 return false;
             }
 
             requireNonNull(parsed, () -> format("%s#parse() must not return null", newView.getClass()));
 
             if (isGranted(parsed)) {
-                secureView.enter(parsed);
+                typedAuthorizationView.enter(parsed);
             } else {
                 return false;
             }

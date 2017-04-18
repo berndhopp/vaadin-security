@@ -18,7 +18,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SecureViewTest {
+public class TypedAuthorizationViewTest {
 
     @Before
     public void setup() throws NoSuchFieldException, IllegalAccessException {
@@ -26,7 +26,7 @@ public class SecureViewTest {
     }
 
     @Test
-    public void test_positive() throws ServiceException, SecureView.ParseException {
+    public void test_positive() throws ServiceException, TypedAuthorizationView.ParseException {
         Set<Authorizer> authorizers = new HashSet<>();
 
         authorizers.add(new InMemoryAuthorizer<Foo>() {
@@ -45,20 +45,20 @@ public class SecureViewTest {
 
         ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
-        SecureView<Foo> secureView = Mockito.spy(new FooSecureView(true));
+        TypedAuthorizationView<Foo> typedAuthorizationView = Mockito.spy(new FooTypedAuthorizationView(true));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
-        when(viewChangeEvent.getNewView()).thenReturn(secureView);
+        when(viewChangeEvent.getNewView()).thenReturn(typedAuthorizationView);
 
         when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
 
         AuthorizationContext.getCurrent().beforeViewChange(viewChangeEvent);
 
-        secureView.enter(viewChangeEvent);
+        typedAuthorizationView.enter(viewChangeEvent);
 
-        verify(secureView, times(1)).parse("non empty parameters");
-        verify(secureView, times(1)).enter(any(Foo.class));
+        verify(typedAuthorizationView, times(1)).parse("non empty parameters");
+        verify(typedAuthorizationView, times(1)).enter(any(Foo.class));
     }
 
     @Test
@@ -81,16 +81,16 @@ public class SecureViewTest {
 
         ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
-        SecureView<Foo> secureView = Mockito.spy(new FooSecureView(true));
+        TypedAuthorizationView<Foo> typedAuthorizationView = Mockito.spy(new FooTypedAuthorizationView(true));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
         when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
-        when(viewChangeEvent.getNewView()).thenReturn(secureView);
+        when(viewChangeEvent.getNewView()).thenReturn(typedAuthorizationView);
 
         AuthorizationContext.getCurrent().beforeViewChange(viewChangeEvent);
 
-        verify(secureView, never()).enter(any(Foo.class));
+        verify(typedAuthorizationView, never()).enter(any(Foo.class));
     }
 
     @Test
@@ -113,16 +113,16 @@ public class SecureViewTest {
 
         ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
-        SecureView<Foo> secureView = Mockito.spy(new FooSecureView(false));
+        TypedAuthorizationView<Foo> typedAuthorizationView = Mockito.spy(new FooTypedAuthorizationView(false));
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
         when(viewChangeEvent.getParameters()).thenReturn("non empty parameters");
-        when(viewChangeEvent.getNewView()).thenReturn(secureView);
+        when(viewChangeEvent.getNewView()).thenReturn(typedAuthorizationView);
 
         AuthorizationContext.getCurrent().beforeViewChange(viewChangeEvent);
 
-        verify(secureView, never()).enter(any(Foo.class));
+        verify(typedAuthorizationView, never()).enter(any(Foo.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -145,7 +145,7 @@ public class SecureViewTest {
 
         ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
 
-        SecureView<Foo> secureView = new FooSecureView(false) {
+        TypedAuthorizationView<Foo> typedAuthorizationView = new FooTypedAuthorizationView(false) {
             @Override
             protected Foo parse(String parameters) throws ParseException {
                 return new Foo();
@@ -154,7 +154,7 @@ public class SecureViewTest {
 
         ViewChangeListener.ViewChangeEvent viewChangeEvent = Mockito.mock(ViewChangeListener.ViewChangeEvent.class);
 
-        when(viewChangeEvent.getNewView()).thenReturn(secureView);
+        when(viewChangeEvent.getNewView()).thenReturn(typedAuthorizationView);
 
         AuthorizationContext.getCurrent().beforeViewChange(viewChangeEvent);
     }

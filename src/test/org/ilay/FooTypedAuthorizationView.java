@@ -1,10 +1,10 @@
 package org.ilay;
 
-public class FooSecureView extends SecureView<Foo> {
+public class FooTypedAuthorizationView extends TypedAuthorizationView<Foo> {
 
     final boolean working;
 
-    public FooSecureView(boolean working) {
+    public FooTypedAuthorizationView(boolean working) {
         this.working = working;
     }
 

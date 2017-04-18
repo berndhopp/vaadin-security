@@ -9,18 +9,18 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * A SecureView is a special kind of {@link View} that parses the given
+ * A TypedAuthorizationView is a special kind of {@link View} that parses the given
  * {@link ViewChangeEvent#parameters} into an instance of the type-parameter T.
  *
  * An {@link org.ilay.api.Authorizer} for the type T must be available ( see
  * {@link Authorization#start(Supplier)} and {@link Authorization#start(Set)}).
- * The instance of T returned from {@link SecureView#parse(String)} is then evaluated
- * as a permission and if granted, passed to {@link SecureView#enter(Object)}.
+ * The instance of T returned from {@link TypedAuthorizationView#parse(String)} is then evaluated
+ * as a permission and if granted, passed to {@link TypedAuthorizationView#enter(Object)}.
  *
  * OnSuccessfulAuthorization can be used to set up the views content, for example by using
  * {@link CustomComponent#setCompositionRoot(Component)}.
  * <code>
- *     class MySecureItemsView extends SecureView{@literal <}ItemId{@literal >} {
+ *     class MySecureItemsView extends TypedAuthorizationView{@literal <}ItemId{@literal >} {
  *
  *         {@literal @}Overwrite
  *         protected ItemId parse(String parameters){
@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  *         protected void enter(ItemId itemId){
  *             Item item = ItemDao.getItem(itemId);
  *
- *             //make components diplay the item
+ *             //make components display the item
  *             ...
  *         }
  *     }
@@ -39,9 +39,9 @@ import java.util.function.Supplier;
  *
  * @author Bernd Hopp bernd@vaadin.com
  */
-public abstract class SecureView<T> extends CustomComponent implements View {
+public abstract class TypedAuthorizationView<T> extends CustomComponent implements View {
 
-    protected SecureView() {
+    protected TypedAuthorizationView() {
         AuthorizationContext.getCurrent().ensureViewChangeListenerRegistered();
     }
 
@@ -58,7 +58,7 @@ public abstract class SecureView<T> extends CustomComponent implements View {
      * this method is called when an instance of T was parsed and passed authorization, i.e.
      * the according {@link org.ilay.api.Authorizer#isGranted(Object)} returned true for the
      * instance of T.
-     * @param t the instance of T returned by {@link SecureView#parse(String)}
+     * @param t the instance of T returned by {@link TypedAuthorizationView#parse(String)}
      */
     protected abstract void enter(T t);
 
@@ -68,7 +68,7 @@ public abstract class SecureView<T> extends CustomComponent implements View {
 
     /**
      * this exception indicates that an {@link ViewChangeEvent#parameters} was not parsable
-     * by {@link SecureView#parse(String)}
+     * by {@link TypedAuthorizationView#parse(String)}
      */
     public static class ParseException extends Exception {
         public ParseException() {
