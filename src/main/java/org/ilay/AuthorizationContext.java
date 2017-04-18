@@ -21,6 +21,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.lang.String.format;
+import static java.util.Collections.EMPTY_SET;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
@@ -203,7 +204,7 @@ class AuthorizationContext implements ViewChangeListener {
 
         final Optional<VaadinAbstraction.NavigatorFacade> navigator = VaadinAbstraction.getNavigatorFacade();
 
-        Check.state(navigator.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
+        Check.state(navigator.isPresent(), "a navigator needs to be registered on the current UI before this method can be called");
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         final VaadinAbstraction.NavigatorFacade navigatorFacade = navigator.get();
@@ -220,10 +221,9 @@ class AuthorizationContext implements ViewChangeListener {
 
         final View newView = requireNonNull(event.getNewView());
 
-        final Collection<Object> permissions = Optional.ofNullable(viewsToPermissions.get(newView))
-                .orElse(Collections.EMPTY_SET);
+        final Collection<Object> requiredPermissions = getRequiredPermissions(newView);
 
-        if (!permissions.stream().allMatch(this::isGranted)) {
+        if (!requiredPermissions.stream().allMatch(this::isGranted)) {
             return false;
         }
 
@@ -250,5 +250,11 @@ class AuthorizationContext implements ViewChangeListener {
         }
 
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<Object> getRequiredPermissions(View view) {
+        return Optional.ofNullable(viewsToPermissions.get(view))
+                .orElse((Set<Object>) EMPTY_SET);
     }
 }
