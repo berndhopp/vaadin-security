@@ -88,17 +88,17 @@ final class Check {
         arg(array.length > 0, "array must not be empty");
 
         for (int i = 0; i < array.length; i++) {
-            T t = array[i];
-            requireNonNull(t, "elements in array must not be null");
+            T x = array[i];
+            requireNonNull(x, "elements in array must not be null");
 
-            for (int i1 = 0; i1 < array.length; i1++) {
-                if (i == i1) {
+            for (int j = 0; j < array.length; j++) {
+                if (i == j) {
                     continue;
                 }
 
-                T t2 = array[i1];
+                T y = array[j];
 
-                arg(!t2.equals(t), "duplicate entries found in array");
+                arg(!x.equals(y), "duplicate entries found in array");
             }
         }
     }
