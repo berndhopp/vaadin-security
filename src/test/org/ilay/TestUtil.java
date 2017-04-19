@@ -44,7 +44,7 @@ class TestUtil {
 
     public static class TestSessionInitNotifierSupplier implements VaadinAbstraction.SessionInitNotifier, Supplier<VaadinAbstraction.SessionInitNotifier> {
 
-        private List<SessionInitListener> sessionInitListeners = new ArrayList<>();
+        private final List<SessionInitListener> sessionInitListeners = new ArrayList<>();
 
         @Override
         public VaadinAbstraction.SessionInitNotifier get() {
@@ -56,7 +56,7 @@ class TestUtil {
             sessionInitListeners.add(listener);
         }
 
-        public void newSession() throws ServiceException {
+        void newSession() throws ServiceException {
             for (SessionInitListener sessionInitListener : sessionInitListeners) {
                 sessionInitListener.sessionInit(null);
             }

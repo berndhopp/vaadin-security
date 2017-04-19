@@ -3,7 +3,7 @@ package org.ilay;
 import java.util.HashSet;
 import java.util.Set;
 
-public class User {
+class User {
     private final Set<String> roles = new HashSet<>();
     private Clearance clearance = Clearance.NON;
 

@@ -1,6 +1,6 @@
 package org.ilay;
 
-public class FooTypedAuthorizationView extends TypedAuthorizationView<Foo> {
+class FooTypedAuthorizationView extends TypedAuthorizationView<Foo> {
 
     private final boolean working;
 

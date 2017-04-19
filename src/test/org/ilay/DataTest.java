@@ -10,7 +10,6 @@ import com.vaadin.ui.Grid;
 import org.ilay.api.Authorizer;
 import org.ilay.api.InMemoryAuthorizer;
 import org.ilay.api.Reverter;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,9 +32,6 @@ public class DataTest {
     private Foo foo1;
     private Foo foo2;
     private Foo foo3;
-    private InMemoryAuthorizer<Foo> fooInMemoryAuthorizer;
-    private InMemoryAuthorizer<String> stringInMemoryAuthorizer;
-    private Authorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId> userIdAuthorizer;
     private boolean userIdAuthorizerWorksCorrect = true;
 
     @Before
@@ -50,7 +46,7 @@ public class DataTest {
 
         foo3 = new Foo();
 
-        fooInMemoryAuthorizer = new InMemoryAuthorizer<Foo>() {
+        InMemoryAuthorizer<Foo> fooInMemoryAuthorizer = new InMemoryAuthorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return permission == foo1 || permission == foo2;
@@ -63,11 +59,11 @@ public class DataTest {
         };
         authorizers.add(fooInMemoryAuthorizer);
 
-        stringInMemoryAuthorizer = new InMemoryAuthorizer<String>() {
+        InMemoryAuthorizer<String> stringInMemoryAuthorizer = new InMemoryAuthorizer<String>() {
             @Override
             public boolean isGranted(String permission) {
                 return "granted_string".equals(permission) ||
-                       "another_granted_string".equals(permission);
+                        "another_granted_string".equals(permission);
             }
 
             @Override
@@ -78,7 +74,7 @@ public class DataTest {
 
         authorizers.add(stringInMemoryAuthorizer);
 
-        userIdAuthorizer = new Authorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId>() {
+        Authorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId> userIdAuthorizer = new Authorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId>() {
 
             private final TestFilterableDataProvider.UserId userId = new TestFilterableDataProvider.UserId(1);
             private final TestFilterableDataProvider.UserId userId2 = new TestFilterableDataProvider.UserId(2);
@@ -196,6 +192,7 @@ public class DataTest {
 
         userIdAuthorizerWorksCorrect = false;
 
+        //noinspection ResultOfMethodCallIgnored
         documentGridDataProvider.fetch(new Query<>(new TestFilterableDataProvider.UserId(1))).collect(toList());
     }
 }

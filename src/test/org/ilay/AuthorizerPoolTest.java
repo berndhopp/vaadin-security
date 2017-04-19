@@ -15,12 +15,10 @@ import static org.junit.Assert.assertNotNull;
 
 public class AuthorizerPoolTest {
 
-    static AuthorizerPool createEvaluatorPool(boolean withInt, boolean withString, boolean withObject) {
+    private static AuthorizerPool createEvaluatorPool(boolean withString, boolean withObject) {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        if (withInt) {
-            authorizers.add(Authorizers.INTEGER_AUTHORIZER);
-        }
+        authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
         if (withString) {
             authorizers.add(Authorizers.STRING_AUTHORIZER);
@@ -35,7 +33,7 @@ public class AuthorizerPoolTest {
 
     @Test
     public void matching_evaluators_should_be_found() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, true, false);
+        AuthorizerPool authorizerPool = createEvaluatorPool(true, false);
         assertEquals(Authorizers.STRING_AUTHORIZER, authorizerPool.getAuthorizer(String.class));
         assertEquals(Authorizers.INTEGER_AUTHORIZER, authorizerPool.getAuthorizer(Integer.class));
     }
@@ -59,7 +57,7 @@ public class AuthorizerPoolTest {
 
     @Test
     public void rivaling_evaluators_should_return_best_fit() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, true, true);
+        AuthorizerPool authorizerPool = createEvaluatorPool(true, true);
         final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
         assertEquals(Authorizers.STRING_AUTHORIZER, authorizer);
         authorizer.isGranted("");
@@ -75,7 +73,7 @@ public class AuthorizerPoolTest {
     }
 
     @Test(expected = AuthorizerPool.ConflictingAuthorizersException.class)
-    public void undecideable_interfaces_should_throw_exception() {
+    public void undecidable_interfaces_should_throw_exception() {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
         authorizerList.add(Authorizers.BAR_AUTHORIZER);
@@ -86,7 +84,7 @@ public class AuthorizerPoolTest {
     }
 
     @Test
-    public void decideable_interfaces_should_work() {
+    public void decidable_interfaces_should_work() {
         List<Authorizer> authorizerList = new ArrayList<>();
         authorizerList.add(Authorizers.FOO_AUTHORIZER);
 
@@ -99,7 +97,7 @@ public class AuthorizerPoolTest {
 
     @Test
     public void no_matching_evaluator_should_return_best_fit() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, false, true);
+        AuthorizerPool authorizerPool = createEvaluatorPool(false, true);
         final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
         assertNotNull(authorizer);
         authorizer.isGranted("");
@@ -107,7 +105,7 @@ public class AuthorizerPoolTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void no_matching_evaluators_should_throw_illegal_argument() {
-        AuthorizerPool authorizerPool = createEvaluatorPool(true, true, false);
+        AuthorizerPool authorizerPool = createEvaluatorPool(true, false);
         authorizerPool.getAuthorizer(Float.class);
     }
 

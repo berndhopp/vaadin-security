@@ -2,7 +2,7 @@ package org.ilay;
 
 import org.ilay.api.InMemoryAuthorizer;
 
-public class Authorizers {
+class Authorizers {
     static final InMemoryAuthorizer FOO_AUTHORIZER = new InMemoryAuthorizer<Foo>() {
         @Override
         public boolean isGranted(Foo foo) {
