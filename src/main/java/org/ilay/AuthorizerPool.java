@@ -47,7 +47,7 @@ class AuthorizerPool {
 
         for (Authorizer<?, ?> anAuthorizer : authorizers.values()) {
 
-            /**
+            /*
              * in a sentence: a match is found if either the permission's class is an interface
              * that the authorizer's permission-class implements or if the permission's class
              * is a subclass of the authorizer's permission-class

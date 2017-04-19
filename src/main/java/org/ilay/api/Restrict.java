@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * <code>
  * Authorization.restrictComponent(myAdminButton).to("admin");
  *
- * // if "admin" is not granted, myAdmminButton will be invisible
+ * // if "admin" is not granted, myAdminButton will be invisible
  * </code>
  *
  * @author Bernd Hopp bernd@vaadin.com

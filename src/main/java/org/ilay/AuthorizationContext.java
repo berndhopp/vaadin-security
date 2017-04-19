@@ -21,7 +21,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.lang.String.format;
-import static java.util.Collections.EMPTY_SET;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
@@ -140,7 +139,7 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    boolean isGranted(Object permission) {
+    private boolean isGranted(Object permission) {
         requireNonNull(permission);
         final Authorizer authorizer = authorizerPool.getAuthorizer(permission.getClass());
         return authorizer.isGranted(permission);
@@ -202,12 +201,13 @@ class AuthorizationContext implements ViewChangeListener {
             return;
         }
 
-        final Optional<VaadinAbstraction.NavigatorFacade> navigator = VaadinAbstraction.getNavigatorFacade();
+        final Optional<VaadinAbstraction.Navigator> navigatorOptional = VaadinAbstraction.getNavigator();
 
+        Check.state(navigatorOptional.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
         Check.state(navigator.isPresent(), "a navigator needs to be registered on the current UI before this method can be called");
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
-        final VaadinAbstraction.NavigatorFacade navigatorFacade = navigator.get();
+        final VaadinAbstraction.Navigator navigatorFacade = navigatorOptional.get();
 
         navigatorFacade.addViewChangeListener(this);
 

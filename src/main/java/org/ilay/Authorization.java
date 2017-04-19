@@ -277,14 +277,12 @@ public final class Authorization {
     }
 
     private static void reEvaluateCurrentViewAccess() {
-        final Optional<VaadinAbstraction.NavigatorFacade> optionalNavigator = VaadinAbstraction.getNavigatorFacade();
+        final Optional<VaadinAbstraction.Navigator> optionalNavigator = VaadinAbstraction.getNavigator();
 
-        if (optionalNavigator.isPresent()) {
-            VaadinAbstraction.NavigatorFacade navigator = optionalNavigator.get();
-
+        optionalNavigator.ifPresent(navigator -> {
             final String state = navigator.getState();
             navigator.navigateTo("");
             navigator.navigateTo(state);
-        }
+        });
     }
 }

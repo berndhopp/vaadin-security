@@ -3,7 +3,6 @@ package org.ilay;
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.provider.DataProvider;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.VaadinService;
@@ -20,9 +19,9 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Bernd Hopp bernd@vaadin.com
  */
-class VaadinAbstraction {
+final class VaadinAbstraction {
 
-    private static Supplier<Optional<NavigatorFacade>> navigatorSupplier = new ProductionNavigatorFacadeSupplier();
+    private static Supplier<Optional<Navigator>> navigatorSupplier = new ProductionNavigatorFacadeSupplier();
     private static Supplier<SessionInitNotifier> sessionInitNotifierSupplier = new ProductionSessionInitNotifierSupplier();
     private static SessionStore sessionStore = new SessionStore() {
         @Override
@@ -36,7 +35,10 @@ class VaadinAbstraction {
         }
     };
 
-    static void setNavigatorSupplier(Supplier<Optional<NavigatorFacade>> navigatorSupplier) {
+    private VaadinAbstraction() {
+    }
+
+    static void setNavigatorSupplier(Supplier<Optional<Navigator>> navigatorSupplier) {
         requireNonNull(navigatorSupplier);
         VaadinAbstraction.navigatorSupplier = navigatorSupplier;
     }
@@ -46,7 +48,7 @@ class VaadinAbstraction {
         VaadinAbstraction.sessionInitNotifierSupplier = sessionInitNotifierSupplier;
     }
 
-    static Optional<NavigatorFacade> getNavigatorFacade() {
+    static Optional<Navigator> getNavigator() {
         return navigatorSupplier.get();
     }
 
@@ -72,7 +74,7 @@ class VaadinAbstraction {
         <T> void set(Class<T> tClass, T t);
     }
 
-    interface NavigatorFacade {
+    interface Navigator {
         String getState();
 
         void navigateTo(String s);
@@ -131,18 +133,18 @@ class VaadinAbstraction {
     }
 
 
-    static class ProductionNavigatorFacadeSupplier implements Supplier<Optional<NavigatorFacade>> {
+    static class ProductionNavigatorFacadeSupplier implements Supplier<Optional<Navigator>> {
         @Override
-        public Optional<NavigatorFacade> get() {
+        public Optional<Navigator> get() {
             final UI ui = requireNonNull(UI.getCurrent());
 
-            Navigator navigator = ui.getNavigator();
+            com.vaadin.navigator.Navigator navigator = ui.getNavigator();
 
             if (navigator == null) {
                 return Optional.empty();
             }
 
-            return Optional.of(new NavigatorFacade() {
+            return Optional.of(new Navigator() {
                 @Override
                 public String getState() {
                     return navigator.getState();
