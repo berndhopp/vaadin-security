@@ -11,7 +11,6 @@ import org.ilay.api.Reverter;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -204,7 +203,6 @@ class AuthorizationContext implements ViewChangeListener {
         final Optional<VaadinAbstraction.Navigator> navigatorOptional = VaadinAbstraction.getNavigator();
 
         Check.state(navigatorOptional.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
-        Check.state(navigator.isPresent(), "a navigator needs to be registered on the current UI before this method can be called");
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         final VaadinAbstraction.Navigator navigatorFacade = navigatorOptional.get();
@@ -221,9 +219,7 @@ class AuthorizationContext implements ViewChangeListener {
 
         final View newView = requireNonNull(event.getNewView());
 
-        final Collection<Object> requiredPermissions = getRequiredPermissions(newView);
-
-        if (!requiredPermissions.stream().allMatch(this::isGranted)) {
+        if (!hasRequiredPermissions(newView)) {
             return false;
         }
 
@@ -253,8 +249,9 @@ class AuthorizationContext implements ViewChangeListener {
     }
 
     @SuppressWarnings("unchecked")
-    private Set<Object> getRequiredPermissions(View view) {
-        return Optional.ofNullable(viewsToPermissions.get(view))
-                .orElse((Set<Object>) EMPTY_SET);
+    private boolean hasRequiredPermissions(View view) {
+        final Set<Object> permissions = viewsToPermissions.get(view);
+
+        return permissions == null || permissions.stream().allMatch(this::isGranted);
     }
 }

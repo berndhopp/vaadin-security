@@ -1,5 +1,7 @@
 package org.ilay;
 
+import org.ilay.api.Restrict;
+import org.ilay.api.Reverter;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -20,6 +22,11 @@ public class CheckTest {
     @Test(expected = IllegalArgumentException.class)
     public void empty_collection_should_fail() {
         Check.notNullOrEmpty(new ArrayList<>());
+    }
+
+    @Test
+    public void non_empty_string_should_fail() {
+        Check.notNullOrEmpty("hallo welt");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -63,6 +70,23 @@ public class CheckTest {
     @Test
     public void test_arg_positive() {
         Check.arg(true, "no message", 1, 2, null);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void test_unknown_restrict_class_should_throw_exception() {
+        Check.setCurrentRestrict(new Restrict() {
+            @Override
+            public Reverter to(Object permission) {
+                return null;
+            }
+
+            @Override
+            public Reverter to(Object... permissions) {
+                return null;
+            }
+        });
+
+        Check.noUnclosedRestrict();
     }
 
     @Test

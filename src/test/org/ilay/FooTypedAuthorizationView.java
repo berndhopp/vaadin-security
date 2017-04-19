@@ -2,9 +2,9 @@ package org.ilay;
 
 public class FooTypedAuthorizationView extends TypedAuthorizationView<Foo> {
 
-    final boolean working;
+    private final boolean working;
 
-    public FooTypedAuthorizationView(boolean working) {
+    FooTypedAuthorizationView(boolean working) {
         this.working = working;
     }
 

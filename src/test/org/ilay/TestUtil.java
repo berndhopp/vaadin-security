@@ -5,7 +5,12 @@ import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitListener;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 class TestUtil {
@@ -58,11 +63,11 @@ class TestUtil {
         }
     }
 
-    static class TestNavigatorSupplier implements Supplier<Optional<VaadinAbstraction.NavigatorFacade>> {
+    static class TestNavigatorSupplier implements Supplier<Optional<VaadinAbstraction.Navigator>> {
 
         @Override
-        public Optional<VaadinAbstraction.NavigatorFacade> get() {
-            return Optional.of(new VaadinAbstraction.NavigatorFacade() {
+        public Optional<VaadinAbstraction.Navigator> get() {
+            return Optional.of(new VaadinAbstraction.Navigator() {
                 @Override
                 public String getState() {
                     return null;
