@@ -7,7 +7,7 @@ import java.util.Objects;
  * reverts all operations on 'data' ( instead of 'objects' ), like Authorization.restrictData()
  * @author Bernd Hopp bernd@vaadin.com
  * */
-class DataReverter extends OneTimeUsableReverter {
+class DataReverter extends ReverterBase {
 
     private final Reference<VaadinAbstraction.DataProviderHolder> hasDataProvider;
 

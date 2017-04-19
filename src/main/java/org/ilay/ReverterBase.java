@@ -7,7 +7,7 @@ import org.ilay.api.Reverter;
  * attempted to be called more than once
  * @author Bernd Hopp bernd@vaadin.com
  */
-abstract class OneTimeUsableReverter implements Reverter {
+abstract class ReverterBase implements Reverter {
 
     private boolean used = false;
 

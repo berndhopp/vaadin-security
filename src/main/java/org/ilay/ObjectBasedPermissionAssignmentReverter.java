@@ -8,7 +8,7 @@ import java.util.Set;
  * Authorization.restrictComponent(), Authorization.restrictView()
  * @author Bernd Hopp bernd@vaadin.com
  * */
-abstract class ObjectBasedPermissionAssignmentReverter<T> extends OneTimeUsableReverter {
+abstract class ObjectBasedPermissionAssignmentReverter<T> extends ReverterBase {
 
     private final Map<T, Set<Object>> restrictionsMap;
 
