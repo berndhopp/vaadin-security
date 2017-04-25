@@ -63,7 +63,7 @@ public abstract class TypedAuthorizationView<T> extends CustomComponent implemen
     protected abstract void enter(T t);
 
     public final void enter(ViewChangeEvent event) {
-        //nothing to do here, view has been set up in AuthorizationContext#beforeViewChange
+        //nothing to do here, view has been set up in enter(T t)
     }
 
     /**
