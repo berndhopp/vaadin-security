@@ -104,7 +104,4 @@
             </plugin>
         </plugins>
     </build>
-    <modules>
-        <module>demo</module>
-    </modules>
 </project>
