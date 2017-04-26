@@ -25,7 +25,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 target
-.idea
+.idea/*
 /vaadin-security.iml
 .DS_Store
 core/src/main/java/org/ilay/

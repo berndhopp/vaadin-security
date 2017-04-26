@@ -18,58 +18,40 @@ import java.util.function.Supplier;
 import static java.util.Objects.requireNonNull;
 
 /**
- * <b>Authorization</b> is the main entry point for the ILAY framework.
- * It provides methods for binding and unbinding {@link Component}s, {@link View}s
- * and {@link HasItems} to permissions as well as applying the bound permissions.
+ * <b>Authorization</b> is the main entry point for the ILAY framework. It provides methods for
+ * binding and unbinding {@link Component}s, {@link View}s and {@link HasItems} to permissions as
+ * well as applying the bound permissions.
  *
- * The first method that is called on {@link Authorization} needs to be either {@link Authorization#start(Set)}
- * or {@link Authorization#start(Supplier)}
- * <code>
- *     Authorizer{@literal <}Foo{@literal >} fooEvaluator = new InMemoryAuthorizer(){
- *         public boolean isGranted(Foo foo){
- *             boolean granted = //evaluation logic goes here
- *             return granted;
- *         }
+ * The first method that is called on {@link Authorization} needs to be either {@link
+ * Authorization#start(Set)} or {@link Authorization#start(Supplier)} <code> Authorizer{@literal
+ * <}Foo{@literal >} fooEvaluator = new InMemoryAuthorizer(){ public boolean isGranted(Foo foo){
+ * boolean granted = //evaluation logic goes here return granted; }
  *
- *         public Class{@literal <}Foo{@literal >} getPermissionClass(){
- *             return Foo.class;
- *         }
- *     }
+ * public Class{@literal <}Foo{@literal >} getPermissionClass(){ return Foo.class; } }
  *
- *     Authorizer{@literal <}UserRole{@literal >} userRoleEvaluator = new InMemoryAuthorizer(){
- *         public boolean isGranted(UserRole userRole){
- *             boolean granted = //evaluation logic goes here
- *             return granted;
- *         }
+ * Authorizer{@literal <}UserRole{@literal >} userRoleEvaluator = new InMemoryAuthorizer(){ public
+ * boolean isGranted(UserRole userRole){ boolean granted = //evaluation logic goes here return
+ * granted; }
  *
- *         public Class{@literal <}UserRole{@literal >} getPermissionClass(){
- *             return UserRole.class;
- *         }
- *     }
+ * public Class{@literal <}UserRole{@literal >} getPermissionClass(){ return UserRole.class; } }
  *
- *     Set{@literal <}Authorizer{@literal >} evaluators = new HashSet{@literal <}{@literal >}();
+ * Set{@literal <}Authorizer{@literal >} evaluators = new HashSet{@literal <}{@literal >}();
  *
- *     evaluators.add(fooEvaluator);
- *     evaluators.add(userRoleEvaluator);
+ * evaluators.add(fooEvaluator); evaluators.add(userRoleEvaluator);
  *
- *     //...
+ * //...
  *
- *     Authorization.start(evaluators);
- * </code>
+ * Authorization.start(evaluators); </code>
  *
- * Then, {@link Component}s, {@link View}s and {@link HasItems}' can be bound with
- * the {@link Authorization#restrictComponents(Component...)}, {@link Authorization#restrictViews(View...)} and
+ * Then, {@link Component}s, {@link View}s and {@link HasItems}' can be bound with the {@link
+ * Authorization#restrictComponents(Component...)}, {@link Authorization#restrictViews(View...)} and
  * {@link Authorization#restrictData(Class, HasDataProvider)} methods.
  *
- * <code>
- *     Button button = new Button();
- *     AdminView adminView = new AdminView();
- *     Grid{@literal <}Foo{@literal >} fooGrid = new Grid{@literal <}Foo{@literal >}(Foo.class);
+ * <code> Button button = new Button(); AdminView adminView = new AdminView(); Grid{@literal
+ * <}Foo{@literal >} fooGrid = new Grid{@literal <}Foo{@literal >}(Foo.class);
  *
- *     Authorization.restrictComponent(button).to(UserRole.USER);
- *     Authorization.restrictView(myView).to(UserRole.ADMIN);
- *     Authorization.restrictData(fooGrid);
- * </code>
+ * Authorization.restrictComponent(button).to(UserRole.USER); Authorization.restrictView(myView).to(UserRole.ADMIN);
+ * Authorization.restrictData(fooGrid); </code>
  *
  * @author Bernd Hopp bernd@vaadin.com
  */
@@ -88,9 +70,11 @@ public final class Authorization {
      * same set can be used for all {@link com.vaadin.server.VaadinSession}s.
      *
      * @param authorizers the {@link Authorizer}s needed. For every object passed in {@link
-     *                    ComponentRestrict#to(Object...)}, there must be a evaluator in the set where the {@link
-     *                    Authorizer#getPermissionClass()} is assignable from the objects {@link
-     *                    Class}.
+     *                    ComponentRestrict#to(Object...)}, {@link ViewRestrict#to(Object...)},
+     *                    {@link Authorization#restrictData(Class, HasFilterableDataProvider)} or
+     *                    {@link Authorization#restrictData(Class, HasDataProvider)} there must be a
+     *                    evaluator in the set where the {@link Authorizer#getPermissionClass()} is
+     *                    assignable from the objects {@link Class}.
      */
     public static void start(Set<Authorizer> authorizers) {
         Check.notNullOrEmpty(authorizers);
@@ -100,10 +84,16 @@ public final class Authorization {
     /**
      * starts the authorization-engine. This method or {@link Authorization#start(Set)} )} must be
      * called before any other method in {@link Authorization} is called. Use this method instead of
-     * {@link Authorization#start(Set)} if the set of {@link Authorizer}s is not immutable and a different
-     * set may be used for all {@link com.vaadin.server.VaadinSession}s.
-     * @param evaluatorSupplier the {@link Authorizer}s needed. For every object passed in {@link ComponentRestrict#to(Object...)}, there
-     * must be a evaluator in the set where the {@link Authorizer#getPermissionClass()} is assignable from the objects {@link Class}.
+     * {@link Authorization#start(Set)} if the set of {@link Authorizer}s is not immutable and a
+     * different set may be used for all {@link com.vaadin.server.VaadinSession}s.
+     *
+     * @param evaluatorSupplier the {@link Supplier} for the {@link Authorizer}s needed. For every
+     *                          object passed in {@link ComponentRestrict#to(Object...)}, {@link
+     *                          ViewRestrict#to(Object...)}, {@link Authorization#restrictData(Class,
+     *                          HasFilterableDataProvider)} or {@link Authorization#restrictData(Class,
+     *                          HasDataProvider)} there must be a evaluator in the set where the
+     *                          {@link Authorizer#getPermissionClass()} is assignable from the
+     *                          objects {@link Class}.
      */
     public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
         requireNonNull(evaluatorSupplier);
@@ -128,9 +118,10 @@ public final class Authorization {
      * a {@link Component} to one or more permissions
      *
      * <code>
-     *   Button button = new Button();
-     *   Authorization.bindComponent(button).to(Permission.ADMIN);
+     * Button button = new Button();
+     * Authorization.bindComponent(button).to(Permission.ADMIN);
      * </code>
+     *
      * @param component the component to be bound to one or more permission, cannot be null
      * @return a {@link ComponentRestrict} for a chained fluent API
      */
@@ -175,11 +166,13 @@ public final class Authorization {
      * {@link View}s to one or more permissions
      *
      * <code>
-     *   View view = createView();
-     *   View view2 = createView();
-     *   Authorization.bindViews(view, view2).to(Permission.ADMIN);
+     * View view = createView();
+     * View view2 = createView();
+     * Authorization.bindViews(view, view2).to(Permission.ADMIN);
      * </code>
-     * @param views the {@link View}s to be bound to one or more permission, cannot be null or empty
+     *
+     * @param views the {@link View}s to be bound to one or more permission, cannot be null or
+     *              empty
      * @return a {@link ViewRestrict} for a chained fluent API
      */
     public static Restrict restrictViews(View... views) {
@@ -189,13 +182,15 @@ public final class Authorization {
     }
 
     /**
-     * binds the data, or items, in the {@link HasDataProvider} to authorization. Each item t of type
-     * T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be displayed
-     * when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link Authorizer#isGranted(Object)}-method
-     * returned true for t. If no {@link Authorizer} for the type T is available, an exception will be thrown.
-     * @param itemClass the class of T ( the item's class )
+     * binds the data, or items, in the {@link HasDataProvider} to authorization. Each item t of
+     * type T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be
+     * displayed when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link
+     * Authorizer#isGranted(Object)}-method returned true for t. If no {@link Authorizer} for the
+     * type T is available, an exception will be thrown.
+     *
+     * @param itemClass       the class of T ( the item's class )
      * @param hasDataProvider the {@link HasFilterableDataProvider} to be bound
-     * @param <T> the Type of the items
+     * @param <T>             the Type of the items
      */
     public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
         Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
@@ -210,11 +205,11 @@ public final class Authorization {
     }
 
     /**
-     * binds the data, or items, in the {@link HasFilterableDataProvider} to authorization. Each item t of
-     * type T in an HasFilterableDataProvider{@literal <}T, F{@literal >} is it's own permission and will only be
-     * displayed when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link
-     * Authorizer#isGranted(Object)}-method returned true for t. If no {@link Authorizer} for the
-     * type T is available, an exception will be thrown.
+     * binds the data, or items, in the {@link HasFilterableDataProvider} to authorization. Each
+     * item t of type T in an HasFilterableDataProvider{@literal <}T, F{@literal >} is it's own
+     * permission and will only be displayed when an {@link Authorizer}{@literal <}T, ?{@literal
+     * >}'s {@link Authorizer#isGranted(Object)}-method returned true for t. If no {@link
+     * Authorizer} for the type T is available, an exception will be thrown.
      *
      * @param itemClass                 the class of T ( the item's class )
      * @param hasFilterableDataProvider the {@link HasFilterableDataProvider} to be bound
@@ -239,23 +234,23 @@ public final class Authorization {
      * grant permissions differently than in the past.
      *
      * <code>
-     *  User user = createUser();
+     * User user = createUser();
      *
-     *  user.setRole(Role.USER);
+     * user.setRole(Role.USER);
      *
-     *  Button button = new Button("admin mode");
+     * Button button = new Button("admin mode");
      *
-     *  Authorization.bindComponent(button).to(Role.ADMIN);
+     * Authorization.bindComponent(button).to(Role.ADMIN);
      *
-     *  // button.getVisible() == false
+     * // button.getVisible() == false
      *
-     *  user.setRole(Role.ADMIN);
+     * user.setRole(Role.ADMIN);
      *
-     *  // button.getVisible() == false
+     * // button.getVisible() == false
      *
-     *  Authorization.rebind();
+     * Authorization.rebind();
      *
-     *  // button.getVisible() == true
+     * // button.getVisible() == true
      *
      * </code>
      */
