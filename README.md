@@ -72,11 +72,11 @@ class MyServlet extends VaadinServlet{
 }
 ```
 
-#API
+# API
 
 when you restric access to a view, you probably also don't want to show for example a button that will open the view ( which would not work in all cases of course ). So you may want to do something like this
 
-````java
+```java
 Authorization.restrictComponent(adminViewButton).to("administrator");
 ```
 
