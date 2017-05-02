@@ -254,5 +254,4 @@ class AuthorizationContext implements ViewChangeListener {
 
         return true;
     }
-
 }
