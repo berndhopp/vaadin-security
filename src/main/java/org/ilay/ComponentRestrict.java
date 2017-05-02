@@ -6,10 +6,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * @author Bernd Hopp bernd@vaadin.com
  * @see Authorization#restrictComponent(Component)
  * @see Authorization#restrictComponents(Component...)
- *
- * @author Bernd Hopp bernd@vaadin.com
  */
 class ComponentRestrict extends RestrictImpl<Component> {
 

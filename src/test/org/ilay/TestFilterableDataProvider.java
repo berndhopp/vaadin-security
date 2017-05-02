@@ -14,7 +14,7 @@ class TestFilterableDataProvider implements DataProvider<TestFilterableDataProvi
 
     private final Collection<Document> documents = new ArrayList<>();
 
-    TestFilterableDataProvider(){
+    TestFilterableDataProvider() {
         documents.add(new Document(new UserId(1)));
         documents.add(new Document(new UserId(1)));
         documents.add(new Document(new UserId(1)));
@@ -42,7 +42,7 @@ class TestFilterableDataProvider implements DataProvider<TestFilterableDataProvi
         Optional<UserId> userIdOptional = query.getFilter();
 
         //noinspection OptionalIsPresent
-        if(userIdOptional.isPresent()){
+        if (userIdOptional.isPresent()) {
             return (int) documents
                     .stream()
                     .filter(doc -> doc.getUserId().equals(userIdOptional.get()))

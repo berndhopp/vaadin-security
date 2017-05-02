@@ -138,7 +138,7 @@ public class DataTest {
     }
 
     @Test
-    public void test_in_memory_filterable_positive(){
+    public void test_in_memory_filterable_positive() {
         ComboBox<String> comboBox = new ComboBox<>();
 
         comboBox.setItems("granted_string", "another_granted_string", "a_not_granted_string");
@@ -154,7 +154,7 @@ public class DataTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_not_in_memory_positive(){
+    public void test_not_in_memory_positive() {
         TestFilterableDataProvider dataProvider = new TestFilterableDataProvider();
 
         Grid<TestFilterableDataProvider.Document> documentGrid = new Grid<>(TestFilterableDataProvider.Document.class);
@@ -179,7 +179,7 @@ public class DataTest {
 
     @Test(expected = IllegalStateException.class)
     @SuppressWarnings("unchecked")
-    public void test_not_in_memory_negative(){
+    public void test_not_in_memory_negative() {
         TestFilterableDataProvider dataProvider = new TestFilterableDataProvider();
 
         Grid<TestFilterableDataProvider.Document> documentGrid = new Grid<>(TestFilterableDataProvider.Document.class);

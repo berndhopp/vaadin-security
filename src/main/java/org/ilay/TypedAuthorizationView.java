@@ -20,21 +20,21 @@ import java.util.function.Supplier;
  * OnSuccessfulAuthorization can be used to set up the views content, for example by using
  * {@link CustomComponent#setCompositionRoot(Component)}.
  * <code>
- *     class MySecureItemsView extends TypedAuthorizationView{@literal <}ItemId{@literal >} {
+ * class MySecureItemsView extends TypedAuthorizationView{@literal <}ItemId{@literal >} {
  *
- *         {@literal @}Overwrite
- *         protected ItemId parse(String parameters){
- *             return ItemId.parse(parameters);
- *         }
+ * {@literal @}Overwrite
+ * protected ItemId parse(String parameters){
+ * return ItemId.parse(parameters);
+ * }
  *
- *         {@literal @}Overwrite
- *         protected void enter(ItemId itemId){
- *             Item item = ItemDao.getItem(itemId);
+ * {@literal @}Overwrite
+ * protected void enter(ItemId itemId){
+ * Item item = ItemDao.getItem(itemId);
  *
- *             //make components display the item
- *             ...
- *         }
- *     }
+ * //make components display the item
+ * ...
+ * }
+ * }
  * </code>
  *
  * @author Bernd Hopp bernd@vaadin.com
@@ -48,6 +48,7 @@ public abstract class TypedAuthorizationView<T> extends CustomComponent implemen
     /**
      * parses the given parameters into an instance of T, which is usually some
      * sort of identifier for the content to be displayed in the view.
+     *
      * @param parameters the parameters taken from {@link ViewChangeEvent#parameters}
      * @return The parsed instance of T
      * @throws ParseException if the input does not comply to what is expected by the parser
@@ -58,6 +59,7 @@ public abstract class TypedAuthorizationView<T> extends CustomComponent implemen
      * this method is called when an instance of T was parsed and passed authorization, i.e.
      * the according {@link org.ilay.api.Authorizer#isGranted(Object)} returned true for the
      * instance of T.
+     *
      * @param t the instance of T returned by {@link TypedAuthorizationView#parse(String)}
      */
     protected abstract void enter(T t);

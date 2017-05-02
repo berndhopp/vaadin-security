@@ -204,8 +204,7 @@ class AuthorizationContext implements ViewChangeListener {
 
         Check.state(navigatorOptional.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
 
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        final VaadinAbstraction.Navigator navigatorFacade = navigatorOptional.get();
+        @SuppressWarnings("OptionalGetWithoutIsPresent") final VaadinAbstraction.Navigator navigatorFacade = navigatorOptional.get();
 
         navigatorFacade.addViewChangeListener(this);
 

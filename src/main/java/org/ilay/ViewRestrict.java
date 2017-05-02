@@ -6,11 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * @author Bernd Hopp bernd@vaadin.com
  * @see Authorization#restrictView(View)
  * @see Authorization#restrictViews(View...)
- *
- * @author Bernd Hopp bernd@vaadin.com
- * */
+ */
 class ViewRestrict extends RestrictImpl<View> {
 
     ViewRestrict(View[] views) {
