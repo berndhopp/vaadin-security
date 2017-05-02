@@ -214,53 +214,45 @@ class AuthorizationContext implements ViewChangeListener {
 
     @Override
     public boolean beforeViewChange(ViewChangeEvent event) {
+        return beforeViewChangeWithGenericParam(event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> boolean beforeViewChangeWithGenericParam(ViewChangeEvent event) {
         requireNonNull(event);
 
         final View newView = requireNonNull(event.getNewView());
 
-        if (!requiredPermissionsGranted(newView)) {
+        final Set<Object> permissions = viewsToPermissions.get(newView);
+
+        if (permissions != null && !permissions.stream().allMatch(this::isGranted)) {
             return false;
         }
 
         if (newView instanceof TypedAuthorizationView) {
             Check.notNullOrEmpty(event.getParameters());
 
-            if(!typedParameterAuthorizationGranted(event, newView)){
+            TypedAuthorizationView<T> typedAuthorizationView = (TypedAuthorizationView<T>) newView;
+
+            T t;
+
+            try {
+                t = requireNonNull(
+                        typedAuthorizationView.parse(event.getParameters()),
+                        () -> format("%s#parse() must not return null", newView.getClass())
+                );
+            } catch (TypedAuthorizationView.ParseException e) {
                 return false;
             }
+
+            if (!isGranted(t)) {
+                return false;
+            }
+
+            typedAuthorizationView.enter(t);
         }
 
         return true;
     }
 
-    @SuppressWarnings("unchecked")
-    private <U> boolean typedParameterAuthorizationGranted(ViewChangeEvent event, View newView) {
-        TypedAuthorizationView<U> typedAuthorizationView = (TypedAuthorizationView<U>) newView;
-
-        U u;
-
-        try {
-            u = requireNonNull(
-                    typedAuthorizationView.parse(event.getParameters()),
-                    () -> format("%s#parse() must not return null", newView.getClass())
-            );
-        } catch (TypedAuthorizationView.ParseException e) {
-            return false;
-        }
-
-        if (!isGranted(u)) {
-            return false;
-        }
-
-        typedAuthorizationView.enter(u);
-
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    private boolean requiredPermissionsGranted(View view) {
-        final Set<Object> permissions = viewsToPermissions.get(view);
-
-        return permissions == null || permissions.stream().allMatch(this::isGranted);
-    }
 }
