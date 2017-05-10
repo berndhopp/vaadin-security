@@ -1,9 +1,9 @@
 package org.ilay;
 
-import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.Authorizer;
 
 class Authorizers {
-    static final InMemoryAuthorizer FOO_AUTHORIZER = new InMemoryAuthorizer<Foo>() {
+    static final Authorizer FOO_AUTHORIZER = new Authorizer<Foo>() {
         @Override
         public boolean isGranted(Foo foo) {
             return false;
@@ -15,7 +15,7 @@ class Authorizers {
         }
     };
 
-    static final InMemoryAuthorizer BAR_AUTHORIZER = new InMemoryAuthorizer<Bar>() {
+    static final Authorizer BAR_AUTHORIZER = new Authorizer<Bar>() {
         @Override
         public boolean isGranted(Bar foo) {
             return false;
@@ -27,7 +27,7 @@ class Authorizers {
         }
     };
 
-    static final InMemoryAuthorizer STRING_AUTHORIZER = new InMemoryAuthorizer<String>() {
+    static final Authorizer STRING_AUTHORIZER = new Authorizer<String>() {
         @Override
         public boolean isGranted(String s) {
             return false;
@@ -38,7 +38,7 @@ class Authorizers {
             return String.class;
         }
     };
-    static final InMemoryAuthorizer INTEGER_AUTHORIZER = new InMemoryAuthorizer<Integer>() {
+    static final Authorizer INTEGER_AUTHORIZER = new Authorizer<Integer>() {
         @Override
         public boolean isGranted(Integer integer) {
             return false;
@@ -49,7 +49,7 @@ class Authorizers {
             return Integer.class;
         }
     };
-    static final InMemoryAuthorizer OBJECT_AUTHORIZER = new InMemoryAuthorizer<Object>() {
+    static final Authorizer OBJECT_AUTHORIZER = new Authorizer<Object>() {
 
         @Override
         public boolean isGranted(Object o) {

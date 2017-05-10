@@ -6,6 +6,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
+import org.ilay.api.DataAuthorizer;
 import org.ilay.api.Reverter;
 
 import java.lang.ref.Reference;
@@ -68,7 +69,8 @@ class AuthorizationContext implements ViewChangeListener {
         requireNonNull(itemClass);
         requireNonNull(dataProviderHolder);
 
-        final Authorizer<T, F> authorizer = authorizerPool.getAuthorizer(itemClass);
+        final Authorizer<T> authorizer = authorizerPool.getAuthorizer(itemClass);
+
         final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) dataProviderHolder.getDataProvider();
         final DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
 

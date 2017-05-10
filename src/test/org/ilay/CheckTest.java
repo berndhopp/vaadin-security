@@ -2,6 +2,7 @@ package org.ilay;
 
 import org.ilay.api.Restrict;
 import org.ilay.api.Reverter;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -13,6 +14,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class CheckTest {
+
+    @Before
+    public void setup() throws NoSuchFieldException, IllegalAccessException {
+        TestUtil.beforeTest();
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void null_collection_should_fail() {

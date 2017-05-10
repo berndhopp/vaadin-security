@@ -4,7 +4,7 @@ import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.Authorizer;
 import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class ComponentsTest {
 
         user.getRoles().add("user");
 
-        InMemoryAuthorizer<String> roleAuthorizer = new InMemoryAuthorizer<String>() {
+        Authorizer<String> roleAuthorizer = new Authorizer<String>() {
             @Override
             public boolean isGranted(String s) {
                 return user.getRoles().contains(s);
@@ -41,7 +41,7 @@ public class ComponentsTest {
             }
         };
 
-        InMemoryAuthorizer<Clearance> clearanceAuthorizer = new InMemoryAuthorizer<Clearance>() {
+        Authorizer<Clearance> clearanceAuthorizer = new Authorizer<Clearance>() {
             @Override
             public boolean isGranted(Clearance clearance) {
                 return user.getClearance().ordinal() >= clearance.ordinal();
@@ -123,7 +123,7 @@ public class ComponentsTest {
 
         user.getRoles().add("user");
 
-        InMemoryAuthorizer<String> roleAuthorizer = new InMemoryAuthorizer<String>() {
+        Authorizer<String> roleAuthorizer = new Authorizer<String>() {
             @Override
             public boolean isGranted(String s) {
                 return user.getRoles().contains(s);
@@ -135,7 +135,7 @@ public class ComponentsTest {
             }
         };
 
-        InMemoryAuthorizer<Clearance> clearanceAuthorizer = new InMemoryAuthorizer<Clearance>() {
+        Authorizer<Clearance> clearanceAuthorizer = new Authorizer<Clearance>() {
             @Override
             public boolean isGranted(Clearance clearance) {
                 return user.getClearance().ordinal() >= clearance.ordinal();
@@ -209,7 +209,7 @@ public class ComponentsTest {
 
         user.getRoles().add("user");
 
-        InMemoryAuthorizer<String> roleAuthorizer = new InMemoryAuthorizer<String>() {
+        Authorizer<String> roleAuthorizer = new Authorizer<String>() {
             @Override
             public boolean isGranted(String s) {
                 return user.getRoles().contains(s);
@@ -221,7 +221,7 @@ public class ComponentsTest {
             }
         };
 
-        InMemoryAuthorizer<Clearance> clearanceAuthorizer = new InMemoryAuthorizer<Clearance>() {
+        Authorizer<Clearance> clearanceAuthorizer = new Authorizer<Clearance>() {
             @Override
             public boolean isGranted(Clearance clearance) {
                 return user.getClearance().ordinal() >= clearance.ordinal();

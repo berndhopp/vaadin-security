@@ -7,13 +7,13 @@ package org.ilay.api;
  * that every {@link Authorizer} is responsible for evaluating the permissions that are assignable
  * to the type T.
  *
- * If the type T is not used in any {@link com.vaadin.data.provider.DataProvider} that is not a
- * {@link com.vaadin.data.provider.ListDataProvider}, i.e. in all cases where no filtering on a
- * backend-level like an external database is involved, consider using {@link InMemoryAuthorizer}.
+ * when {@link com.vaadin.data.provider.DataProvider}s other than
+ * {@link com.vaadin.data.provider.ListDataProvider} are involved, i.e. in all cases where filtering is
+ * done on a a backend-level like an external database, a {@link DataAuthorizer} is needed.
  *
  * @author Bernd Hopp bernd@vaadin.com
  */
-public interface Authorizer<T, F> {
+public interface Authorizer<T> {
 
     /**
      * evaluate if a certain permission is granted in the current context
@@ -29,9 +29,4 @@ public interface Authorizer<T, F> {
      * @return the class of T
      */
     Class<T> getPermissionClass();
-
-    /**
-     * the filter to be used for DataProviders, see {@link com.vaadin.data.provider.DataProvider}
-     */
-    F asFilter();
 }

@@ -5,7 +5,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Grid;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.DataAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public class ApiTest {
     public void multiple_start_calls_throw_exception() {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return true;
@@ -88,7 +88,7 @@ public class ApiTest {
     public void test_start_1() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return true;
@@ -113,7 +113,7 @@ public class ApiTest {
     public void test_start_2() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return true;

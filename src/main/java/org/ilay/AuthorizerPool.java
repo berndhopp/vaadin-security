@@ -16,7 +16,7 @@ import static java.util.Objects.requireNonNull;
  */
 class AuthorizerPool {
 
-    private final Map<Class<?>, Authorizer<?, ?>> authorizers;
+    private final Map<Class<?>, Authorizer<?>> authorizers;
 
     AuthorizerPool(Collection<Authorizer> authorizers) {
         requireNonNull(authorizers);
@@ -26,7 +26,7 @@ class AuthorizerPool {
             requireNonNull(authorizer);
             requireNonNull(authorizer.getPermissionClass());
 
-            Authorizer<?, ?> alreadyRegistered = this.authorizers.put(authorizer.getPermissionClass(), authorizer);
+            Authorizer<?> alreadyRegistered = this.authorizers.put(authorizer.getPermissionClass(), authorizer);
 
             if (alreadyRegistered != null) {
                 throw new ConflictingAuthorizersException(authorizer, alreadyRegistered, authorizer.getPermissionClass());
@@ -35,17 +35,17 @@ class AuthorizerPool {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> Authorizer<T, F> getAuthorizer(Class<T> permissionClass) {
+    <T> Authorizer<T> getAuthorizer(Class<T> permissionClass) {
 
         requireNonNull(permissionClass);
 
-        Authorizer<T, F> authorizer = (Authorizer<T, F>) authorizers.get(permissionClass);
+        Authorizer<T> authorizer = (Authorizer<T>) authorizers.get(permissionClass);
 
         if (authorizer != null) {
             return authorizer;
         }
 
-        for (Authorizer<?, ?> anAuthorizer : authorizers.values()) {
+        for (Authorizer<?> anAuthorizer : authorizers.values()) {
 
             /*
              * in a sentence: a match is found if either the permission's class is an interface
@@ -61,7 +61,7 @@ class AuthorizerPool {
                     throw new ConflictingAuthorizersException(authorizer, anAuthorizer, permissionClass);
                 }
 
-                authorizer = (Authorizer<T, F>) anAuthorizer;
+                authorizer = (Authorizer<T>) anAuthorizer;
             }
         }
 

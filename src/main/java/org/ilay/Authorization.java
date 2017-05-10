@@ -24,12 +24,12 @@ import static java.util.Objects.requireNonNull;
  *
  * The first method that is called on {@link Authorization} needs to be either {@link
  * Authorization#start(Set)} or {@link Authorization#start(Supplier)} <code> Authorizer{@literal
- * <}Foo{@literal >} fooEvaluator = new InMemoryAuthorizer(){ public boolean isGranted(Foo foo){
+ * <}Foo{@literal >} fooEvaluator = new DataAuthorizer(){ public boolean isGranted(Foo foo){
  * boolean granted = //evaluation logic goes here return granted; }
  *
  * public Class{@literal <}Foo{@literal >} getPermissionClass(){ return Foo.class; } }
  *
- * Authorizer{@literal <}UserRole{@literal >} userRoleEvaluator = new InMemoryAuthorizer(){ public
+ * Authorizer{@literal <}UserRole{@literal >} userRoleEvaluator = new DataAuthorizer(){ public
  * boolean isGranted(UserRole userRole){ boolean granted = //evaluation logic goes here return
  * granted; }
  *

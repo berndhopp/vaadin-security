@@ -8,7 +8,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Grid;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.DataAuthorizer;
 import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class DataTest {
 
         foo3 = new Foo();
 
-        InMemoryAuthorizer<Foo> fooInMemoryAuthorizer = new InMemoryAuthorizer<Foo>() {
+        Authorizer<Foo> fooDataAuthorizer = new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return permission == foo1 || permission == foo2;
@@ -57,9 +57,9 @@ public class DataTest {
                 return Foo.class;
             }
         };
-        authorizers.add(fooInMemoryAuthorizer);
+        authorizers.add(fooDataAuthorizer);
 
-        InMemoryAuthorizer<String> stringInMemoryAuthorizer = new InMemoryAuthorizer<String>() {
+        Authorizer<String> stringDataAuthorizer = new Authorizer<String>() {
             @Override
             public boolean isGranted(String permission) {
                 return "granted_string".equals(permission) ||
@@ -72,9 +72,9 @@ public class DataTest {
             }
         };
 
-        authorizers.add(stringInMemoryAuthorizer);
+        authorizers.add(stringDataAuthorizer);
 
-        Authorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId> userIdAuthorizer = new Authorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId>() {
+        DataAuthorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId> userIdAuthorizer = new DataAuthorizer<TestFilterableDataProvider.Document, TestFilterableDataProvider.UserId>() {
 
             private final TestFilterableDataProvider.UserId userId = new TestFilterableDataProvider.UserId(1);
             private final TestFilterableDataProvider.UserId userId2 = new TestFilterableDataProvider.UserId(2);

@@ -4,8 +4,9 @@ import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.DataProviderWrapper;
 import com.vaadin.data.provider.Query;
 
+import com.vaadin.server.SerializablePredicate;
 import org.ilay.api.Authorizer;
-import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.DataAuthorizer;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -19,16 +20,36 @@ import static java.util.Objects.requireNonNull;
  */
 class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> implements Predicate<T> {
 
-    private final Authorizer<T, M> authorizer;
+    private final DataAuthorizer<T, M> authorizer;
     private final boolean integrityCheck;
 
-    AuthorizingDataProvider(DataProvider<T, M> dataProvider, Authorizer<T, M> authorizer) {
+    AuthorizingDataProvider(DataProvider<T, M> dataProvider, Authorizer<T> authorizer) {
         super(requireNonNull(dataProvider));
-        this.authorizer = requireNonNull(authorizer);
+        requireNonNull(authorizer);
 
-        //inMemory-DataProviders should use an InMemoryAuthorizer,
-        //where an integrity check on the data would not make sense
-        integrityCheck = !(authorizer instanceof InMemoryAuthorizer);
+        if(authorizer instanceof DataAuthorizer){
+            this.authorizer = (DataAuthorizer<T, M>)authorizer;
+            integrityCheck = true;
+        } else {
+            this.authorizer = new DataAuthorizer<T, M>() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public M asFilter() {
+                    return (M) (SerializablePredicate<T>) authorizer::isGranted;
+                }
+
+                @Override
+                public boolean isGranted(T permission) {
+                    return authorizer.isGranted(permission);
+                }
+
+                @Override
+                public Class<T> getPermissionClass() {
+                    return authorizer.getPermissionClass();
+                }
+            };
+            integrityCheck = false;
+        }
     }
 
     @Override

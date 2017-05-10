@@ -5,7 +5,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.InMemoryAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +27,7 @@ public class ViewChangeListenerTest {
 
         user = new User();
 
-        InMemoryAuthorizer<String> roleAuthorizer = new InMemoryAuthorizer<String>() {
+        Authorizer<String> roleAuthorizer = new Authorizer<String>() {
             @Override
             public boolean isGranted(String s) {
                 return user.getRoles().contains(s);
@@ -40,7 +39,7 @@ public class ViewChangeListenerTest {
             }
         };
 
-        InMemoryAuthorizer<Clearance> clearanceAuthorizer = new InMemoryAuthorizer<Clearance>() {
+        Authorizer<Clearance> clearanceAuthorizer = new Authorizer<Clearance>() {
             @Override
             public boolean isGranted(Clearance clearance) {
                 return user.getClearance().ordinal() >= clearance.ordinal();

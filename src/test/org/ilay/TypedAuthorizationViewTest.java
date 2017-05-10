@@ -4,7 +4,7 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.InMemoryAuthorizer;
+import org.ilay.api.DataAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -29,7 +29,7 @@ public class TypedAuthorizationViewTest {
     public void test_positive() throws ServiceException, TypedAuthorizationView.ParseException {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return true;
@@ -65,7 +65,7 @@ public class TypedAuthorizationViewTest {
     public void test_negative() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return false;
@@ -97,7 +97,7 @@ public class TypedAuthorizationViewTest {
     public void test_parseException() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return false;
@@ -129,7 +129,7 @@ public class TypedAuthorizationViewTest {
     public void test_null_parse() throws ServiceException {
         Set<Authorizer> authorizers = new HashSet<>();
 
-        authorizers.add(new InMemoryAuthorizer<Foo>() {
+        authorizers.add(new Authorizer<Foo>() {
             @Override
             public boolean isGranted(Foo permission) {
                 return false;

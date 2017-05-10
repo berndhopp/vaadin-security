@@ -45,12 +45,12 @@ public class AuthorizerPoolTest {
 
         AuthorizerPool authorizerPool = new AuthorizerPool(authorizers);
 
-        Authorizer<Foo, ?> fooAuthorizer = authorizerPool.getAuthorizer(Foo.class);
+        Authorizer<Foo> fooAuthorizer = authorizerPool.getAuthorizer(Foo.class);
 
         assertNotNull(fooAuthorizer);
         assertFalse(fooAuthorizer.isGranted(new Bar()));
         assertFalse(fooAuthorizer.isGranted(new Foo()));
-        Authorizer<Bar, ?> barAuthorizer = authorizerPool.getAuthorizer(Bar.class);
+        Authorizer<Bar> barAuthorizer = authorizerPool.getAuthorizer(Bar.class);
         assertNotNull(barAuthorizer);
         assertFalse(barAuthorizer.isGranted(new Bar()));
     }
@@ -58,7 +58,7 @@ public class AuthorizerPoolTest {
     @Test
     public void rivaling_evaluators_should_return_best_fit() {
         AuthorizerPool authorizerPool = createEvaluatorPool(true, true);
-        final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
+        final Authorizer<String> authorizer = authorizerPool.getAuthorizer(String.class);
         assertEquals(Authorizers.STRING_AUTHORIZER, authorizer);
         authorizer.isGranted("");
     }
@@ -90,7 +90,7 @@ public class AuthorizerPoolTest {
 
         final AuthorizerPool authorizerPool = new AuthorizerPool(authorizerList);
 
-        final Authorizer<Serializable, ?> authorizer = authorizerPool.getAuthorizer(Serializable.class);
+        final Authorizer<Serializable> authorizer = authorizerPool.getAuthorizer(Serializable.class);
 
         authorizer.isGranted(new Foo());
     }
@@ -98,7 +98,7 @@ public class AuthorizerPoolTest {
     @Test
     public void no_matching_evaluator_should_return_best_fit() {
         AuthorizerPool authorizerPool = createEvaluatorPool(false, true);
-        final Authorizer<String, ?> authorizer = authorizerPool.getAuthorizer(String.class);
+        final Authorizer<String> authorizer = authorizerPool.getAuthorizer(String.class);
         assertNotNull(authorizer);
         authorizer.isGranted("");
     }
