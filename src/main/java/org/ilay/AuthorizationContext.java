@@ -6,7 +6,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.DataAuthorizer;
 import org.ilay.api.Reverter;
 
 import java.lang.ref.Reference;
@@ -215,14 +214,21 @@ class AuthorizationContext implements ViewChangeListener {
 
     @Override
     public boolean beforeViewChange(ViewChangeEvent event) {
-        return beforeViewChangeWithGenericParam(event);
+        requireNonNull(event);
+        final boolean navigationAllowed = navigationAllowed(event.getNewView(), event.getParameters());
+
+        if (!navigationAllowed && event.getNewView().equals(event.getOldView())) {
+            //in case the user does not have access to the view he is currently on, go to default view
+            //noinspection ConstantConditions
+            VaadinAbstraction.getNavigator().get().navigateTo("");
+        }
+
+        return navigationAllowed;
     }
 
     @SuppressWarnings("unchecked")
-    private <T> boolean beforeViewChangeWithGenericParam(ViewChangeEvent event) {
-        requireNonNull(event);
-
-        final View newView = requireNonNull(event.getNewView());
+    private <T> boolean navigationAllowed(View newView, String parameters) {
+        requireNonNull(newView);
 
         final Set<Object> permissions = viewsToPermissions.get(newView);
 
@@ -231,7 +237,7 @@ class AuthorizationContext implements ViewChangeListener {
         }
 
         if (newView instanceof TypedAuthorizationView) {
-            Check.notNullOrEmpty(event.getParameters());
+            Check.notNullOrEmpty(parameters);
 
             TypedAuthorizationView<T> typedAuthorizationView = (TypedAuthorizationView<T>) newView;
 
@@ -239,7 +245,7 @@ class AuthorizationContext implements ViewChangeListener {
 
             try {
                 t = requireNonNull(
-                        typedAuthorizationView.parse(event.getParameters()),
+                        typedAuthorizationView.parse(parameters),
                         () -> format("%s#parse() must not return null", newView.getClass())
                 );
             } catch (TypedAuthorizationView.ParseException e) {
