@@ -232,8 +232,12 @@ class AuthorizationContext implements ViewChangeListener {
 
         final Set<Object> permissions = viewsToPermissions.get(newView);
 
-        if (permissions != null && !permissions.stream().allMatch(this::isGranted)) {
-            return false;
+        if (permissions != null) {
+            for (Object permission : permissions) {
+                if (!isGranted(permission)) {
+                    return false;
+                }
+            }
         }
 
         if (newView instanceof TypedAuthorizationView) {
