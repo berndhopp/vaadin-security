@@ -91,7 +91,8 @@ final class Check {
             T x = array[i];
             requireNonNull(x, "elements in array must not be null");
 
-            /* only the tuples marked with x need to be
+            /*
+               only the tuples marked with x need to be
                tested for equality
 
                   1 2 3 4
@@ -101,10 +102,6 @@ final class Check {
                 4 x x x -
             */
             for (int j = i + 1; j < array.length; j++) {
-                if (i == j) {
-                    continue;
-                }
-
                 T y = array[j];
 
                 arg(!x.equals(y), "duplicate entries found in array");
