@@ -36,8 +36,6 @@ class ComponentRestrict extends RestrictImpl<Component> {
 
             authorizationContext.addPermissions(component, permissions);
         }
-
-        Authorization.reapplyInternal(super.restrictionMap, authorizationContext);
     }
 
 }

@@ -3,6 +3,7 @@ package org.ilay;
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.provider.DataProvider;
+import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.SessionInitListener;
 import com.vaadin.server.VaadinService;
@@ -77,6 +78,8 @@ final class VaadinAbstraction {
     interface Navigator {
         String getState();
 
+        View getCurrentView();
+
         void navigateTo(String s);
 
         void addViewChangeListener(ViewChangeListener viewChangeListener);
@@ -148,6 +151,11 @@ final class VaadinAbstraction {
                 @Override
                 public String getState() {
                     return navigator.getState();
+                }
+
+                @Override
+                public View getCurrentView() {
+                    return navigator.getCurrentView();
                 }
 
                 @Override

@@ -11,7 +11,6 @@ import org.ilay.api.Restrict;
 import org.ilay.api.Reverter;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -268,16 +267,6 @@ public final class Authorization {
 
         authorizationContext.applyComponents(componentsToPermissions);
         authorizationContext.applyData();
-        reEvaluateCurrentViewAccess();
-    }
-
-    private static void reEvaluateCurrentViewAccess() {
-        final Optional<VaadinAbstraction.Navigator> optionalNavigator = VaadinAbstraction.getNavigator();
-
-        optionalNavigator.ifPresent(navigator -> {
-            final String state = navigator.getState();
-            navigator.navigateTo("");
-            navigator.navigateTo(state);
-        });
+        authorizationContext.checkAccessToCurrentView();
     }
 }

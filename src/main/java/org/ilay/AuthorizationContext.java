@@ -20,6 +20,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.lang.String.format;
+import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
@@ -37,7 +38,9 @@ class AuthorizationContext implements ViewChangeListener {
     private final AuthorizerPool authorizerPool;
     private final Map<Component, Boolean> trackedVisibilities = new WeakHashMap<>();
     private final Set<Reference<DataProvider>> dataProviders = new HashSet<>();
+    private String currentParameters = "";
     private boolean registeredAsViewChangeListener = false;
+
 
     private AuthorizationContext(Set<Authorizer> authorizers) {
         this.authorizerPool = new AuthorizerPool(authorizers);
@@ -145,18 +148,22 @@ class AuthorizationContext implements ViewChangeListener {
         return authorizer.isGranted(permission);
     }
 
-    void addPermissions(Component component, Set<Object> permissions) {
+    void addPermissions(Component component, Set<Object> newPermissions) {
         requireNonNull(component);
-        requireNonNull(permissions);
+        requireNonNull(newPermissions);
 
         Set<Object> currentPermissions = componentsToPermissions.get(component);
 
         if (currentPermissions == null) {
-            Set<Object> newPermissions = new CopyOnWriteArraySet<>(permissions);
+            currentPermissions = new CopyOnWriteArraySet<>(newPermissions);
             componentsToPermissions.put(component, newPermissions);
         } else {
-            currentPermissions.addAll(permissions);
+            currentPermissions.addAll(newPermissions);
         }
+
+        final Map<Component, Set<Object>> componentsToPermissions = singletonMap(component, currentPermissions);
+
+        applyComponents(componentsToPermissions);
     }
 
     void addPermissions(View view, Set<Object> permissions) {
@@ -171,6 +178,8 @@ class AuthorizationContext implements ViewChangeListener {
         } else {
             currentPermissions.addAll(permissions);
         }
+
+        checkAccessToCurrentView();
     }
 
     void removePermissions(Component component, Set<Object> permissions) {
@@ -215,15 +224,47 @@ class AuthorizationContext implements ViewChangeListener {
     @Override
     public boolean beforeViewChange(ViewChangeEvent event) {
         requireNonNull(event);
-        final boolean navigationAllowed = navigationAllowed(event.getNewView(), event.getParameters());
 
-        if (!navigationAllowed && event.getNewView().equals(event.getOldView())) {
-            //in case the user does not have access to the view he is currently on, go to default view
-            //noinspection ConstantConditions
-            VaadinAbstraction.getNavigator().get().navigateTo("");
+        //null to empty string to avoid NPE
+        final String newParameters = event.getParameters() != null ? event.getParameters() : "";
+
+        try {
+            final boolean navigationToNewViewAllowed = navigationAllowed(event.getNewView(), newParameters);
+
+            if (!navigationToNewViewAllowed) {
+                checkAccessToCurrentView();
+            }
+
+            return navigationToNewViewAllowed;
+        } finally {
+            currentParameters = newParameters;
+        }
+    }
+
+    void checkAccessToCurrentView() {
+        final Optional<VaadinAbstraction.Navigator> navigatorOptional = VaadinAbstraction.getNavigator();
+
+        if (!navigatorOptional.isPresent()) {
+            //no navigator present means that there is no view, so we're good
+            return;
         }
 
-        return navigationAllowed;
+        final VaadinAbstraction.Navigator navigator = navigatorOptional.get();
+
+        final View currentView = navigator.getCurrentView();
+
+        if (currentView != null) {
+
+            final boolean navigationToCurrentViewAllowed = navigationAllowed(currentView, currentParameters);
+
+            if (!navigationToCurrentViewAllowed) {
+                //in case the user does not have access to the view he is currently on, go to default view
+                navigator.navigateTo("");
+            }
+        } else {
+            //this happens, when the user opens a link to a view he has no access to
+            navigator.navigateTo("");
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -1,5 +1,6 @@
 package org.ilay;
 
+import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 import com.vaadin.server.SessionInitListener;
@@ -71,6 +72,12 @@ class TestUtil {
                 @Override
                 public String getState() {
                     return null;
+                }
+
+                @Override
+                public View getCurrentView() {
+                    return (View) viewChangeEvent -> {
+                    };
                 }
 
                 @Override
