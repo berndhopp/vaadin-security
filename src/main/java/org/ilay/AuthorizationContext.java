@@ -8,6 +8,7 @@ import com.vaadin.ui.Component;
 import org.ilay.api.Authorizer;
 import org.ilay.api.Reverter;
 
+import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
@@ -31,7 +32,9 @@ import static java.util.stream.Collectors.toMap;
  *
  * @author Bernd Hopp bernd@vaadin.com
  */
-class AuthorizationContext implements ViewChangeListener {
+class AuthorizationContext implements ViewChangeListener, Serializable {
+
+    private static final long serialVersionUID = -4272382552902657102L;
 
     private final Map<Component, Set<Object>> componentsToPermissions = new WeakHashMap<>();
     private final Map<View, Set<Object>> viewsToPermissions = new WeakHashMap<>();
@@ -41,12 +44,12 @@ class AuthorizationContext implements ViewChangeListener {
     private String currentParameters = "";
     private boolean registeredAsViewChangeListener = false;
 
-
     private AuthorizationContext(Set<Authorizer> authorizers) {
         this.authorizerPool = new AuthorizerPool(authorizers);
     }
 
     static void initSession(Set<Authorizer> authorizers) {
+
         requireNonNull(authorizers);
         final AuthorizationContext authorizationContext = new AuthorizationContext(authorizers);
         VaadinAbstraction.storeInSession(AuthorizationContext.class, authorizationContext);
