@@ -10,19 +10,19 @@ import java.util.Set;
  * @see Authorization#restrictComponent(Component)
  * @see Authorization#restrictComponents(Component...)
  */
-class ComponentRestrict extends RestrictImpl<Component> {
+class ComponentRestrictRegistration extends RestrictRegistrationImpl<Component> {
 
-    ComponentRestrict(Component[] components) {
+    ComponentRestrictRegistration(Component[] components) {
         super(components);
     }
 
-    ComponentRestrict(Component component) {
+    ComponentRestrictRegistration(Component component) {
         super(component);
     }
 
     @Override
-    protected ObjectBasedPermissionAssignmentReverter<Component> createReverter() {
-        return new ComponentObjectBasedPermissionAssignmentReverter(restrictionMap);
+    protected ObjectBasedPermissionAssignmentRegistration<Component> createRegistration() {
+        return new ComponentObjectBasedPermissionAssignmentRegistration(restrictionMap);
     }
 
     @Override

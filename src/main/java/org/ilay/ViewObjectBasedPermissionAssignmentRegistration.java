@@ -8,9 +8,11 @@ import java.util.Set;
 /**
  * @author Bernd Hopp bernd@vaadin.com
  */
-class ViewObjectBasedPermissionAssignmentRegistration extends ObjectBasedPermissionAssignmentReverter<View> {
+class ViewObjectBasedPermissionAssignmentRegistration extends ObjectBasedPermissionAssignmentRegistration<View> {
 
-    ViewObjectBasedPermissionAssignmentRegistration(ViewRestrict viewRestrict) {
+    private static final long serialVersionUID = -8311040539728937553L;
+
+    ViewObjectBasedPermissionAssignmentRegistration(ViewRestrictRegistration viewRestrict) {
         super(viewRestrict.restrictionMap);
     }
 

@@ -3,12 +3,14 @@ package org.ilay;
 import com.vaadin.data.HasDataProvider;
 import com.vaadin.data.HasFilterableDataProvider;
 import com.vaadin.data.HasItems;
+import com.vaadin.data.provider.DataProvider;
 import com.vaadin.navigator.View;
+import com.vaadin.server.VaadinService;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.Restrict;
-import org.ilay.api.Reverter;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,8 +25,8 @@ import static java.util.Objects.requireNonNull;
  *
  * The first method that is called on {@link Authorization} needs to be either {@link
  * Authorization#start(Set)} or {@link Authorization#start(Supplier)} <code> Authorizer{@literal
- * <}Foo{@literal >} fooEvaluator = new DataAuthorizer(){ public boolean isGranted(Foo foo){
- * boolean granted = //evaluation logic goes here return granted; }
+ * <}Foo{@literal >} fooEvaluator = new DataAuthorizer(){ public boolean isGranted(Foo foo){ boolean
+ * granted = //evaluation logic goes here return granted; }
  *
  * public Class{@literal <}Foo{@literal >} getPermissionClass(){ return Foo.class; } }
  *
@@ -57,7 +59,7 @@ import static java.util.Objects.requireNonNull;
 public final class Authorization {
 
     private static final String NOT_INITIALIZED_ERROR_MESSAGE = "Authorization.start() must be called before this method";
-    private static boolean initialized = false;
+    private static Registration registration;
 
     private Authorization() {
     }
@@ -69,11 +71,12 @@ public final class Authorization {
      * same set can be used for all {@link com.vaadin.server.VaadinSession}s.
      *
      * @param authorizers the {@link Authorizer}s needed. For every object passed in {@link
-     *                    ComponentRestrict#to(Object...)}, {@link ViewRestrict#to(Object...)},
-     *                    {@link Authorization#restrictData(Class, HasFilterableDataProvider)} or
-     *                    {@link Authorization#restrictData(Class, HasDataProvider)} there must be a
-     *                    evaluator in the set where the {@link Authorizer#getPermissionClass()} is
-     *                    assignable from the objects {@link Class}.
+     *                    ComponentRestrictRegistration#to(Object...)}, {@link
+     *                    ViewRestrictRegistration#to(Object...)}, {@link Authorization#restrictData(Class,
+     *                    HasFilterableDataProvider)} or {@link Authorization#restrictData(Class,
+     *                    HasDataProvider)} there must be a evaluator in the set where the {@link
+     *                    Authorizer#getPermissionClass()} is assignable from the objects {@link
+     *                    Class}.
      */
     public static void start(Set<Authorizer> authorizers) {
         Check.notNullOrEmpty(authorizers);
@@ -86,121 +89,105 @@ public final class Authorization {
      * {@link Authorization#start(Set)} if the set of {@link Authorizer}s is not immutable and a
      * different set may be used for all {@link com.vaadin.server.VaadinSession}s.
      *
-     * @param evaluatorSupplier the {@link Supplier} for the {@link Authorizer}s needed. For every
-     *                          object passed in {@link ComponentRestrict#to(Object...)}, {@link
-     *                          ViewRestrict#to(Object...)}, {@link Authorization#restrictData(Class,
-     *                          HasFilterableDataProvider)} or {@link Authorization#restrictData(Class,
-     *                          HasDataProvider)} there must be a evaluator in the set where the
-     *                          {@link Authorizer#getPermissionClass()} is assignable from the
-     *                          objects {@link Class}.
+     * @param authorizerSupplier the {@link Supplier} for the {@link Authorizer}s needed. For every
+     *                           object passed in {@link ComponentRestrictRegistration#to(Object...)},
+     *                           {@link ViewRestrictRegistration#to(Object...)}, {@link
+     *                           Authorization#restrictData(Class, HasFilterableDataProvider)} or
+     *                           {@link Authorization#restrictData(Class, HasDataProvider)} there
+     *                           must be a evaluator in the set where the {@link
+     *                           Authorizer#getPermissionClass()} is assignable from the objects
+     *                           {@link Class}.
      */
-    public static void start(Supplier<Set<Authorizer>> evaluatorSupplier) {
-        requireNonNull(evaluatorSupplier);
-        Check.state(!initialized, "start() cannot be called more than once");
+    public static void start(Supplier<Set<Authorizer>> authorizerSupplier) {
+        requireNonNull(authorizerSupplier);
+        Check.state(registration == null, "start() cannot be called more than once");
 
-        final VaadinAbstraction.SessionInitNotifier sessionInitNotifier = VaadinAbstraction.getSessionInitNotifier();
+        final VaadinService vaadinService = Check.notNull(
+                VaadinService.getCurrent(),
+                "VaadinService must be available before Authorization#start() is called"
+        );
 
-        sessionInitNotifier.addSessionInitListener(
+        //for every new VaadinSession, we initialize the AuthorizationContext
+        registration = vaadinService.addSessionInitListener(
                 //for every new VaadinSession, we initialize the AuthorizationContext
                 e -> {
-                    final Set<Authorizer> authorizers = evaluatorSupplier.get();
+                    final Set<Authorizer> authorizers = authorizerSupplier.get();
                     Check.notNullOrEmpty(authorizers);
                     AuthorizationContext.initSession(authorizers);
                 }
         );
+    }
 
-        initialized = true;
+    static void reset() {
+        if (registration != null) {
+            registration.remove();
+            registration = null;
+        }
     }
 
     /**
-     * returns a {@link ComponentRestrict} to connect
-     * a {@link Component} to one or more permissions
+     * returns a {@link ComponentRestrictRegistration} to connect a {@link Component} to one or more
+     * permissions
      *
-     * <code>
-     * Button button = new Button();
-     * Authorization.bindComponent(button).to(Permission.ADMIN);
+     * <code> Button button = new Button(); Authorization.bindComponent(button).to(Permission.ADMIN);
      * </code>
      *
      * @param component the component to be bound to one or more permission, cannot be null
-     * @return a {@link ComponentRestrict} for a chained fluent API
+     * @return a {@link ComponentRestrictRegistration} for a chained fluent API
      */
     public static Restrict restrictComponent(Component component) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(component);
-        return new ComponentRestrict(component);
+        return new ComponentRestrictRegistration(component);
     }
 
     /**
-     * returns a {@link ComponentRestrict} to connect {@link Component}s to one or more permissions
+     * returns a {@link ComponentRestrictRegistration} to connect {@link Component}s to one or more
+     * permissions
      *
      * <code> Button button = new Button(); Label label = new Label();
      * Authorization.bindComponents(button, label).to(Permission.ADMIN); </code>
      *
      * @param components the {@link Component}s to be bound to one or more permission, cannot be
      *                   null or empty
-     * @return a {@link ComponentRestrict} for a chained fluent API
+     * @return a {@link ComponentRestrictRegistration} for a chained fluent API
      */
     public static Restrict restrictComponents(Component... components) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.arraySanity(components);
-        return new ComponentRestrict(components);
+        return new ComponentRestrictRegistration(components);
     }
 
     /**
-     * returns a {@link ViewRestrict} to connect a {@link View} to one or more permissions
+     * returns a {@link ViewRestrictRegistration} to connect a {@link View} to one or more
+     * permissions
      *
      * <code> View view = createView(); Authorization.bindView(view).to(Permission.ADMIN); </code>
      *
      * @param view the {@link View} to be bound to one or more permission, cannot be null or empty
-     * @return a {@link ViewRestrict} for a chained fluent API
+     * @return a {@link ViewRestrictRegistration} for a chained fluent API
      */
     public static Restrict restrictView(View view) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(view);
-        return new ViewRestrict(view);
+        return new ViewRestrictRegistration(view);
     }
 
     /**
-     * returns a {@link ViewRestrict} to connect
-     * {@link View}s to one or more permissions
+     * returns a {@link ViewRestrictRegistration} to connect {@link View}s to one or more
+     * permissions
      *
-     * <code>
-     * View view = createView();
-     * View view2 = createView();
-     * Authorization.bindViews(view, view2).to(Permission.ADMIN);
-     * </code>
+     * <code> View view = createView(); View view2 = createView(); Authorization.bindViews(view,
+     * view2).to(Permission.ADMIN); </code>
      *
      * @param views the {@link View}s to be bound to one or more permission, cannot be null or
      *              empty
-     * @return a {@link ViewRestrict} for a chained fluent API
+     * @return a {@link ViewRestrictRegistration} for a chained fluent API
      */
     public static Restrict restrictViews(View... views) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.arraySanity(views);
-        return new ViewRestrict(views);
-    }
-
-    /**
-     * binds the data, or items, in the {@link HasDataProvider} to authorization. Each item t of
-     * type T in an HasDataProvider{@literal <}T{@literal >} is it's own permission and will only be
-     * displayed when an {@link Authorizer}{@literal <}T, ?{@literal >}'s {@link
-     * Authorizer#isGranted(Object)}-method returned true for t. If no {@link Authorizer} for the
-     * type T is available, an exception will be thrown.
-     *
-     * @param itemClass       the class of T ( the item's class )
-     * @param hasDataProvider the {@link HasFilterableDataProvider} to be bound
-     * @param <T>             the Type of the items
-     */
-    public static <T> Reverter restrictData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
-        requireNonNull(itemClass);
-        requireNonNull(hasDataProvider);
-        Check.noUnclosedRestrict();
-
-        VaadinAbstraction.DataProviderHolder holder = new VaadinAbstraction.HasDataProviderHolder(hasDataProvider);
-
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-        return authorizationContext.bindData(itemClass, holder);
+        return new ViewRestrictRegistration(views);
     }
 
     /**
@@ -210,30 +197,53 @@ public final class Authorization {
      * >}'s {@link Authorizer#isGranted(Object)}-method returned true for t. If no {@link
      * Authorizer} for the type T is available, an exception will be thrown.
      *
-     * @param itemClass                 the class of T ( the item's class )
-     * @param hasFilterableDataProvider the {@link HasFilterableDataProvider} to be bound
-     * @param <T>                       the Type of the items
+     * @param itemClass       the class of T ( the item's class )
+     * @param hasDataProvider the {@link HasFilterableDataProvider} to be bound
+     * @param <T>             the Type of the items
      */
-    public static <T, F> Reverter restrictData(Class<T> itemClass, HasFilterableDataProvider<T, F> hasFilterableDataProvider) {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+    public static <T, F> Registration restrictData(Class<T> itemClass, HasFilterableDataProvider<T, F> hasDataProvider) {
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
         requireNonNull(itemClass);
-        requireNonNull(hasFilterableDataProvider);
+        requireNonNull(hasDataProvider);
         Check.noUnclosedRestrict();
 
-        VaadinAbstraction.DataProviderHolder holder = new VaadinAbstraction.HasFilterableDataProviderHolder(hasFilterableDataProvider);
+        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+
+        Holder<DataProvider<T, F>> holder = Holder.wrap(hasDataProvider);
+
+        return authorizationContext.bindDataStronglyTyped(itemClass, holder);
+    }
+
+    /**
+     * binds the data, or items, in the {@link HasFilterableDataProvider} to authorization. Each
+     * item t of type T in an HasFilterableDataProvider{@literal <}T, F{@literal >} is it's own
+     * permission and will only be displayed when an {@link Authorizer}{@literal <}T, ?{@literal
+     * >}'s {@link Authorizer#isGranted(Object)}-method returned true for t. If no {@link
+     * Authorizer} for the type T is available, an exception will be thrown.
+     *
+     * @param itemClass       the class of T ( the item's class )
+     * @param hasDataProvider the {@link HasFilterableDataProvider} to be bound
+     * @param <T>             the Type of the items
+     */
+    public static <T> Registration restrictData(Class<T> itemClass, HasDataProvider<T> hasDataProvider) {
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
+        requireNonNull(itemClass);
+        requireNonNull(hasDataProvider);
+        Check.noUnclosedRestrict();
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
+
+        Holder<DataProvider<T, ?>> holder = Holder.wrap(hasDataProvider);
+
         return authorizationContext.bindData(itemClass, holder);
     }
 
     /**
-     * All permissions will be re-evaluated. Call this method when
-     * for example the current users roles change or generally whenever
-     * there is reason to believe that an {@link Authorizer} would now
-     * grant permissions differently than in the past.
+     * All permissions will be re-evaluated. Call this method when for example the current users
+     * roles change or generally whenever there is reason to believe that an {@link Authorizer}
+     * would now grant permissions differently than in the past.
      *
-     * <code>
-     * User user = createUser();
+     * <code> User user = createUser();
      *
      * user.setRole(Role.USER);
      *
@@ -254,14 +264,14 @@ public final class Authorization {
      * </code>
      */
     public static void reapplyRestrictions() {
-        Check.state(initialized, NOT_INITIALIZED_ERROR_MESSAGE);
+        Check.state(registration != null, NOT_INITIALIZED_ERROR_MESSAGE);
         Check.noUnclosedRestrict();
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
         final Map<Component, Set<Object>> componentsToPermissions = authorizationContext.getComponentsToPermissions();
         reapplyInternal(componentsToPermissions, authorizationContext);
     }
 
-    static void reapplyInternal(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
+    private static void reapplyInternal(Map<Component, Set<Object>> componentsToPermissions, AuthorizationContext authorizationContext) {
         requireNonNull(componentsToPermissions);
         requireNonNull(authorizationContext);
 

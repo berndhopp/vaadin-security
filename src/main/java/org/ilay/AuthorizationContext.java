@@ -1,21 +1,24 @@
 package org.ilay;
 
 import com.vaadin.data.provider.DataProvider;
+import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.Reverter;
 
 import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -52,13 +55,14 @@ class AuthorizationContext implements ViewChangeListener, Serializable {
 
         requireNonNull(authorizers);
         final AuthorizationContext authorizationContext = new AuthorizationContext(authorizers);
-        VaadinAbstraction.storeInSession(AuthorizationContext.class, authorizationContext);
+        final VaadinSession vaadinSession = Check.notNull(VaadinSession.getCurrent());
+
+        vaadinSession.setAttribute(AuthorizationContext.class, authorizationContext);
     }
 
     static AuthorizationContext getCurrent() {
-        final Optional<AuthorizationContext> authorizationContext = VaadinAbstraction.getFromSessionStore(AuthorizationContext.class);
-
-        return Check.present(authorizationContext);
+        final VaadinSession vaadinSession = Check.notNull(VaadinSession.getCurrent());
+        return Check.notNull(vaadinSession.getAttribute(AuthorizationContext.class));
     }
 
     Map<Component, Set<Object>> getComponentsToPermissions() {
@@ -70,34 +74,34 @@ class AuthorizationContext implements ViewChangeListener, Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    <T, F> Reverter bindData(Class<T> itemClass, VaadinAbstraction.DataProviderHolder dataProviderHolder) {
+    <T, F> Registration bindData(Class<T> itemClass, Holder<DataProvider<T, ?>> dataProviderHolder) {
         requireNonNull(itemClass);
         requireNonNull(dataProviderHolder);
 
         final Authorizer<T> authorizer = authorizerPool.getAuthorizer(itemClass);
 
-        final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) dataProviderHolder.getDataProvider();
+        final DataProvider<T, F> oldDataProvider = (DataProvider<T, F>) dataProviderHolder.get();
         final DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
 
-        dataProviderHolder.setDataProvider(newDataProvider);
+        dataProviderHolder.set(newDataProvider);
 
         dataProviders.add(new WeakReference<>(newDataProvider));
 
-        return new DataReverter(new WeakReference<>(dataProviderHolder));
+        return new DataRegistration(dataProviderHolder);
     }
 
     @SuppressWarnings("unchecked")
-    <T, U> void unbindData(VaadinAbstraction.DataProviderHolder dataProviderHolder) {
+    <T> void unbindData(Holder<DataProvider<T, ?>> dataProviderHolder) {
         requireNonNull(dataProviderHolder);
 
-        final DataProvider<T, U> dataProvider = dataProviderHolder.getDataProvider();
+        final DataProvider<T, ?> dataProvider = dataProviderHolder.get();
 
         if (dataProvider instanceof AuthorizingDataProvider) {
             AuthorizingDataProvider<T, ?, ?> authorizingDataProvider = (AuthorizingDataProvider<T, ?, ?>) dataProvider;
 
             final DataProvider<T, ?> wrappedDataProvider = authorizingDataProvider.getWrappedDataProvider();
 
-            dataProviderHolder.setDataProvider(wrappedDataProvider);
+            dataProviderHolder.set(wrappedDataProvider);
 
             Check.state(dataProviders.removeIf(r -> r.get() == dataProvider));
         }
@@ -213,13 +217,14 @@ class AuthorizationContext implements ViewChangeListener, Serializable {
             return;
         }
 
-        final Optional<VaadinAbstraction.Navigator> navigatorOptional = VaadinAbstraction.getNavigator();
+        final UI ui = Check.notNull(UI.getCurrent(), "UI.getCurrent() must not return null here");
 
-        Check.state(navigatorOptional.isPresent(), "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called");
+        final Navigator navigator = Check.notNull(
+                ui.getNavigator(),
+                "a navigator needs to be registered on the current UI before Authorization.bindView() or Authorization.bindViews() can be called"
+        );
 
-        @SuppressWarnings("OptionalGetWithoutIsPresent") final VaadinAbstraction.Navigator navigatorFacade = navigatorOptional.get();
-
-        navigatorFacade.addViewChangeListener(this);
+        navigator.addViewChangeListener(this);
 
         registeredAsViewChangeListener = true;
     }
@@ -245,14 +250,14 @@ class AuthorizationContext implements ViewChangeListener, Serializable {
     }
 
     void checkAccessToCurrentView() {
-        final Optional<VaadinAbstraction.Navigator> navigatorOptional = VaadinAbstraction.getNavigator();
+        UI ui = Check.notNull(UI.getCurrent());
 
-        if (!navigatorOptional.isPresent()) {
+        final Navigator navigator = ui.getNavigator();
+
+        if (navigator == null) {
             //no navigator present means that there is no view, so we're good
             return;
         }
-
-        final VaadinAbstraction.Navigator navigator = navigatorOptional.get();
 
         final View currentView = navigator.getCurrentView();
 
@@ -274,13 +279,11 @@ class AuthorizationContext implements ViewChangeListener, Serializable {
     private <T> boolean navigationAllowed(View newView, String parameters) {
         requireNonNull(newView);
 
-        final Set<Object> permissions = viewsToPermissions.get(newView);
+        final Set<Object> permissions = viewsToPermissions.getOrDefault(newView, Collections.EMPTY_SET);
 
-        if (permissions != null) {
-            for (Object permission : permissions) {
-                if (!isGranted(permission)) {
-                    return false;
-                }
+        for (Object permission : permissions) {
+            if (!isGranted(permission)) {
+                return false;
             }
         }
 
@@ -308,5 +311,22 @@ class AuthorizationContext implements ViewChangeListener, Serializable {
         }
 
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    <T, F> Registration bindDataStronglyTyped(Class<T> itemClass, Holder<DataProvider<T, F>> dataProviderHolder) {
+        requireNonNull(itemClass);
+        requireNonNull(dataProviderHolder);
+
+        final Authorizer<T> authorizer = authorizerPool.getAuthorizer(itemClass);
+
+        final DataProvider<T, F> oldDataProvider = dataProviderHolder.get();
+        final DataProvider<T, F> newDataProvider = new AuthorizingDataProvider<>(oldDataProvider, authorizer);
+
+        dataProviderHolder.set(newDataProvider);
+
+        dataProviders.add(new WeakReference<>(newDataProvider));
+
+        return new DataRegistration(dataProviderHolder);
     }
 }

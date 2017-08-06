@@ -4,7 +4,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.DataAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -21,7 +20,7 @@ import static org.mockito.Mockito.when;
 public class TypedAuthorizationViewTest {
 
     @Before
-    public void setup() throws NoSuchFieldException, IllegalAccessException {
+    public void setup() throws ServiceException {
         TestUtil.beforeTest();
     }
 
@@ -43,7 +42,7 @@ public class TypedAuthorizationViewTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         TypedAuthorizationView<Foo> typedAuthorizationView = Mockito.spy(new FooTypedAuthorizationView(true));
 
@@ -79,7 +78,7 @@ public class TypedAuthorizationViewTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         TypedAuthorizationView<Foo> typedAuthorizationView = Mockito.spy(new FooTypedAuthorizationView(true));
 
@@ -111,7 +110,7 @@ public class TypedAuthorizationViewTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         TypedAuthorizationView<Foo> typedAuthorizationView = Mockito.spy(new FooTypedAuthorizationView(false));
 
@@ -143,7 +142,7 @@ public class TypedAuthorizationViewTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         TypedAuthorizationView<Foo> typedAuthorizationView = new FooTypedAuthorizationView(false) {
             @Override

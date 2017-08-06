@@ -1,10 +1,11 @@
 package org.ilay;
 
+import com.vaadin.server.VaadinSession;
+
 import org.ilay.api.Restrict;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -33,48 +34,44 @@ final class Check {
     }
 
     static void setCurrentRestrict(Restrict restrict) {
-        final Optional<CurrentRestrict> currentRestrictOptional = VaadinAbstraction.getFromSessionStore(CurrentRestrict.class);
+        final VaadinSession vaadinSession = notNull(VaadinSession.getCurrent());
 
-        if (currentRestrictOptional.isPresent()) {
-            final CurrentRestrict currentRestrict = currentRestrictOptional.get();
+        CurrentRestrict currentRestrict = vaadinSession.getAttribute(CurrentRestrict.class);
 
-            currentRestrict.setRestrict(restrict);
-        } else {
-            CurrentRestrict currentRestrict = new CurrentRestrict();
-            currentRestrict.setRestrict(restrict);
-            VaadinAbstraction.storeInSession(CurrentRestrict.class, currentRestrict);
+        if (currentRestrict == null) {
+            currentRestrict = new CurrentRestrict();
+            vaadinSession.setAttribute(CurrentRestrict.class, currentRestrict);
         }
+
+        currentRestrict.setRestrict(restrict);
     }
 
     static void currentRestrictIs(Restrict restrict) {
         requireNonNull(restrict);
 
-        final Optional<CurrentRestrict> currentRestrictOptional = VaadinAbstraction.getFromSessionStore(CurrentRestrict.class);
+        final VaadinSession vaadinSession = notNull(VaadinSession.getCurrent());
 
-        state(currentRestrictOptional.isPresent());
+        final CurrentRestrict currentRestrict = vaadinSession.getAttribute(CurrentRestrict.class);
 
-        final CurrentRestrict currentRestrict = currentRestrictOptional.get();
-
-        state(currentRestrict.getRestrict() == restrict);
+        state(currentRestrict != null && currentRestrict.getRestrict() == restrict);
     }
 
     static void noUnclosedRestrict() {
-        final Optional<CurrentRestrict> currentRestrictOptional = VaadinAbstraction.getFromSessionStore(CurrentRestrict.class);
+        final VaadinSession vaadinSession = notNull(VaadinSession.getCurrent());
 
-        if (!currentRestrictOptional.isPresent()) {
+        final CurrentRestrict currentRestrict = vaadinSession.getAttribute(CurrentRestrict.class);
+
+        if (currentRestrict == null) {
             return;
         }
-
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        CurrentRestrict currentRestrict = currentRestrictOptional.get();
 
         if (currentRestrict.getRestrict() != null) {
 
             final Restrict restrict = currentRestrict.getRestrict();
 
-            if (restrict instanceof ComponentRestrict) {
+            if (restrict instanceof ComponentRestrictRegistration) {
                 throw new IllegalStateException("Authorization.bindComponent() or Authorization.bindComponents() has been called without calling to() on the returned Restrict-object");
-            } else if (restrict instanceof ViewRestrict) {
+            } else if (restrict instanceof ViewRestrictRegistration) {
                 throw new IllegalStateException("Authorization.bindView() or Authorization.bindViews() has been called without calling to() on the returned Restrict-object");
             } else {
                 //will never come here
@@ -88,8 +85,7 @@ final class Check {
         arg(array.length > 0, "array must not be empty");
 
         for (int i = 0; i < array.length; i++) {
-            T x = array[i];
-            requireNonNull(x, "elements in array must not be null");
+            T x = requireNonNull(array[i], "elements in array must not be null");
 
             /*
                only the tuples marked with x need to be
@@ -102,9 +98,9 @@ final class Check {
                 4 x x x -
             */
             for (int j = i + 1; j < array.length; j++) {
-                T y = array[j];
+                T y = requireNonNull(array[j], "elements in array must not be null");
 
-                arg(!x.equals(y), "duplicate entries found in array");
+                arg(!x.equals(y), "duplicate entries not allowed in array");
             }
         }
     }
@@ -121,15 +117,6 @@ final class Check {
         }
     }
 
-    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
-    static <T> T present(Optional<T> optional) {
-        requireNonNull(optional);
-
-        state(optional.isPresent());
-
-        return optional.get();
-    }
-
     static void state(boolean condition) {
         if (!condition) {
             throw new IllegalStateException();
@@ -140,6 +127,22 @@ final class Check {
         if (!condition) {
             throw new IllegalStateException(format(message, parameters));
         }
+    }
+
+    static <T> T notNull(T value) {
+        if (value == null) {
+            throw new NullPointerException();
+        }
+
+        return value;
+    }
+
+    static <T> T notNull(T value, String message) {
+        if (value == null) {
+            throw new NullPointerException(message);
+        }
+
+        return value;
     }
 
     private static class CurrentRestrict {

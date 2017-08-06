@@ -57,14 +57,17 @@ public class ViewChangeListenerTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
     }
 
     @Test
     public void test_no_permission_should_work() throws ServiceException {
         user.setClearance(Clearance.NON);
 
-        View myView = e -> {
+        View myView = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+            }
         };
 
         final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
@@ -78,7 +81,11 @@ public class ViewChangeListenerTest {
 
     @Test
     public void test_single_permission_should_work() throws ServiceException {
-        View myView = e -> {
+        View myView = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+            }
         };
 
         user.getRoles().clear();
@@ -103,7 +110,10 @@ public class ViewChangeListenerTest {
     public void test_multiple_permissions_should_work() throws ServiceException {
         user.setClearance(Clearance.NON);
 
-        View myView = e -> {
+        View myView = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+            }
         };
 
         user.getRoles().add("user");

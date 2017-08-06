@@ -1,23 +1,23 @@
 package org.ilay;
 
+import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Grid;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.DataAuthorizer;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class ApiTest {
     @Before
-    public void setup() throws NoSuchFieldException, IllegalAccessException {
+    public void setup() throws ServiceException {
         TestUtil.beforeTest();
     }
 
@@ -57,15 +57,27 @@ public class ApiTest {
         }
 
         try {
-            Authorization.restrictView(e -> {
+            Authorization.restrictView(new View() {
+                @Override
+                public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+                }
             }).to("");
             fail();
         } catch (IllegalStateException e) {
         }
 
         try {
-            Authorization.restrictViews(e -> {
-            }, e -> {
+            Authorization.restrictViews(new View() {
+                @Override
+                public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+                }
+            }, new View() {
+                @Override
+                public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+                }
             }).to("");
             fail();
         } catch (IllegalStateException e) {
@@ -84,56 +96,6 @@ public class ApiTest {
         }
     }
 
-    @Test
-    public void test_start_1() throws ServiceException {
-        Set<Authorizer> authorizers = new HashSet<>();
-
-        authorizers.add(new Authorizer<Foo>() {
-            @Override
-            public boolean isGranted(Foo permission) {
-                return true;
-            }
-
-            @Override
-            public Class<Foo> getPermissionClass() {
-                return Foo.class;
-            }
-        });
-
-        Authorization.start(authorizers);
-
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
-
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-
-        assertNotNull(authorizationContext);
-    }
-
-    @Test
-    public void test_start_2() throws ServiceException {
-        Set<Authorizer> authorizers = new HashSet<>();
-
-        authorizers.add(new Authorizer<Foo>() {
-            @Override
-            public boolean isGranted(Foo permission) {
-                return true;
-            }
-
-            @Override
-            public Class<Foo> getPermissionClass() {
-                return Foo.class;
-            }
-        });
-
-        Authorization.start(() -> authorizers);
-
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
-
-        final AuthorizationContext authorizationContext = AuthorizationContext.getCurrent();
-
-        assertNotNull(authorizationContext);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void test_start_negative() {
         Authorization.start(new HashSet<>());
@@ -147,6 +109,6 @@ public class ApiTest {
     @Test(expected = IllegalArgumentException.class)
     public void test_start_supplier_negative() throws ServiceException {
         Authorization.start(HashSet::new);
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
     }
 }

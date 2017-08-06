@@ -4,12 +4,12 @@ import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.server.ServiceException;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Grid;
 
 import org.ilay.api.Authorizer;
 import org.ilay.api.DataAuthorizer;
-import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -99,7 +99,7 @@ public class DataTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         userIdAuthorizerWorksCorrect = true;
     }
@@ -112,7 +112,7 @@ public class DataTest {
 
         fooGrid.setItems(foo1, foo2, foo3);
 
-        final Reverter reverter = Authorization.restrictData(Foo.class, fooGrid);
+        final Registration registration = Authorization.restrictData(Foo.class, fooGrid);
 
         DataProvider<Foo, ?> dataProvider = fooGrid.getDataProvider();
 
@@ -125,7 +125,7 @@ public class DataTest {
         assertThat(items, hasItem(foo2));
         assertThat(items, not(hasItem(foo3)));
 
-        reverter.revert();
+        registration.remove();
 
         dataProvider = fooGrid.getDataProvider();
 

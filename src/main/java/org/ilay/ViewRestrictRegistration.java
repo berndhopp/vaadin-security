@@ -10,18 +10,18 @@ import java.util.Set;
  * @see Authorization#restrictView(View)
  * @see Authorization#restrictViews(View...)
  */
-class ViewRestrict extends RestrictImpl<View> {
+class ViewRestrictRegistration extends RestrictRegistrationImpl<View> {
 
-    ViewRestrict(View[] views) {
+    ViewRestrictRegistration(View[] views) {
         super(views);
     }
 
-    ViewRestrict(View view) {
+    ViewRestrictRegistration(View view) {
         super(view);
     }
 
     @Override
-    protected ObjectBasedPermissionAssignmentReverter<View> createReverter() {
+    protected ObjectBasedPermissionAssignmentRegistration<View> createRegistration() {
         return new ViewObjectBasedPermissionAssignmentRegistration(this);
     }
 

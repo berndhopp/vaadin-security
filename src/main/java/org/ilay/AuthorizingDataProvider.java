@@ -3,8 +3,8 @@ package org.ilay;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.DataProviderWrapper;
 import com.vaadin.data.provider.Query;
-
 import com.vaadin.server.SerializablePredicate;
+
 import org.ilay.api.Authorizer;
 import org.ilay.api.DataAuthorizer;
 
@@ -20,6 +20,7 @@ import static java.util.Objects.requireNonNull;
  */
 class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> implements Predicate<T> {
 
+    private static final long serialVersionUID = 4099563490669725218L;
     private final DataAuthorizer<T, M> authorizer;
     private final boolean integrityCheck;
 
@@ -27,8 +28,8 @@ class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> impl
         super(requireNonNull(dataProvider));
         requireNonNull(authorizer);
 
-        if(authorizer instanceof DataAuthorizer){
-            this.authorizer = (DataAuthorizer<T, M>)authorizer;
+        if (authorizer instanceof DataAuthorizer) {
+            this.authorizer = (DataAuthorizer<T, M>) authorizer;
             integrityCheck = true;
         } else {
             this.authorizer = new DataAuthorizer<T, M>() {
@@ -54,12 +55,13 @@ class AuthorizingDataProvider<T, F, M> extends DataProviderWrapper<T, F, M> impl
 
     @Override
     public Stream<T> fetch(Query<T, F> t) {
+        Stream<T> stream = super.fetch(t);
 
         if (integrityCheck) {
-            return super.fetch(t).filter(this);
-        } else {
-            return super.fetch(t);
+            stream = stream.filter(this);
         }
+
+        return stream;
     }
 
     @Override

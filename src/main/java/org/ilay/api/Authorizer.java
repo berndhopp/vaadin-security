@@ -7,8 +7,8 @@ package org.ilay.api;
  * that every {@link Authorizer} is responsible for evaluating the permissions that are assignable
  * to the type T.
  *
- * when {@link com.vaadin.data.provider.DataProvider}s other than
- * {@link com.vaadin.data.provider.ListDataProvider} are involved, i.e. in all cases where filtering is
+ * when {@link com.vaadin.data.provider.DataProvider}s other than {@link
+ * com.vaadin.data.provider.ListDataProvider} are involved, i.e. in all cases where filtering is
  * done on a a backend-level like an external database, a {@link DataAuthorizer} is needed.
  *
  * @author Bernd Hopp bernd@vaadin.com

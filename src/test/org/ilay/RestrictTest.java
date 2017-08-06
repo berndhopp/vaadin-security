@@ -1,12 +1,13 @@
 package org.ilay;
 
 import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ServiceException;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +26,7 @@ import static org.junit.Assert.assertThat;
 public class RestrictTest {
 
     @Before
-    public void setup() throws NoSuchFieldException, IllegalAccessException {
+    public void setup() throws ServiceException {
         TestUtil.beforeTest();
     }
 
@@ -36,6 +37,8 @@ public class RestrictTest {
         authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
         Authorization.start(authorizers);
+
+        TestUtil.newSession();
 
         Button button = new Button();
         Button button2 = new Button();
@@ -52,6 +55,8 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
+        TestUtil.newSession();
+
         Button button = new Button();
         Button button2 = new Button();
 
@@ -67,15 +72,15 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Button button = new Button();
         Button button2 = new Button();
 
-        final Reverter reverter = restrictComponents(button, button2).to("whatever");
+        final Registration registration = restrictComponents(button, button2).to("whatever");
 
-        reverter.revert();
-        reverter.revert();
+        registration.remove();
+        registration.remove();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -86,11 +91,19 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
-        View view = e -> {
+        View view = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+            }
         };
-        View view2 = e -> {
+        View view2 = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+            }
         };
 
         Authorization.restrictView(view);
@@ -105,11 +118,20 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
-        View view = e -> {
+        View view = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+            }
         };
-        View view2 = e -> {
+
+        View view2 = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+
+            }
         };
 
         Authorization.restrictViews(view, view2);
@@ -135,6 +157,8 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
+        TestUtil.newSession();
+
         restrictComponents(new Button()).to();
     }
 
@@ -146,7 +170,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Authorization.restrictViews();
     }
@@ -159,9 +183,12 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
-        Authorization.restrictViews(e -> {
+        Authorization.restrictViews(new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+            }
         }).to();
     }
 
@@ -175,7 +202,7 @@ public class RestrictTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Component component = new Button();
         Component component2 = new Button();
@@ -203,7 +230,7 @@ public class RestrictTest {
         assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to component 1 and check that it is there
-        final Reverter reverter = restrictComponent(component).to(42);
+        final Registration registration = restrictComponent(component).to(42);
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -213,7 +240,7 @@ public class RestrictTest {
 
         //remove one permissions from component1 and check it is gone
 
-        reverter.revert();
+        registration.remove();
 
         permissions1 = componentsToPermissions.get(component);
 
@@ -229,16 +256,21 @@ public class RestrictTest {
         authorizers.add(Authorizers.STRING_AUTHORIZER);
         authorizers.add(Authorizers.INTEGER_AUTHORIZER);
 
-        View view = viewChangeEvent -> {
+        View view = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+            }
         };
 
-        View view2 = viewChangeEvent -> {
+        View view2 = new View() {
+            @Override
+            public void enter(ViewChangeListener.ViewChangeEvent event) {
+            }
         };
 
         Authorization.start(authorizers);
 
-
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Authorization.restrictViews(view, view2).to("hello", "world", 23);
         Authorization.restrictView(view).to("foo");
@@ -263,7 +295,7 @@ public class RestrictTest {
         assertThat(permissions2, containsInAnyOrder("hello", "world", 23, "bar"));
 
         //add one permission to view 1 and check that it is there
-        final Reverter reverter = Authorization.restrictView(view).to(42);
+        final Registration registration = Authorization.restrictView(view).to(42);
 
         permissions1 = viewsToPermissions.get(view);
 
@@ -273,7 +305,7 @@ public class RestrictTest {
 
         //remove some permissions from view1 and check they are gone
 
-        reverter.revert();
+        registration.remove();
 
         permissions1 = viewsToPermissions.get(view);
 

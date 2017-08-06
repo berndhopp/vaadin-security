@@ -8,9 +8,11 @@ import java.util.Set;
 /**
  * @author Bernd Hopp bernd@vaadin.com
  */
-class ComponentObjectBasedPermissionAssignmentReverter extends ObjectBasedPermissionAssignmentReverter<Component> {
+class ComponentObjectBasedPermissionAssignmentRegistration extends ObjectBasedPermissionAssignmentRegistration<Component> {
 
-    ComponentObjectBasedPermissionAssignmentReverter(Map<Component, Set<Object>> permissions) {
+    private static final long serialVersionUID = -4995837405707636000L;
+
+    ComponentObjectBasedPermissionAssignmentRegistration(Map<Component, Set<Object>> permissions) {
         super(permissions);
     }
 

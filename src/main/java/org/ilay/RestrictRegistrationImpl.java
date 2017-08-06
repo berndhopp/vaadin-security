@@ -1,7 +1,8 @@
 package org.ilay;
 
+import com.vaadin.shared.Registration;
+
 import org.ilay.api.Restrict;
-import org.ilay.api.Reverter;
 
 import java.util.List;
 import java.util.Map;
@@ -15,11 +16,11 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Bernd Hopp bernd@vaadin.com
  */
-abstract class RestrictImpl<T> implements Restrict {
+abstract class RestrictRegistrationImpl<T> implements Restrict {
 
     final Map<T, Set<Object>> restrictionMap;
 
-    RestrictImpl(T[] tArray) {
+    RestrictRegistrationImpl(T[] tArray) {
         Check.arraySanity(tArray);
         Check.noUnclosedRestrict();
 
@@ -32,7 +33,7 @@ abstract class RestrictImpl<T> implements Restrict {
         Check.setCurrentRestrict(this);
     }
 
-    RestrictImpl(T t) {
+    RestrictRegistrationImpl(T t) {
         requireNonNull(t);
         Check.noUnclosedRestrict();
 
@@ -44,7 +45,7 @@ abstract class RestrictImpl<T> implements Restrict {
     }
 
     @Override
-    public Reverter to(Object permission) {
+    public Registration to(Object permission) {
         requireNonNull(permission);
         Check.currentRestrictIs(this);
 
@@ -57,11 +58,11 @@ abstract class RestrictImpl<T> implements Restrict {
 
         Check.setCurrentRestrict(null);
 
-        return createReverter();
+        return createRegistration();
     }
 
     @Override
-    public Reverter to(Object... permissions) {
+    public Registration to(Object... permissions) {
         Check.arraySanity(permissions);
         Check.currentRestrictIs(this);
 
@@ -73,10 +74,10 @@ abstract class RestrictImpl<T> implements Restrict {
 
         bindInternal();
         Check.setCurrentRestrict(null);
-        return createReverter();
+        return createRegistration();
     }
 
-    protected abstract Reverter createReverter();
+    protected abstract Registration createRegistration();
 
     protected abstract void bindInternal();
 }

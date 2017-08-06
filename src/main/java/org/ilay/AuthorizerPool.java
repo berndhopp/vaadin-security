@@ -78,6 +78,8 @@ class AuthorizerPool {
      * @author Bernd Hopp bernd@vaadin.com
      */
     static class ConflictingAuthorizersException extends RuntimeException {
+        private static final long serialVersionUID = 411061002082522183L;
+
         ConflictingAuthorizersException(Authorizer authorizer1, Authorizer authorizer2, Class permissionClass) {
             super(
                     format(

@@ -1,11 +1,10 @@
 package org.ilay;
 
 import com.vaadin.server.ServiceException;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.Button;
 
 import org.ilay.api.Authorizer;
-import org.ilay.api.Authorizer;
-import org.ilay.api.Reverter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 public class ComponentsTest {
 
     @Before
-    public void setup() throws NoSuchFieldException, IllegalAccessException {
+    public void setup() throws ServiceException {
         TestUtil.beforeTest();
     }
 
@@ -59,7 +58,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();
@@ -67,7 +66,7 @@ public class ComponentsTest {
 
         Authorization.restrictComponent(button1).to("user", Clearance.NON);
         Authorization.restrictComponent(button2).to("user", Clearance.SECRET);
-        final Reverter reverter = Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
+        final Registration registration = Authorization.restrictComponent(button3).to("admin", Clearance.TOP_SECRET);
 
         assertTrue(button1.isVisible());
         assertFalse(button2.isVisible());
@@ -107,7 +106,7 @@ public class ComponentsTest {
         assertTrue(button2.isVisible());
         assertFalse(button3.isVisible());
 
-        reverter.revert();
+        registration.remove();
 
         Authorization.reapplyRestrictions();
 
@@ -153,7 +152,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();
@@ -239,7 +238,7 @@ public class ComponentsTest {
 
         Authorization.start(authorizers);
 
-        ((TestUtil.TestSessionInitNotifierSupplier) VaadinAbstraction.getSessionInitNotifier()).newSession();
+        TestUtil.newSession();
 
         Button button1 = new Button();
         Button button2 = new Button();
