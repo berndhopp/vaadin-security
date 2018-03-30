@@ -36,6 +36,9 @@
             <resource>
                 <directory>src/main/java</directory>
             </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
         </resources>
         <sourceDirectory>src/main/java</sourceDirectory>
         <plugins>
@@ -73,11 +76,13 @@
                             <Vaadin-License-Title>${Vaadin-License-Title}</Vaadin-License-Title>
                         </manifestEntries>
                     </archive>
-                    <!-- exclude other META-INF data under build directory -->
+                    <!-- exclude other META-INF data under build directory
                     <includes>
                         <include>META-INF/maven/${project.groupId}/${project.artifactId}/**</include>
                         <include>org/**</include>
+                        <include>META-INF/services/com.vaadin.flow.server.VaadinServiceInitListener</include>
                     </includes>
+                    -->
                 </configuration>
             </plugin>
             <plugin>

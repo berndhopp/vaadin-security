@@ -2,7 +2,7 @@ package org.ilay;
 
 import com.vaadin.flow.di.Instantiator;
 import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.UIInitEvent;
 import com.vaadin.flow.server.UIInitListener;
@@ -11,7 +11,7 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
 
 import static java.util.Objects.requireNonNull;
 
-class Ilay implements VaadinServiceInitListener, UIInitListener, BeforeEnterObserver {
+class Ilay implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
 
     private static final long serialVersionUID = 8512687361151475367L;
 
@@ -22,7 +22,7 @@ class Ilay implements VaadinServiceInitListener, UIInitListener, BeforeEnterObse
 
     @Override
     public void uiInit(UIInitEvent event) {
-        event.getUi().addBeforeEnterObserver(this);
+        event.getUI().addBeforeEnterListener(this);
     }
 
     @Override
@@ -30,7 +30,6 @@ class Ilay implements VaadinServiceInitListener, UIInitListener, BeforeEnterObse
         final Class<?> navigationTarget = event.getNavigationTarget();
 
         if (navigationTarget.isAnnotationPresent(Restricted.class)) {
-
             final Restricted restricted = navigationTarget.getAnnotation(Restricted.class);
 
             final VaadinService vaadinService = requireNonNull(VaadinService.getCurrent());

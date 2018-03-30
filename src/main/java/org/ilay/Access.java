@@ -17,7 +17,10 @@ public abstract class Access implements Serializable {
     }
 
     public static Access restricted(String rerouteTarget) {
-        Objects.requireNonNull(rerouteTarget, "rerouteTarget cannot be null");
+        Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
+        if (rerouteTarget.isEmpty())
+            throw new IllegalArgumentException("rerouteTarget must not be empty");
+
         return new AccessRestricted(rerouteTarget);
     }
 
