@@ -6,8 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@RestrictionAnnotation(DelegatingEvaluator.class)
-public @interface Restricted {
+@Target(ElementType.ANNOTATION_TYPE)
+public @interface RestrictionAnnotation {
     Class<? extends AccessEvaluator> value();
 }
