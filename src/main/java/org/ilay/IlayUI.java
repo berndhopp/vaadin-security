@@ -29,7 +29,7 @@ public class IlayUI extends UI {
                         () -> restricted.value() + "#checkAccess(BeforeEnterEvent) must not return null"
                 );
 
-                access.ifRestricted(event::rerouteTo);
+                access.exec(event);
             }
         });
     }
