@@ -1,6 +1,5 @@
 package org.ilay;
 
-import com.vaadin.flow.di.Instantiator;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.server.ServiceInitEvent;
@@ -70,15 +69,16 @@ public class IlayEngine implements VaadinServiceInitListener, UIInitListener, Be
         optionalAnnotation.ifPresent(annotation -> {
             RestrictionAnnotation restrictionAnnotation = annotation.annotationType().getAnnotation(RestrictionAnnotation.class);
 
-            final VaadinService vaadinService = requireNonNull(VaadinService.getCurrent());
+            final Class<? extends AccessEvaluator> accessEvaluatorType = restrictionAnnotation.value();
 
-            final Instantiator instantiator = requireNonNull(vaadinService.getInstantiator());
-
-            final AccessEvaluator accessEvaluator = requireNonNull(instantiator.getOrCreate(restrictionAnnotation.value()));
+            final AccessEvaluator accessEvaluator = VaadinService
+                    .getCurrent()
+                    .getInstantiator()
+                    .getOrCreate(accessEvaluatorType);
 
             final Access access = requireNonNull(
                     accessEvaluator.evaluate(event.getLocation(), navigationTarget, annotation),
-                    () -> restrictionAnnotation.value() + "#checkAccess(BeforeEnterEvent) must not return null"
+                    () -> accessEvaluatorType + "#checkAccess(BeforeEnterEvent) must not return null"
             );
 
             access.exec(event);
