@@ -2,6 +2,7 @@ package org.ilay;
 
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterListener;
+import com.vaadin.flow.router.ListenerPriority;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.UIInitEvent;
 import com.vaadin.flow.server.UIInitListener;
@@ -19,28 +20,31 @@ import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-@SuppressWarnings("unused")
 /**
  * internally used class, do not touch
- * */
+ */
+@SuppressWarnings("unused")
+@ListenerPriority(Integer.MAX_VALUE - 1)
 public class IlayEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
 
     private static final long serialVersionUID = 974589421761348380L;
-
     private final Map<Class<?>, Optional<Annotation>> cache = new ConcurrentHashMap<>();
 
     @Override
     public void serviceInit(ServiceInitEvent event) {
-        event.getSource().addUIInitListener(this);
+        event
+                .getSource()
+                .addUIInitListener(this);
     }
 
     @Override
-    public void uiInit(UIInitEvent uiInitEvent) {
-        uiInitEvent.getUI().addBeforeEnterListener(this);
+    public void uiInit(UIInitEvent event) {
+        event
+                .getUI()
+                .addBeforeEnterListener(this);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void beforeEnter(BeforeEnterEvent event) {
         final Class<?> navigationTarget = event.getNavigationTarget();
 
@@ -67,21 +71,22 @@ public class IlayEngine implements VaadinServiceInitListener, UIInitListener, Be
         );
 
         optionalAnnotation.ifPresent(annotation -> {
-            RestrictionAnnotation restrictionAnnotation = annotation.annotationType().getAnnotation(RestrictionAnnotation.class);
+                    RestrictionAnnotation restrictionAnnotation = annotation.annotationType().getAnnotation(RestrictionAnnotation.class);
 
-            final Class<? extends AccessEvaluator> accessEvaluatorType = restrictionAnnotation.value();
+                    final Class<? extends AccessEvaluator> accessEvaluatorType = restrictionAnnotation.value();
 
-            final AccessEvaluator accessEvaluator = VaadinService
-                    .getCurrent()
-                    .getInstantiator()
-                    .getOrCreate(accessEvaluatorType);
+                    final AccessEvaluator accessEvaluator = VaadinService
+                            .getCurrent()
+                            .getInstantiator()
+                            .getOrCreate(accessEvaluatorType);
 
-            final Access access = requireNonNull(
-                    accessEvaluator.evaluate(event.getLocation(), navigationTarget, annotation),
-                    () -> accessEvaluatorType + "#checkAccess(BeforeEnterEvent) must not return null"
-            );
+                    final Access access = requireNonNull(
+                            accessEvaluator.evaluate(event.getLocation(), navigationTarget, annotation),
+                            () -> accessEvaluatorType + "#checkAccess(BeforeEnterEvent) must not return null"
+                    );
 
-            access.exec(event);
-        });
+                    access.exec(event);
+                }
+        );
     }
 }
