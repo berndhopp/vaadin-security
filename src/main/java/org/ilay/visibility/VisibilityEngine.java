@@ -1,8 +1,9 @@
 package org.ilay.visibility;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterListener;
+import com.vaadin.flow.component.HasElement;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationListener;
 import com.vaadin.flow.router.ListenerPriority;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.UIInitEvent;
@@ -22,11 +23,11 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkState;
 
 @ListenerPriority(Integer.MAX_VALUE - 2)
-public class VisibilityEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
+public class VisibilityEngine implements VaadinServiceInitListener, UIInitListener, AfterNavigationListener {
 
     private static final long serialVersionUID = 7808168756398878583L;
-    private final Map<Class<? extends Component>, Annotation> componentsToAnnotationsCache = new HashMap<>();
-    private final Map<Class<? extends Component>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
+    private final Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
+    private final Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -79,37 +80,24 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
 
     @Override
     public void uiInit(UIInitEvent event) {
-        event.getUI().addBeforeEnterListener(this);
+        event.getUI().addAfterNavigationListener(this);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void beforeEnter(BeforeEnterEvent event) {
+    public void afterNavigation(AfterNavigationEvent event) {
         event
-                .getUI()
-                .getChildren()
-                .flatMap(this::getComponentAnnotationTuple)
-                .forEach(tuple -> {
-                    final Component component = tuple.getComponent();
-                    final Annotation annotation = tuple.getAnnotation();
-
-                    final VisibilityAnnotation visibilityAnnotation = annotation
-                            .annotationType()
-                            .getAnnotation(VisibilityAnnotation.class);
-
-                    final VisibilityEvaluator visibilityEvaluator = VaadinService
-                            .getCurrent()
-                            .getInstantiator()
-                            .getOrCreate(visibilityAnnotation.value());
-
-                    final boolean visibility = visibilityEvaluator.evaluateVisibility(component, annotation);
-
-                    component.setVisible(visibility);
-                });
+                .getActiveChain()
+                .stream()
+                .map(hasElement -> (Component) hasElement)
+                .flatMap(Component::getChildren)
+                .flatMap(this::getComponentAnnotationTuples)
+                .forEach(this::checkVisibility);
     }
 
     @SuppressWarnings("unchecked")
-    private Stream<ComponentAnnotationTuple> getComponentAnnotationTuple(Component component) {
+    private Stream<ComponentAnnotationTuple> getComponentAnnotationTuples(HasElement hasElement) {
+        Component component = (Component) hasElement;
+
         final Class<? extends Component> componentClass = component.getClass();
 
         final Annotation annotationOnComponent = componentsToAnnotationsCache.get(componentClass);
@@ -149,6 +137,25 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         return Stream.concat(streamOfParentComponent, streamOfComponentFields);
     }
 
+    @SuppressWarnings("unchecked")
+    private void checkVisibility(ComponentAnnotationTuple tuple) {
+        final Component component = tuple.getComponent();
+        final Annotation annotation = tuple.getAnnotation();
+
+        final VisibilityAnnotation visibilityAnnotation = annotation
+                .annotationType()
+                .getAnnotation(VisibilityAnnotation.class);
+
+        final VisibilityEvaluator visibilityEvaluator = VaadinService
+                .getCurrent()
+                .getInstantiator()
+                .getOrCreate(visibilityAnnotation.value());
+
+        final boolean visibility = visibilityEvaluator.evaluateVisibility(component, annotation);
+
+        component.setVisible(visibility);
+    }
+
     private static final class ComponentAnnotationTuple {
         private final Component component;
         private final Annotation annotation;
@@ -158,11 +165,11 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
             this.annotation = annotation;
         }
 
-        public Component getComponent() {
+        Component getComponent() {
             return component;
         }
 
-        public Annotation getAnnotation() {
+        Annotation getAnnotation() {
             return annotation;
         }
     }
