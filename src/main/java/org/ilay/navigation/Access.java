@@ -1,4 +1,4 @@
-package org.ilay;
+package org.ilay.navigation;
 
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.Location;
@@ -76,6 +76,7 @@ public abstract class Access implements Serializable {
 
     /**
      * A restricted access that will call {@link BeforeEnterEvent#rerouteTo(String)}
+     *
      * @param rerouteTarget see {@link BeforeEnterEvent#rerouteTo(String)}
      * @return the restricted Access
      */

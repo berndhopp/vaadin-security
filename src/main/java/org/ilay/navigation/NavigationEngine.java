@@ -1,4 +1,4 @@
-package org.ilay;
+package org.ilay.navigation;
 
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterListener;
@@ -25,7 +25,7 @@ import static java.util.stream.Collectors.toList;
  */
 @SuppressWarnings("unused")
 @ListenerPriority(Integer.MAX_VALUE - 1)
-public class IlayEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
+public class NavigationEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
 
     private static final long serialVersionUID = 974589421761348380L;
     private final Map<Class<?>, Optional<Annotation>> cache = new ConcurrentHashMap<>();
