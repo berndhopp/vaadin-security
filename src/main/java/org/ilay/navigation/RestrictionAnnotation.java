@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  *      public class AdminView extends Div {
  *      }
  * </pre>
- * */
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface RestrictionAnnotation {

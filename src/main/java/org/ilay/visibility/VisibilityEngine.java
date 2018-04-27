@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.function.DeploymentConfiguration;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationListener;
 import com.vaadin.flow.router.ListenerPriority;
@@ -15,12 +16,15 @@ import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -31,14 +35,36 @@ import static java.util.stream.Collectors.toMap;
 public class VisibilityEngine implements VaadinServiceInitListener, UIInitListener {
 
     private static final long serialVersionUID = 7808168756398878583L;
-    private static final Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
-    private static final Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
+    private static final String PACKAGES_TO_SCAN_KEY = "ilay.packages_to_scan_for_visibility_engine";
+    private static Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
+    private static Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(VisibilityEngine.class);
 
     @Override
     @SuppressWarnings("unchecked")
     public void serviceInit(ServiceInitEvent event) {
+        final VaadinService vaadinService = event.getSource();
 
-        Reflections reflections = new Reflections();
+        initCaches(vaadinService);
+
+        vaadinService.addUIInitListener(this);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void initCaches(VaadinService vaadinService) {
+        final DeploymentConfiguration deploymentConfiguration = vaadinService.getDeploymentConfiguration();
+        final Properties initParameters = deploymentConfiguration.getInitParameters();
+
+        final String packagesToScan = initParameters.getProperty(PACKAGES_TO_SCAN_KEY);
+
+        Reflections reflections;
+
+        if (packagesToScan != null && !packagesToScan.isEmpty()) {
+            reflections = new Reflections((Object[]) packagesToScan.split(","));
+        } else {
+            logger.warn("parameter 'ilay.packages_to_scan_for_visibility_engine' is not set, so all classes on the classpath will be scanned for visibility-annotations");
+            reflections = new Reflections();
+        }
 
         final Set<Class<?>> visibilityAnnotations = reflections.getTypesAnnotatedWith(VisibilityAnnotation.class);
 
@@ -62,7 +88,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
             final Set<Field> fieldsWithVisibilityAnnotation = reflections.getFieldsAnnotatedWith((Class<? extends Annotation>) annotationClass);
 
             for (Field field : fieldsWithVisibilityAnnotation) {
-                final Class<?> fieldType = field.getType();
+                final Class<? extends Component> fieldType = (Class<? extends Component>) field.getType();
 
                 checkState(fieldsToAnnotationCache.get(fieldType) == null, field + ": visibility-annotations cannot be used on both class-level and field-level");
 
@@ -81,8 +107,6 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
                 fieldAnnotationMap.put(field, annotation);
             }
         }
-
-        event.getSource().addUIInitListener(this);
     }
 
     @Override
@@ -106,11 +130,11 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
                     .getActiveChain()
                     .stream()
                     .map(hasElement -> (Component) hasElement)
-                    .map(component -> cache.computeIfAbsent(component, this::getTuplesForComponent))
+                    .map(component -> cache.computeIfAbsent(component, this::getComponentsToAnnotationsMap))
                     .forEach(map -> map.forEach(this::checkVisibility));
         }
 
-        private Map<Component, Annotation> getTuplesForComponent(Component component) {
+        private Map<Component, Annotation> getComponentsToAnnotationsMap(Component component) {
             return component
                     .getChildren()
                     .map(this::resolveComponentsToAnnotations)
