@@ -113,7 +113,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         private Map<Component, Annotation> getTuplesForComponent(Component component) {
             return component
                     .getChildren()
-                    .map(this::getComponentAnnotationTuples)
+                    .map(this::resolveComponentsToAnnotations)
                     .map(Map::entrySet)
                     .flatMap(Set::stream)
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -137,7 +137,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         }
 
         @SuppressWarnings("unchecked")
-        private Map<Component, Annotation> getComponentAnnotationTuples(Component component) {
+        private Map<Component, Annotation> resolveComponentsToAnnotations(Component component) {
             final Class<? extends Component> componentClass = component.getClass();
 
             final Annotation annotationOnComponent = componentsToAnnotationsCache.get(componentClass);
@@ -157,13 +157,12 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
             if (annotationOnComponent != null) {
                 if (mapFromFieldAnnotations != null) {
                     mapFromFieldAnnotations.put(component, annotationOnComponent);
-                    return mapFromFieldAnnotations;
                 } else {
                     return Collections.singletonMap(component, annotationOnComponent);
                 }
-            } else {
-                return mapFromFieldAnnotations;
             }
+
+            return mapFromFieldAnnotations;
         }
 
         private Component getComponentField(Field field, Component component) {
