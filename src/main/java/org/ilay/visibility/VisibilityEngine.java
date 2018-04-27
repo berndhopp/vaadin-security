@@ -1,7 +1,10 @@
 package org.ilay.visibility;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationListener;
 import com.vaadin.flow.router.ListenerPriority;
@@ -18,16 +21,17 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.WeakHashMap;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.stream.Collectors.toMap;
 
 @ListenerPriority(Integer.MAX_VALUE - 2)
-public class VisibilityEngine implements VaadinServiceInitListener, UIInitListener, AfterNavigationListener {
+public class VisibilityEngine implements VaadinServiceInitListener, UIInitListener {
 
     private static final long serialVersionUID = 7808168756398878583L;
-    private final Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
-    private final Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
+    private static final Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
+    private static final Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -80,95 +84,104 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
 
     @Override
     public void uiInit(UIInitEvent event) {
-        event.getUI().addAfterNavigationListener(this);
+        final UI ui = event.getUI();
+
+        UiEventsHandler uiEventsHandler = new UiEventsHandler();
+
+        ui.addAfterNavigationListener(uiEventsHandler);
+
+        ui.addListener(AttachEvent.class, e -> uiEventsHandler.clearCache());
+        ui.addListener(DetachEvent.class, e -> uiEventsHandler.removeComponentFromCache(e.getSource()));
     }
 
-    @Override
-    public void afterNavigation(AfterNavigationEvent event) {
-        event
-                .getActiveChain()
-                .stream()
-                .map(hasElement -> (Component) hasElement)
-                .flatMap(Component::getChildren)
-                .flatMap(this::getComponentAnnotationTuples)
-                .forEach(this::checkVisibility);
-    }
+    private static class UiEventsHandler implements AfterNavigationListener {
 
-    @SuppressWarnings("unchecked")
-    private Stream<ComponentAnnotationTuple> getComponentAnnotationTuples(Component component) {
-        final Class<? extends Component> componentClass = component.getClass();
+        private final Map<Component, Map<Component, Annotation>> cache = new WeakHashMap<>();
 
-        final Annotation annotationOnComponent = componentsToAnnotationsCache.get(componentClass);
-        final Map<Field, Annotation> fieldAnnotationMap = fieldsToAnnotationCache.get(componentClass);
-
-        final Stream<ComponentAnnotationTuple> streamOfParentComponent;
-
-        if (annotationOnComponent != null) {
-            streamOfParentComponent = Stream.of(new ComponentAnnotationTuple(component, annotationOnComponent));
-        } else {
-            streamOfParentComponent = Stream.empty();
-        }
-
-        final Stream<ComponentAnnotationTuple> streamOfComponentFields;
-
-        if (fieldAnnotationMap != null) {
-            streamOfComponentFields = fieldAnnotationMap
-                    .entrySet()
+        @Override
+        public void afterNavigation(AfterNavigationEvent event) {
+            event
+                    .getActiveChain()
                     .stream()
-                    .map(entry -> {
-                        final Field field = entry.getKey();
-
-                        Component fieldComponent;
-
-                        try {
-                            fieldComponent = (Component) field.get(component);
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                        return new ComponentAnnotationTuple(fieldComponent, entry.getValue());
-                    });
-        } else {
-            streamOfComponentFields = Stream.empty();
+                    .map(hasElement -> (Component) hasElement)
+                    .map(component -> cache.computeIfAbsent(component, this::getTuplesForComponent))
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .forEach(this::checkVisibility);
         }
 
-        return Stream.concat(streamOfParentComponent, streamOfComponentFields);
+        private Map<Component, Annotation> getTuplesForComponent(Component component) {
+            return component
+                    .getChildren()
+                    .map(this::getComponentAnnotationTuples)
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+        @SuppressWarnings("unchecked")
+        private void checkVisibility(Map.Entry<Component, Annotation> tuple) {
+            final Component component = tuple.getKey();
+            final Annotation annotation = tuple.getValue();
+
+            final VisibilityAnnotation visibilityAnnotation = annotation
+                    .annotationType()
+                    .getAnnotation(VisibilityAnnotation.class);
+
+            final VisibilityEvaluator visibilityEvaluator = VaadinService
+                    .getCurrent()
+                    .getInstantiator()
+                    .getOrCreate(visibilityAnnotation.value());
+
+            final boolean visibility = visibilityEvaluator.evaluateVisibility(component, annotation);
+
+            component.setVisible(visibility);
+        }
+
+        @SuppressWarnings("unchecked")
+        private Map<Component, Annotation> getComponentAnnotationTuples(Component component) {
+            final Class<? extends Component> componentClass = component.getClass();
+
+            final Annotation annotationOnComponent = componentsToAnnotationsCache.get(componentClass);
+            final Map<Field, Annotation> fieldAnnotationMap = fieldsToAnnotationCache.get(componentClass);
+
+            Map<Component, Annotation> map = new HashMap<>();
+
+            if (annotationOnComponent != null) {
+                map.put(component, annotationOnComponent);
+            }
+
+            if (fieldAnnotationMap != null) {
+                map.putAll(
+                        fieldAnnotationMap
+                                .entrySet()
+                                .stream()
+                                .collect(toMap(entry -> getComponentField(entry.getKey(), component), Map.Entry::getValue))
+                );
+            }
+
+            return map;
+        }
+
+        private Component getComponentField(Field field, Component component) {
+            Component fieldComponent;
+
+            try {
+                fieldComponent = (Component) field.get(component);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            return fieldComponent;
+        }
+
+        void clearCache() {
+            cache.clear();
+        }
+
+        void removeComponentFromCache(Component component) {
+            cache.values().forEach(tupleSet -> tupleSet.remove(component));
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    private void checkVisibility(ComponentAnnotationTuple tuple) {
-        final Component component = tuple.getComponent();
-        final Annotation annotation = tuple.getAnnotation();
-
-        final VisibilityAnnotation visibilityAnnotation = annotation
-                .annotationType()
-                .getAnnotation(VisibilityAnnotation.class);
-
-        final VisibilityEvaluator visibilityEvaluator = VaadinService
-                .getCurrent()
-                .getInstantiator()
-                .getOrCreate(visibilityAnnotation.value());
-
-        final boolean visibility = visibilityEvaluator.evaluateVisibility(component, annotation);
-
-        component.setVisible(visibility);
-    }
-
-    private static final class ComponentAnnotationTuple {
-        private final Component component;
-        private final Annotation annotation;
-
-        private ComponentAnnotationTuple(Component component, Annotation annotation) {
-            this.component = component;
-            this.annotation = annotation;
-        }
-
-        Component getComponent() {
-            return component;
-        }
-
-        Annotation getAnnotation() {
-            return annotation;
-        }
-    }
 }
