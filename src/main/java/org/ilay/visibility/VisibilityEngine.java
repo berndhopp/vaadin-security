@@ -1,5 +1,7 @@
 package org.ilay.visibility;
 
+import com.google.common.collect.ImmutableMap;
+
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
@@ -105,9 +107,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
                     .stream()
                     .map(hasElement -> (Component) hasElement)
                     .map(component -> cache.computeIfAbsent(component, this::getTuplesForComponent))
-                    .map(Map::entrySet)
-                    .flatMap(Set::stream)
-                    .forEach(this::checkVisibility);
+                    .forEach(map -> map.forEach(this::checkVisibility));
         }
 
         private Map<Component, Annotation> getTuplesForComponent(Component component) {
@@ -120,9 +120,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         }
 
         @SuppressWarnings("unchecked")
-        private void checkVisibility(Map.Entry<Component, Annotation> tuple) {
-            final Component component = tuple.getKey();
-            final Annotation annotation = tuple.getValue();
+        private void checkVisibility(Component component, Annotation annotation) {
 
             final VisibilityAnnotation visibilityAnnotation = annotation
                     .annotationType()
@@ -145,34 +143,35 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
             final Annotation annotationOnComponent = componentsToAnnotationsCache.get(componentClass);
             final Map<Field, Annotation> fieldAnnotationMap = fieldsToAnnotationCache.get(componentClass);
 
-            Map<Component, Annotation> map = new HashMap<>();
-
-            if (annotationOnComponent != null) {
-                map.put(component, annotationOnComponent);
-            }
+            final Map<Component, Annotation> mapFromFieldAnnotations;
 
             if (fieldAnnotationMap != null) {
-                map.putAll(
-                        fieldAnnotationMap
-                                .entrySet()
-                                .stream()
-                                .collect(toMap(entry -> getComponentField(entry.getKey(), component), Map.Entry::getValue))
-                );
+                mapFromFieldAnnotations = fieldAnnotationMap
+                        .entrySet()
+                        .stream()
+                        .collect(toMap(entry -> getComponentField(entry.getKey(), component), Map.Entry::getValue));
+            } else {
+                mapFromFieldAnnotations = null;
             }
 
-            return map;
+            if (annotationOnComponent != null) {
+                if (mapFromFieldAnnotations != null) {
+                    mapFromFieldAnnotations.put(component, annotationOnComponent);
+                    return mapFromFieldAnnotations;
+                } else {
+                    return ImmutableMap.of(component, annotationOnComponent);
+                }
+            } else {
+                return mapFromFieldAnnotations;
+            }
         }
 
         private Component getComponentField(Field field, Component component) {
-            Component fieldComponent;
-
             try {
-                fieldComponent = (Component) field.get(component);
+                return (Component) field.get(component);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-
-            return fieldComponent;
         }
 
         void clearCache() {
