@@ -95,9 +95,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     }
 
     @SuppressWarnings("unchecked")
-    private Stream<ComponentAnnotationTuple> getComponentAnnotationTuples(HasElement hasElement) {
-        Component component = (Component) hasElement;
-
+    private Stream<ComponentAnnotationTuple> getComponentAnnotationTuples(Component component) {
         final Class<? extends Component> componentClass = component.getClass();
 
         final Annotation annotationOnComponent = componentsToAnnotationsCache.get(componentClass);
