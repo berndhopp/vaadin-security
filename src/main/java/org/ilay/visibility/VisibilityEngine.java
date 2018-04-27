@@ -1,7 +1,5 @@
 package org.ilay.visibility;
 
-import com.google.common.collect.ImmutableMap;
-
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
@@ -20,6 +18,7 @@ import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +76,8 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
 
                 checkState(!fieldAnnotationMap.containsKey(field), field + "multiple visibility-annotations per field not allowed");
 
+                field.setAccessible(true);
+
                 fieldAnnotationMap.put(field, annotation);
             }
         }
@@ -91,7 +92,6 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         UiEventsHandler uiEventsHandler = new UiEventsHandler();
 
         ui.addAfterNavigationListener(uiEventsHandler);
-
         ui.addListener(AttachEvent.class, e -> uiEventsHandler.clearCache());
         ui.addListener(DetachEvent.class, e -> uiEventsHandler.removeComponentFromCache(e.getSource()));
     }
@@ -159,7 +159,7 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
                     mapFromFieldAnnotations.put(component, annotationOnComponent);
                     return mapFromFieldAnnotations;
                 } else {
-                    return ImmutableMap.of(component, annotationOnComponent);
+                    return Collections.singletonMap(component, annotationOnComponent);
                 }
             } else {
                 return mapFromFieldAnnotations;
