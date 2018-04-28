@@ -30,6 +30,9 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
     private static final long serialVersionUID = 974589421761348380L;
     private final Map<Class<?>, Optional<Annotation>> cache = new ConcurrentHashMap<>();
 
+    NavigationEngine() {
+    }
+
     @Override
     public void serviceInit(ServiceInitEvent event) {
         event
