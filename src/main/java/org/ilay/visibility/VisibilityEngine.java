@@ -48,7 +48,6 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     @SuppressWarnings("unused")
     public static void permissionsChanged() {
         checkState(updateMode.equals(UpdateMode.manual), "update-mode must be set to manual to call this method");
-
         deepScan(UI.getCurrent()).forEach(VisibilityEngine::checkVisibility);
     }
 
@@ -108,11 +107,18 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     public void uiInit(UIInitEvent event) {
         final UI ui = event.getUI();
 
-        UiEventsHandler uiEventsHandler = new UiEventsHandler();
+        switch (updateMode) {
+            case manual:
+                ui.addListener(AttachEvent.class, e -> flatScan(e.getSource()).forEach(VisibilityEngine::checkVisibility));
+                break;
+            case on_navigation:
+                UiEventsHandler uiEventsHandler = new UiEventsHandler();
 
-        ui.addAfterNavigationListener(uiEventsHandler);
-        ui.addListener(AttachEvent.class, e -> uiEventsHandler.clearCache());
-        ui.addListener(DetachEvent.class, e -> uiEventsHandler.removeComponentFromCache(e.getSource()));
+                ui.addAfterNavigationListener(uiEventsHandler);
+                ui.addListener(AttachEvent.class, e -> uiEventsHandler.clearCache());
+                ui.addListener(DetachEvent.class, e -> uiEventsHandler.removeComponentFromCache(e.getSource()));
+                break;
+        }
     }
 
     private static Component getComponentField(Field field, Component component) {
