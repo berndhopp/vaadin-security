@@ -16,16 +16,15 @@ import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 
 import org.reflections.Reflections;
+import org.reflections.scanners.FieldAnnotationsScanner;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -41,9 +40,6 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     private static Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(VisibilityEngine.class);
     private static UpdateMode updateMode;
-
-    VisibilityEngine() {
-    }
 
     @SuppressWarnings("unused")
     public static void permissionsChanged() {
@@ -72,10 +68,10 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     }
 
     private static Stream<ComponentAnnotationTuple> deepScan(Component component) {
-        return component
-                .getChildren()
+        return Stream.concat(Stream.of(component), component.getChildren())
                 .map(VisibilityEngine::flatScan)
-                .flatMap(s -> s);
+                .flatMap(s -> s)
+                .distinct();
     }
 
     @SuppressWarnings("unchecked")
@@ -153,10 +149,12 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         Reflections reflections;
 
         if (packagesToScan != null && !packagesToScan.isEmpty()) {
-            reflections = new Reflections((Object[]) packagesToScan.split(","));
+
+            List<Object> params = new ArrayList(Arrays.asList(packagesToScan.split(","), new FieldAnnotationsScanner(), new TypeAnnotationsScanner(), new SubTypesScanner()));
+            reflections = new Reflections(params.toArray());
         } else {
             logger.warn("parameter '" + PACKAGES_TO_SCAN_KEY + "' is not set, so all classes on the classpath will be scanned for visibility-annotations");
-            reflections = new Reflections();
+            reflections = new Reflections(new FieldAnnotationsScanner(), new TypeAnnotationsScanner(), new SubTypesScanner());
         }
 
         final Set<Class<?>> visibilityAnnotations = reflections.getTypesAnnotatedWith(VisibilityAnnotation.class);
