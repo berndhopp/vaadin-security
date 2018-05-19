@@ -1,8 +1,8 @@
 package org.ilay.visibility;
 
-import com.vaadin.flow.component.AttachEvent;
+import com.google.common.base.Strings;
+
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.function.DeploymentConfiguration;
@@ -24,7 +24,14 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -39,11 +46,12 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     private static Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
     private static Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(VisibilityEngine.class);
-    private static UpdateMode updateMode;
+    private static UpdateMode updateMode = UpdateMode.diabled;
 
     @SuppressWarnings("unused")
     public static void permissionsChanged() {
         checkState(updateMode.equals(UpdateMode.manual), "update-mode must be set to manual to call this method");
+
         deepScan(UI.getCurrent()).forEach(VisibilityEngine::checkVisibility);
     }
 
@@ -105,14 +113,14 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
 
         switch (updateMode) {
             case manual:
-                ui.addListener(AttachEvent.class, e -> flatScan(e.getSource()).forEach(VisibilityEngine::checkVisibility));
+                ui.addAttachListener(e -> flatScan(e.getSource()).forEach(VisibilityEngine::checkVisibility));
                 break;
             case on_navigation:
                 UiEventsHandler uiEventsHandler = new UiEventsHandler();
 
                 ui.addAfterNavigationListener(uiEventsHandler);
-                ui.addListener(AttachEvent.class, e -> uiEventsHandler.clearCache());
-                ui.addListener(DetachEvent.class, e -> uiEventsHandler.removeComponentFromCache(e.getSource()));
+                ui.addAttachListener(e -> uiEventsHandler.clearCache());
+                ui.addDetachListener(e -> uiEventsHandler.removeComponentFromCache(e.getSource()));
                 break;
         }
     }
@@ -132,7 +140,13 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
         final DeploymentConfiguration deploymentConfiguration = vaadinService.getDeploymentConfiguration();
         final Properties initParameters = deploymentConfiguration.getInitParameters();
 
-        initCaches(initParameters);
+        final String packagesToScan = initParameters.getProperty(PACKAGES_TO_SCAN_KEY);
+
+        if (Strings.isNullOrEmpty(packagesToScan)) {
+            return;
+        }
+
+        initCaches(packagesToScan);
 
         updateMode = UpdateMode.valueOf(initParameters.getProperty(UPDATE_MODE_KEY, UpdateMode.on_navigation.name()));
 
@@ -142,20 +156,11 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     }
 
     @SuppressWarnings("unchecked")
-    private void initCaches(Properties initParameters) {
+    private void initCaches(String packagesToScan) {
 
-        final String packagesToScan = initParameters.getProperty(PACKAGES_TO_SCAN_KEY);
+        List<Object> params = new ArrayList(Arrays.asList(packagesToScan.split(","), new FieldAnnotationsScanner(), new TypeAnnotationsScanner(), new SubTypesScanner()));
 
-        Reflections reflections;
-
-        if (packagesToScan != null && !packagesToScan.isEmpty()) {
-
-            List<Object> params = new ArrayList(Arrays.asList(packagesToScan.split(","), new FieldAnnotationsScanner(), new TypeAnnotationsScanner(), new SubTypesScanner()));
-            reflections = new Reflections(params.toArray());
-        } else {
-            logger.warn("parameter '" + PACKAGES_TO_SCAN_KEY + "' is not set, so all classes on the classpath will be scanned for visibility-annotations");
-            reflections = new Reflections(new FieldAnnotationsScanner(), new TypeAnnotationsScanner(), new SubTypesScanner());
-        }
+        Reflections reflections = new Reflections(params.toArray());
 
         final Set<Class<?>> visibilityAnnotations = reflections.getTypesAnnotatedWith(VisibilityAnnotation.class);
 
@@ -202,7 +207,8 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
 
     private enum UpdateMode {
         manual,
-        on_navigation
+        on_navigation,
+        diabled
     }
 
     private static class ComponentAnnotationTuple {
