@@ -5,7 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.ilay</groupId>
     <artifactId>ilay</artifactId>
-    <version>2.5.0</version>
+    <packaging>pom</packaging>
+    <version>2.6.0</version>
+    <modules>
+        <module>ilay-guice</module>
+        <module>core</module>
+    </modules>
     <properties>
         <project.build.encoding>UTF-8</project.build.encoding>
         <project.build.target>1.8</project.build.target>
@@ -35,6 +40,11 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version>
+        </dependency>
+        <dependency>
+            <groupId>aopalliance</groupId>
+            <artifactId>aopalliance</artifactId>
+            <version>1.0</version>
         </dependency>
     </dependencies>
     <build>

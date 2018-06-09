@@ -45,6 +45,7 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void beforeEnter(BeforeEnterEvent event) {
         final Class<?> navigationTarget = event.getNavigationTarget();
 
