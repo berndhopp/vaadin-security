@@ -19,8 +19,6 @@ import org.reflections.Reflections;
 import org.reflections.scanners.FieldAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -46,7 +44,6 @@ public class VisibilityEngine implements VaadinServiceInitListener, UIInitListen
     private static Map<Class<? extends HasElement>, Annotation> componentsToAnnotationsCache = new HashMap<>();
     private static Map<Class<? extends HasElement>, Map<Field, Annotation>> fieldsToAnnotationCache = new HashMap<>();
     private static UpdateMode updateMode = UpdateMode.disabled;
-    private final Logger logger = LoggerFactory.getLogger(VisibilityEngine.class);
 
     @SuppressWarnings("unused")
     public static void permissionsChanged() {
