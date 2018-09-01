@@ -8,7 +8,6 @@
     <packaging>pom</packaging>
     <version>2.6.0</version>
     <modules>
-        <module>ilay-guice</module>
         <module>core</module>
     </modules>
     <properties>
