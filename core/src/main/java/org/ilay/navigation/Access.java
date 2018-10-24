@@ -1,5 +1,8 @@
 package org.ilay.navigation;
 
+import static java.util.Objects.requireNonNull;
+
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.Location;
 
@@ -19,23 +22,20 @@ import java.util.Objects;
  * rerouteTo-methods with the respective parameters.
  */
 @SuppressWarnings("unused")
-public abstract class Access implements Serializable {
+public interface Access extends Serializable {
 
-    private static final long serialVersionUID = -5142617945164430893L;
 
-    private Access() {
-    }
+    void exec(BeforeEnterEvent enterEvent);
+
 
     /**
      * a granted access, the user will be allowed to enter the route-target.
      *
      * @return the granted access
      */
-    public static Access granted() {
-        return new Access() {
-            @Override
-            void exec(BeforeEnterEvent enterEvent) {
-            }
+    static Access granted() {
+        return (Access) enterEvent -> {
+            //TODO logging if needed...
         };
     }
 
@@ -46,32 +46,34 @@ public abstract class Access implements Serializable {
      * @param errorMessage see {@link BeforeEnterEvent#rerouteToError(Exception, String)}
      * @return the restricted Access
      */
-    public static Access restricted(Exception errorTarget, String errorMessage) {
-        Objects.requireNonNull(errorTarget, "errorTarget must not be null");
+    static Access restricted(Exception errorTarget , String errorMessage) {
+        requireNonNull(errorTarget, "errorTarget must not be null");
 
-        return new Access() {
-            @Override
-            void exec(BeforeEnterEvent enterEvent) {
-                enterEvent.rerouteToError(errorTarget, errorMessage);
-            }
-        };
+        return (Access) enterEvent -> enterEvent.rerouteToError(errorTarget, errorMessage);
     }
 
+//    /**
+//     * A restricted access that will call {@link BeforeEnterEvent#rerouteToError(Class)}
+//     *
+//     * @param errorTarget see {@link BeforeEnterEvent#rerouteToError(Class)}
+//     * @return the restricted Access
+//     */
+//    static Access restricted(Class<? extends Exception> errorTarget) {
+//        requireNonNull(errorTarget, "errorTarget must not be null");
+//
+//        return (Access) enterEvent -> enterEvent.rerouteToError(errorTarget);
+//    }
+
     /**
-     * A restricted access that will call {@link BeforeEnterEvent#rerouteToError(Class)}
+     * A restricted access that will call {@link BeforeEnterEvent#rerouteTo(String)}
      *
-     * @param errorTarget see {@link BeforeEnterEvent#rerouteToError(Class)}
+     * @param rerouteTarget see {@link BeforeEnterEvent#rerouteTo(String)}
      * @return the restricted Access
      */
-    public static Access restricted(Class<? extends Exception> errorTarget) {
-        Objects.requireNonNull(errorTarget, "errorTarget must not be null");
+    static Access restricted(String rerouteTarget) {
+        requireNonNull(rerouteTarget, "rerouteTarget must not be null");
 
-        return new Access() {
-            @Override
-            void exec(BeforeEnterEvent enterEvent) {
-                enterEvent.rerouteToError(errorTarget);
-            }
-        };
+        return (Access) enterEvent -> enterEvent.rerouteTo(rerouteTarget);
     }
 
     /**
@@ -80,15 +82,12 @@ public abstract class Access implements Serializable {
      * @param rerouteTarget see {@link BeforeEnterEvent#rerouteTo(String)}
      * @return the restricted Access
      */
-    public static Access restricted(String rerouteTarget) {
-        Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
+    static Access restricted(Class<? extends Component> rerouteTarget) {
+        requireNonNull(rerouteTarget, "rerouteTarget must not be null");
 
-        return new Access() {
-            @Override
-            void exec(BeforeEnterEvent enterEvent) {
-                enterEvent.rerouteTo(rerouteTarget);
-            }
-        };
+
+
+        return (Access) enterEvent -> enterEvent.rerouteTo(rerouteTarget);
     }
 
 
@@ -98,16 +97,11 @@ public abstract class Access implements Serializable {
      * @param rerouteTarget see {@link BeforeEnterEvent#rerouteTo(String, List)}
      * @return the restricted Access
      */
-    public static <T> Access restricted(String rerouteTarget, List<T> parameters) {
-        Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
-        Objects.requireNonNull(parameters, "parameters must not be null");
+    static <T> Access restricted(String rerouteTarget , List<T> parameters) {
+        requireNonNull(rerouteTarget, "rerouteTarget must not be null");
+        requireNonNull(parameters, "parameters must not be null");
 
-        return new Access() {
-            @Override
-            void exec(BeforeEnterEvent enterEvent) {
-                enterEvent.rerouteTo(rerouteTarget, parameters);
-            }
-        };
+        return (Access) enterEvent -> enterEvent.rerouteTo(rerouteTarget, parameters);
     }
 
     /**
@@ -116,18 +110,12 @@ public abstract class Access implements Serializable {
      * @param rerouteTarget see {@link BeforeEnterEvent#rerouteTo(String, Object)}
      * @return the restricted Access
      */
-    public static <T> Access restricted(String rerouteTarget, T parameter) {
-        Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
-        Objects.requireNonNull(parameter, "parameters must not be null");
+    static <T> Access restricted(String rerouteTarget , T parameter) {
+        requireNonNull(rerouteTarget, "rerouteTarget must not be null");
+        requireNonNull(parameter, "parameters must not be null");
 
-        return new Access() {
-            @Override
-            void exec(BeforeEnterEvent enterEvent) {
-                enterEvent.rerouteTo(rerouteTarget, parameter);
-            }
-        };
+        return (Access) enterEvent -> enterEvent.rerouteTo(rerouteTarget, parameter);
     }
 
-    abstract void exec(BeforeEnterEvent enterEvent);
 }
 
