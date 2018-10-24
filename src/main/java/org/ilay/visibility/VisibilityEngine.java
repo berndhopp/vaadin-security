@@ -22,10 +22,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.vaadin.flow.component.ComponentUtil.addListener;
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Stream.concat;
 
+/**
+ * internally used class, do not touch
+ */
 @ListenerPriority(Integer.MAX_VALUE - 2)
 public final class VisibilityEngine implements VaadinServiceInitListener, UIInitListener {
 
@@ -42,9 +46,12 @@ public final class VisibilityEngine implements VaadinServiceInitListener, UIInit
     public void uiInit(UIInitEvent event) {
         final UI ui = event.getUI();
 
-        deepScan(ui).forEach(this::checkVisibility);
+        ui.addAttachListener(e -> this.check(ui));
+        addListener(ui, PermissionsChangedEvent.class, e -> this.check(ui));
+    }
 
-        addListener(ui, PermissionsChangedEvent.class, e -> deepScan(ui).forEach(this::checkVisibility));
+    private void check(UI ui) {
+        deepScan(ui).forEach(this::checkVisibility);
     }
 
     @SuppressWarnings("unchecked")
@@ -109,6 +116,17 @@ public final class VisibilityEngine implements VaadinServiceInitListener, UIInit
                             throw new IllegalStateException("more than one VisibilityAnnotation not allowed at " + f);
                     }
                 })
+                .peek(field ->
+                        getOptionalVisibilityAnnotation((Class<? extends HasElement>) field.getType())
+                                .ifPresent(
+                                        a -> {
+                                            throw new IllegalStateException(format(
+                                                    "field %s is annotated with VisibilityAnnotation and so is it's type %s, which one to apply is not defined",
+                                                    field,
+                                                    field.getType())
+                                            );
+                                        }
+                                ))
                 .collect(toMap(
                         f -> f,
                         f -> stream(f.getAnnotations())
