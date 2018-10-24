@@ -1,5 +1,6 @@
 package org.ilay.navigation;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.router.ListenerPriority;
@@ -9,6 +10,8 @@ import com.vaadin.flow.server.UIInitListener;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 
+import org.ilay.PermissionsChangedEvent;
+
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +19,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
+import static com.vaadin.flow.component.ComponentUtil.addListener;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -39,9 +43,11 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
 
     @Override
     public void uiInit(UIInitEvent event) {
-        event
-                .getUI()
-                .addBeforeEnterListener(this);
+        final UI ui = event.getUI();
+
+        ui.addBeforeEnterListener(this);
+
+        addListener(ui, PermissionsChangedEvent.class, e -> ui.getPage().reload());
     }
 
     @Override
@@ -49,27 +55,7 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
     public void beforeEnter(BeforeEnterEvent event) {
         final Class<?> navigationTarget = event.getNavigationTarget();
 
-        Optional<Annotation> optionalAnnotation = cache.computeIfAbsent(
-                navigationTarget,
-                nt -> {
-                    Predicate<Annotation> hasRestrictionAnnotation = annotation -> annotation
-                            .annotationType()
-                            .isAnnotationPresent(RestrictionAnnotation.class);
-
-                    List<Annotation> list = stream(nt.getAnnotations())
-                            .filter(hasRestrictionAnnotation)
-                            .collect(toList());
-
-                    switch (list.size()) {
-                        case 0:
-                            return Optional.empty();
-                        case 1:
-                            return Optional.of(list.get(0));
-                        default:
-                            throw new IllegalStateException("more than one RestrictionAnnotation not allowed");
-                    }
-                }
-        );
+        Optional<Annotation> optionalAnnotation = cache.computeIfAbsent(navigationTarget, this::getOptionalRestrictionAnnotation);
 
         optionalAnnotation.ifPresent(annotation -> {
                     RestrictionAnnotation restrictionAnnotation = annotation.annotationType().getAnnotation(RestrictionAnnotation.class);
@@ -89,5 +75,24 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
                     access.exec(event);
                 }
         );
+    }
+
+    private Optional<Annotation> getOptionalRestrictionAnnotation(Class<?> classToCheck) {
+        Predicate<Annotation> hasRestrictionAnnotation = annotation -> annotation
+                .annotationType()
+                .isAnnotationPresent(RestrictionAnnotation.class);
+
+        List<Annotation> list = stream(classToCheck.getAnnotations())
+                .filter(hasRestrictionAnnotation)
+                .collect(toList());
+
+        switch (list.size()) {
+            case 0:
+                return Optional.empty();
+            case 1:
+                return Optional.of(list.get(0));
+            default:
+                throw new IllegalStateException("more than one RestrictionAnnotation not allowed at " + classToCheck);
+        }
     }
 }

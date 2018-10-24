@@ -5,11 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.ilay</groupId>
     <artifactId>ilay</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>2.6.0</version>
-    <modules>
-        <module>core</module>
-    </modules>
     <properties>
         <project.build.encoding>UTF-8</project.build.encoding>
         <project.build.target>1.8</project.build.target>
@@ -34,16 +31,6 @@
             <artifactId>flow-server</artifactId>
             <version>[1.0.0.beta11,)</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.11</version>
-        </dependency>
-        <dependency>
-            <groupId>aopalliance</groupId>
-            <artifactId>aopalliance</artifactId>
-            <version>1.0</version>
         </dependency>
     </dependencies>
     <build>
