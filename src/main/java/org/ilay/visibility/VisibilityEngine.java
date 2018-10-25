@@ -3,14 +3,14 @@ package org.ilay.visibility;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationListener;
 import com.vaadin.flow.router.ListenerPriority;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.UIInitEvent;
 import com.vaadin.flow.server.UIInitListener;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServiceInitListener;
-
-import org.ilay.PermissionsChangedEvent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.vaadin.flow.component.ComponentUtil.addListener;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
@@ -31,7 +30,7 @@ import static java.util.stream.Stream.concat;
  * internally used class, do not touch
  */
 @ListenerPriority(Integer.MAX_VALUE - 2)
-public final class VisibilityEngine implements VaadinServiceInitListener, UIInitListener {
+public final class VisibilityEngine implements VaadinServiceInitListener, UIInitListener, AfterNavigationListener {
 
     private static final long serialVersionUID = 7808168756398878583L;
     private final Map<Class<? extends HasElement>, Optional<Annotation>> componentsToAnnotationsCache = new ConcurrentHashMap<>();
@@ -45,13 +44,12 @@ public final class VisibilityEngine implements VaadinServiceInitListener, UIInit
     @Override
     public void uiInit(UIInitEvent event) {
         final UI ui = event.getUI();
-
-        ui.addAttachListener(e -> this.check(ui));
-        addListener(ui, PermissionsChangedEvent.class, e -> this.check(ui));
+        ui.addAfterNavigationListener(this);
     }
 
-    private void check(UI ui) {
-        deepScan(ui).forEach(this::checkVisibility);
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        deepScan(UI.getCurrent()).forEach(this::checkVisibility);
     }
 
     @SuppressWarnings("unchecked")
