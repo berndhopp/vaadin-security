@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ilay-guice</artifactId>
+    <properties>
+        <source.version>1.8</source.version>
+        <target.version>1.8</target.version>
+    </properties>
+    <parent>
+        <artifactId>ilay</artifactId>
+        <groupId>org.ilay</groupId>
+        <version>2.6.0</version>
+    </parent>
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin.addon</groupId>
+            <artifactId>flow-guice-addon</artifactId>
+            <version>2.3.6-vaadin10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ilay</groupId>
+            <artifactId>ilay-core</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+    </dependencies>
+</project>
