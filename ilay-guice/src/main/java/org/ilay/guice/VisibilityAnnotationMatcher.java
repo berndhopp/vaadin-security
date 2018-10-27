@@ -22,15 +22,17 @@ class VisibilityAnnotationMatcher extends AbstractMatcher<Binding<?>> {
                 .filter(at -> at.isAnnotationPresent(VisibilityAnnotation.class))
                 .count();
 
-        switch (visibilityAnnotationsCount){
-            case 0: return false;
+        switch (visibilityAnnotationsCount) {
+            case 0:
+                return false;
             case 1: {
-                if(!Component.class.isAssignableFrom(rawType)){
+                if (!Component.class.isAssignableFrom(rawType)) {
                     throw new IllegalStateException(rawType + " has visibilityAnnotation but is not a component");
                 }
                 return true;
             }
-            default: throw new IllegalStateException("more than one visibilityAnnotation found at " + rawType);
+            default:
+                throw new IllegalStateException("more than one visibilityAnnotation found at " + rawType);
         }
     }
 }

@@ -19,8 +19,8 @@ import java.lang.annotation.Target;
  * </pre>
  *
  * The RoleBasedAccessEvaluator is an {@link AccessEvaluator} that could look something like the
- * following. Note that the generic type for this AccessEvaluator is the type of the annotation
- * and the annotation is the last parameter of 'evaluate'.
+ * following. Note that the generic type for this AccessEvaluator is the type of the annotation and
+ * the annotation is the last parameter of 'evaluate'.
  *
  * <pre>
  * class RoleBasedAccessEvaluator implements AccessEvaluator&lt;VisibleTo&gt; {
@@ -36,8 +36,8 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
- * VisibleTo can then be used to prevent users that don't have the required role to enter
- * the route-target by just annotating the respective class
+ * VisibleTo can then be used to prevent users that don't have the required role to enter the
+ * route-target by just annotating the respective class
  *
  * <pre>
  *     &#064;Route("adminview")

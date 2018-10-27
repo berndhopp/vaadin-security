@@ -21,33 +21,15 @@ class VisibilityProvisionListener implements ProvisionListener {
 
     private final Map<Class<? extends Component>, AnnotationVisibilityEvaluatorTuple> annotationMap = new ConcurrentHashMap<>();
 
-    private static class AnnotationVisibilityEvaluatorTuple{
-        private final Annotation annotation;
-        private final Class<? extends VisibilityEvaluator<?, ?>> visibilityEvaluatorClass;
-
-        private AnnotationVisibilityEvaluatorTuple(Annotation annotation, Class<? extends VisibilityEvaluator<?, ?>> visibilityEvaluatorClass) {
-            this.annotation = annotation;
-            this.visibilityEvaluatorClass = visibilityEvaluatorClass;
-        }
-
-        Annotation getAnnotation() {
-            return annotation;
-        }
-
-        Class<? extends VisibilityEvaluator<?, ?>> getVisibilityEvaluatorClass() {
-            return visibilityEvaluatorClass;
-        }
-    }
-
     public <T> void onProvision(ProvisionInvocation<T> provision) {
-        final Component component = (Component)provision.provision();
+        final Component component = (Component) provision.provision();
 
         final AnnotationVisibilityEvaluatorTuple tuple = annotationMap.computeIfAbsent(component.getClass(), c ->
-            stream(c.getAnnotations())
-                .filter(a -> a.annotationType().isAnnotationPresent(VisibilityAnnotation.class))
-                .findFirst()
-                .map(a -> new AnnotationVisibilityEvaluatorTuple(a, a.annotationType().getAnnotation(VisibilityAnnotation.class).value()))
-                .orElseThrow(IllegalStateException::new)
+                stream(c.getAnnotations())
+                        .filter(a -> a.annotationType().isAnnotationPresent(VisibilityAnnotation.class))
+                        .findFirst()
+                        .map(a -> new AnnotationVisibilityEvaluatorTuple(a, a.annotationType().getAnnotation(VisibilityAnnotation.class).value()))
+                        .orElseThrow(IllegalStateException::new)
         );
 
         addListener(UI.getCurrent(), PermissionsChangedEvent.class, e -> setVisibility(component, tuple));
@@ -63,5 +45,23 @@ class VisibilityProvisionListener implements ProvisionListener {
         boolean visible = visibilityEvaluator.evaluateVisibility(component, tuple.getAnnotation());
 
         component.setVisible(visible);
+    }
+
+    private static class AnnotationVisibilityEvaluatorTuple {
+        private final Annotation annotation;
+        private final Class<? extends VisibilityEvaluator<?, ?>> visibilityEvaluatorClass;
+
+        private AnnotationVisibilityEvaluatorTuple(Annotation annotation, Class<? extends VisibilityEvaluator<?, ?>> visibilityEvaluatorClass) {
+            this.annotation = annotation;
+            this.visibilityEvaluatorClass = visibilityEvaluatorClass;
+        }
+
+        Annotation getAnnotation() {
+            return annotation;
+        }
+
+        Class<? extends VisibilityEvaluator<?, ?>> getVisibilityEvaluatorClass() {
+            return visibilityEvaluatorClass;
+        }
     }
 }

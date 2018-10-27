@@ -9,14 +9,13 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Determines the outcome of {@link AccessEvaluator#evaluate(Location, Class, Annotation)}.
- * Access can basically be either granted or restricted. Granted means that the
- * route-target that is being navigated to is available for the current user, a granted
- * access is being returned by {@link Access#granted()}. A restricted Access means that
- * the current user is not allowed to navigate to the route-target that is currently being
- * navigated to and the navigation will be re-routed. A restricted access can be constructed
- * by the various restricted()-methods, that all map to the {@link BeforeEnterEvent}s
- * rerouteTo-methods with the respective parameters.
+ * Determines the outcome of {@link AccessEvaluator#evaluate(Location, Class, Annotation)}. Access
+ * can basically be either granted or restricted. Granted means that the route-target that is being
+ * navigated to is available for the current user, a granted access is being returned by {@link
+ * Access#granted()}. A restricted Access means that the current user is not allowed to navigate to
+ * the route-target that is currently being navigated to and the navigation will be re-routed. A
+ * restricted access can be constructed by the various restricted()-methods, that all map to the
+ * {@link BeforeEnterEvent}s rerouteTo-methods with the respective parameters.
  */
 @SuppressWarnings("unused")
 public abstract class Access implements Serializable {
@@ -40,7 +39,8 @@ public abstract class Access implements Serializable {
     }
 
     /**
-     * A restricted access that will call {@link BeforeEnterEvent#rerouteToError(Exception, String)}
+     * A restricted access that will call {@link BeforeEnterEvent#rerouteToError(Exception,
+     * String)}
      *
      * @param errorTarget  see {@link BeforeEnterEvent#rerouteToError(Exception, String)}
      * @param errorMessage see {@link BeforeEnterEvent#rerouteToError(Exception, String)}
