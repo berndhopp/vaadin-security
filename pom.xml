@@ -17,10 +17,20 @@
         <java-target.version>1.8</java-target.version>
     </properties>
     <modules>
-        <module>ilay-guice</module>
-        <module>ilay-core</module>
-        <module>ilay-spring</module>
+        <module>ilay-navigation</module>
+        <module>ilay-visibility-guice</module>
+        <module>ilay-visibility-spring</module>
+        <module>ilay-visibility-api</module>
+        <module>ilay-api</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-server</artifactId>
+            <version>[1.0.0.beta11,)</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>

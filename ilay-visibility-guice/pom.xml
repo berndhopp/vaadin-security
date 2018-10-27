@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>ilay-guice</artifactId>
+    <artifactId>ilay-visibility-guice</artifactId>
     <properties>
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
@@ -26,8 +26,14 @@
         </dependency>
         <dependency>
             <groupId>org.ilay</groupId>
-            <artifactId>ilay-core</artifactId>
+            <artifactId>ilay-api</artifactId>
             <version>2.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ilay</groupId>
+            <artifactId>ilay-visibility-api</artifactId>
+            <version>2.6.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
