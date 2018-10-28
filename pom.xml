@@ -6,8 +6,9 @@
     <groupId>org.ilay</groupId>
     <artifactId>ilay</artifactId>
     <packaging>pom</packaging>
-    <version>2.6.0</version>
+    <version>${project.version}</version>
     <properties>
+        <project.version>2.6</project.version>
         <project.build.encoding>UTF-8</project.build.encoding>
         <project.build.target>1.8</project.build.target>
         <project.build.source>1.8</project.build.source>
@@ -17,11 +18,12 @@
         <java-target.version>1.8</java-target.version>
     </properties>
     <modules>
+        <module>ilay-common-api</module>
         <module>ilay-navigation</module>
+        <module>ilay-visibility-api</module>
         <module>ilay-visibility-guice</module>
         <module>ilay-visibility-spring</module>
-        <module>ilay-visibility-api</module>
-        <module>ilay-api</module>
+        <module>ilay-visibility-nocdi</module>
     </modules>
     <dependencies>
         <dependency>

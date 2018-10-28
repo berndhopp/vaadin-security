@@ -22,17 +22,18 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>4.2.0</version>
+            <version>[4.0.0,)</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.ilay</groupId>
-            <artifactId>ilay-api</artifactId>
-            <version>2.6.0</version>
+            <artifactId>ilay-common-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ilay</groupId>
             <artifactId>ilay-visibility-api</artifactId>
-            <version>2.6.0</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

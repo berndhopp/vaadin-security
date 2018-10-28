@@ -12,6 +12,7 @@ import java.lang.annotation.Target;
  * to create an annotation called VisibleTo and annotate it with RestrictionAnnotation
  *
  * <pre>
+ *     &#064;Retention(RUNTIME)
  *     &#064;RestrictionAnnotation(RoleBasedAccessEvaluator.class)
  *     public &#064;interface VisibleTo {
  *         UserRole value();

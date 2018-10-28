@@ -1,4 +1,4 @@
-package org.ilay.guice;
+package org.ilay.visibility;
 
 import com.vaadin.guice.annotation.Import;
 

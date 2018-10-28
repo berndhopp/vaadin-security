@@ -1,4 +1,4 @@
-package org.ilay.spring;
+package org.ilay.visibility;
 
 import org.springframework.context.annotation.Import;
 
