@@ -12,6 +12,7 @@ to create an annotation called VisibleTo and annotate it with RestrictionAnnotat
 
 ```java
     @RestrictionAnnotation(RoleBasedAccessEvaluator.class)
+    @Retention(RetentionPolicy.RUNTIME)
     public interface VisibleTo {
         UserRole value();
     }
