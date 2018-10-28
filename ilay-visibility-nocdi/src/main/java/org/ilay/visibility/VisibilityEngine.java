@@ -24,8 +24,7 @@ public final class VisibilityEngine implements VaadinServiceInitListener, UIInit
 
     @Override
     public void uiInit(UIInitEvent event) {
-        final UI ui = event.getUI();
-        ui.addAfterNavigationListener(this);
+        event.getUI().addAfterNavigationListener(this);
     }
 
     @Override

@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toList;
 public class NavigationEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
 
     private static final long serialVersionUID = 974589421761348380L;
-    private final Map<Class<?>, Optional<AnnotationAccessEvaluatorTuple>> cache = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Optional<AnnotationAccessEvaluatorTuple<?>>> cache = new ConcurrentHashMap<>();
 
     @Override
     public void serviceInit(ServiceInitEvent event) {
@@ -51,29 +51,33 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void beforeEnter(BeforeEnterEvent event) {
-        final Class<?> navigationTarget = event.getNavigationTarget();
-
-        Optional<AnnotationAccessEvaluatorTuple> optionalTuple = cache.computeIfAbsent(navigationTarget, this::getOptionalTuple);
-
-        optionalTuple.ifPresent(tuple -> {
-                    final AccessEvaluator accessEvaluator = VaadinService
-                            .getCurrent()
-                            .getInstantiator()
-                            .getOrCreate(tuple.accessEvaluatorClass);
-
-                    final Access access = requireNonNull(
-                            accessEvaluator.evaluate(event.getLocation(), navigationTarget, tuple.annotation),
-                            () -> tuple.accessEvaluatorClass + "#checkAccess(BeforeEnterEvent) must not return null"
-                    );
-
-                    access.exec(event);
-                }
-        );
+        checkAccessibility(event, event.getNavigationTarget());
     }
 
-    private Optional<AnnotationAccessEvaluatorTuple> getOptionalTuple(Class<?> classToCheck) {
+    @SuppressWarnings("unchecked")
+    private <ANNOTATION extends Annotation> void checkAccessibility(BeforeEnterEvent event, Class<?> navigationTarget) {
+        Optional<AnnotationAccessEvaluatorTuple<?>> optionalTuple = cache.computeIfAbsent(navigationTarget, this::getOptionalTuple);
+
+        if (optionalTuple.isPresent()) {
+            final AnnotationAccessEvaluatorTuple<ANNOTATION> tuple = (AnnotationAccessEvaluatorTuple<ANNOTATION>) optionalTuple.get();
+
+            final AccessEvaluator<ANNOTATION> accessEvaluator = VaadinService
+                    .getCurrent()
+                    .getInstantiator()
+                    .getOrCreate(tuple.getAccessEvaluatorClass());
+
+            final Access access = requireNonNull(
+                    accessEvaluator.evaluate(event.getLocation(), navigationTarget, tuple.getAnnotation()),
+                    () -> tuple.getAccessEvaluatorClass() + "#checkAccess(BeforeEnterEvent) must not return null"
+            );
+
+            access.exec(event);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<AnnotationAccessEvaluatorTuple<?>> getOptionalTuple(Class<?> classToCheck) {
         Predicate<Annotation> hasRestrictionAnnotation = annotation -> annotation
                 .annotationType()
                 .isAnnotationPresent(RestrictionAnnotation.class);
@@ -93,14 +97,22 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
         }
     }
 
-    private static class AnnotationAccessEvaluatorTuple {
+    private static class AnnotationAccessEvaluatorTuple<ANNOTATION extends Annotation> {
 
-        Annotation annotation;
-        Class<? extends AccessEvaluator> accessEvaluatorClass;
+        private ANNOTATION annotation;
+        private Class<? extends AccessEvaluator<ANNOTATION>> accessEvaluatorClass;
 
-        AnnotationAccessEvaluatorTuple(Annotation annotation, Class<? extends AccessEvaluator> accessEvaluatorClass) {
+        AnnotationAccessEvaluatorTuple(ANNOTATION annotation, Class<? extends AccessEvaluator<ANNOTATION>> accessEvaluatorClass) {
             this.annotation = annotation;
             this.accessEvaluatorClass = accessEvaluatorClass;
+        }
+
+        ANNOTATION getAnnotation() {
+            return annotation;
+        }
+
+        Class<? extends AccessEvaluator<ANNOTATION>> getAccessEvaluatorClass() {
+            return accessEvaluatorClass;
         }
     }
 }
