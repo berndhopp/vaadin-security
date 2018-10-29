@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
     <version>${project.version}</version>
     <properties>
-        <project.version>2.6</project.version>
+        <project.version>3.0.0-SNAPSHOT</project.version>
         <project.build.encoding>UTF-8</project.build.encoding>
         <project.build.target>1.8</project.build.target>
         <project.build.source>1.8</project.build.source>
