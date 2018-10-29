@@ -10,8 +10,29 @@ import static java.util.Objects.requireNonNull;
 import static org.ilay.visibility.VisibilityUtil.evaluateVisibility;
 import static org.ilay.visibility.VisibilityUtil.hasVisibilityAnnotation;
 
+/**
+ * usage example:
+ *
+ * <pre>
+ *     <code>
+ * Button button = new Button();
+ *
+ * VisibilityEvaluator evaluator = () -> {
+ *      return VaadinSession.getCurrent().getAttribute(User.class) != null;
+ * };
+ *
+ * IlayVisibility.register(button, evaluator);
+ *    </code>
+ * </pre>
+ */
 public final class IlayVisibility {
+    private IlayVisibility() {
+    }
 
+    /**
+     * registers the {@link Component} for visibility-evaluation. The components' class needs to be
+     * annotated with one annotation carrying a {@link VisibilityAnnotation}.
+     */
     public static void register(Component component) {
         requireNonNull(component);
 
@@ -23,6 +44,19 @@ public final class IlayVisibility {
 
         addListener(UI.getCurrent(), PermissionsChangedEvent.class, e -> evaluateVisibility(component));
         evaluateVisibility(component);
+    }
+
+    /**
+     * registers the {@link Component} for visibility-evaluation.
+     * @param component
+     * @param visibilityEvaluator
+     */
+    public static void register(Component component, VisibilityEvaluator visibilityEvaluator) {
+        requireNonNull(component);
+        requireNonNull(visibilityEvaluator);
+
+        addListener(UI.getCurrent(), PermissionsChangedEvent.class, e -> component.setVisible(visibilityEvaluator.evaluateVisibility()));
+        component.setVisible(visibilityEvaluator.evaluateVisibility());
     }
 }
 
