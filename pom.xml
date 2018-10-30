@@ -21,9 +21,9 @@
         <module>ilay-common-api</module>
         <module>ilay-navigation</module>
         <module>ilay-visibility-api</module>
+        <module>ilay-visibility-nocdi</module>
         <module>ilay-visibility-guice</module>
         <module>ilay-visibility-spring</module>
-        <module>ilay-visibility-default</module>
     </modules>
     <dependencies>
         <dependency>
