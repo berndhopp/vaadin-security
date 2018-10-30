@@ -9,11 +9,11 @@ import java.lang.annotation.Target;
  * This annotation is to be placed on other annotations, marking them as restriction-annotations and
  * assigning {@link AccessEvaluator}s to them. Take for example the case that a certain route-target
  * is only to be accessed by users that have the role 'administrator'. Now the first step would be
- * to create an annotation called VisibleTo and annotate it with RestrictionAnnotation
+ * to create an annotation called VisibleTo and annotate it with NavigationAnnotation
  *
  * <pre>
  *     &#064;Retention(RUNTIME)
- *     &#064;RestrictionAnnotation(RoleBasedAccessEvaluator.class)
+ *     &#064;NavigationAnnotation(RoleBasedAccessEvaluator.class)
  *     public &#064;interface VisibleTo {
  *         UserRole value();
  *     }
@@ -49,7 +49,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
-public @interface RestrictionAnnotation {
+public @interface NavigationAnnotation {
     /**
      * The {@link AccessEvaluator} that is to be assigned to the annotation.
      *

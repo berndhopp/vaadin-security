@@ -20,7 +20,7 @@ public interface AccessEvaluator<T extends Annotation> {
      * @param navigationTarget the navigation-target to be navigated to, see {@link
      *                         BeforeEnterEvent#getNavigationTarget()}
      * @param annotation       the {@link Annotation} on the route-target that itself is annotated
-     *                         with a {@link RestrictionAnnotation}. This annotation may carry
+     *                         with a {@link NavigationAnnotation}. This annotation may carry
      *                         additional data which can be used to evaluate the access.
      * @return the {@link Access}
      */

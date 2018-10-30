@@ -80,7 +80,7 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
     private Optional<AnnotationAccessEvaluatorTuple<?>> getOptionalTuple(Class<?> classToCheck) {
         Predicate<Annotation> hasRestrictionAnnotation = annotation -> annotation
                 .annotationType()
-                .isAnnotationPresent(RestrictionAnnotation.class);
+                .isAnnotationPresent(NavigationAnnotation.class);
 
         List<Annotation> list = stream(classToCheck.getAnnotations())
                 .filter(hasRestrictionAnnotation)
@@ -91,9 +91,9 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
                 return Optional.empty();
             case 1:
                 final Annotation annotation = list.get(0);
-                return Optional.of(new AnnotationAccessEvaluatorTuple(annotation, annotation.annotationType().getAnnotation(RestrictionAnnotation.class).value()));
+                return Optional.of(new AnnotationAccessEvaluatorTuple(annotation, annotation.annotationType().getAnnotation(NavigationAnnotation.class).value()));
             default:
-                throw new IllegalStateException("more than one RestrictionAnnotation not allowed at " + classToCheck);
+                throw new IllegalStateException("more than one NavigationAnnotation not allowed at " + classToCheck);
         }
     }
 
