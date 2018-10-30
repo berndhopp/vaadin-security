@@ -48,8 +48,6 @@ public final class IlayVisibility {
 
     /**
      * registers the {@link Component} for visibility-evaluation.
-     * @param component
-     * @param visibilityEvaluator
      */
     public static void register(Component component, VisibilityEvaluator visibilityEvaluator) {
         requireNonNull(component);
@@ -59,5 +57,3 @@ public final class IlayVisibility {
         component.setVisible(visibilityEvaluator.evaluateVisibility());
     }
 }
-
-
