@@ -28,13 +28,10 @@
         <dependency>
             <groupId>org.ilay</groupId>
             <artifactId>ilay-common-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ilay</groupId>
             <artifactId>ilay-visibility-api</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
