@@ -1,10 +1,12 @@
 package org.ilay.visibility;
 
-public interface VisibilityEvaluator<PAYLOAD> {
+import java.lang.annotation.Annotation;
+
+public interface VisibilityEvaluator<ANNOTATION extends Annotation> {
 
     default boolean evaluateVisibility() {
         return evaluateVisibility(null);
     }
 
-    boolean evaluateVisibility(PAYLOAD PAYLOAD);
+    boolean evaluateVisibility(ANNOTATION annotation);
 }
