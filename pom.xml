@@ -27,7 +27,7 @@
     <module>ilay-common-api</module>
     <module>ilay-navigation</module>
     <module>ilay-visibility-api</module>
-    <module>ilay-visibility-nocdi</module>
+    <module>ilay-visibility-manual</module>
     <module>ilay-visibility-guice</module>
     <module>ilay-visibility-spring</module>
     <module>ilay-visibility-cdi</module>
@@ -64,7 +64,7 @@
       </dependency>
       <dependency>
         <groupId>org.ilay</groupId>
-        <artifactId>ilay-visibility-nocdi</artifactId>
+        <artifactId>ilay-visibility-manual</artifactId>
         <version>3.0.0-SNAPSHOT</version>
       </dependency>
       <dependency>
