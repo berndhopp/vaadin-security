@@ -8,7 +8,7 @@ import java.lang.annotation.Annotation;
 /**
  * An {@link AccessEvaluator} determines whether the current user has access to a certain
  * route-target or not. Instances of this class will be constructed by a dependency-injection
- * framework like spring of actions, if one is used.
+ * framework like spring or guice, if one is used.
  */
 public interface AccessEvaluator<T extends Annotation> {
 
