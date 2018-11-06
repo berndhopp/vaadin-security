@@ -3,48 +3,128 @@
 
 # abstract
 
-Ilay is a pretty simple authentication-framework based on navigation-restriction. Ilay does
-not change the visibility of components or filter data in Grids, it merely restricts 
-navigation between route-targets. 
+Ilay is a simple-to-use authentication-framework for Vaadin. It does not incorporate frameworks like Spring-Security or Apache Shiro, but
+brings it's own api which is custom-tailored for the use with Vaadin. Ilay deals with navigation ( is the user allowed to see this view? ) 
+and visibility ( should this component be visible to the user? ). 
 
-# building blocks
+## navigation
 
-Take for example the case that a certain route-target
-is only to be accessed by users that have the role 'administrator'. Now the first step would be
-to create an annotation called VisibleTo and annotate it with RestrictionAnnotation
+Ilay-navigation comes as a separate dependency:
 
-```java
-    @RestrictionAnnotation(RoleBasedAccessEvaluator.class)
-    @Retention(RetentionPolicy.RUNTIME)
-    public interface VisibleTo {
-        UserRole value();
-    }
+```xml
+    <dependency>
+        <groupId>org.ilay</groupId>
+        <artifactId>ilay-navigation</artifactId>
+        <version>3.0.0</version>
+    </dependency>
 ```
 
-The RoleBasedAccessEvaluator is an AccessEvaluator that could look something like the
-following. Note that the generic type for this AccessEvaluator is the type of the annotation
-and the annotation is the last parameter of 'evaluate'.
+Please note that thanks to the new API's in Vaadin 10+, no bootstrapping-code is necessary.
+
+Let's assume the case that a certain route-target is only to be accessed by users that have 
+the role 'administrator'. Now the first step would be to define an AccessEvaluator, that 
+determines whether or not the current user has that role or not. 
 
 ```java
-class RoleBasedAccessEvaluator implements AccessEvaluator<VisibleTo> {
+class IsAdminAccessEvaluator implements AccessEvaluator {
 
     Supplier<UserRole> userRoleProvider;
 
     @Override
-    public Access evaluate(Location location, Class<?> navigationTarget, VisibleTo annotation) {
-        final boolean hasRole = annotation.value().equals(userRoleProvider.get());
-
-        return hasRole ? Access.granted() : Access.restricted(UserNotInRoleException.class);
+    public Access evaluate(Location location, Class<?> navigationTarget, Annotation annotation) {
+        return UserRole.ADMIN.equals(userRoleProvider.get()) 
+            ? Access.granted() 
+            : Access.restricted(UserNotInRoleException.class);
     }
 }
 ```
 
-VisibleTo can then be used to prevent users that don't have the required role to enter
-the route-target by just annotating the respective class
+Note that an Access-instance is returned, not a boolean. Access has one granted()-method and
+a lot of restricted()-methods, which reflect the different reroute-methods in BeforeEnterEvent,
+to which they eventually delegate.
+
+Now we need to connect the IsAdminAccessEvaluator to our view, the glue for this is an annotation
+with a nice speaking name and an @NavigationAnnotation on it, that specifies the AccessEvaluator:
 
 ```java
-    @Route("adminview")
-    @VisibleTo(UserRole.Admin)
+    @NavigationAnnotation(IsAdminAccessEvaluator.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public interface OnlyForAdmins {
+    }
+```
+
+OnlyForAdmins can then be used to prevent users that are not admins from entering the protected views
+
+```java
+    @OnlyForAdmins
+    @Route("admin-view")
      public class AdminView extends Div {
      }
+```
+
+And that's it. Now users without Admin-permission will be redirected to an error-view. 
+
+Some readers may have noticed that the AccessEvaluator has a generic type-parameter for the
+annotation it is attached to. So if we like to have additional information in there, like:
+
+```java
+    @NavigationAnnotation(IsAdminAccessEvaluator.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public interface OnlyForAdmins {
+        String someAdditionalInfo();
+    }
+```
+ 
+We could change IsAdminAccessEvaluator to
+
+```java
+class IsAdminAccessEvaluator implements AccessEvaluator<OnlyForAdmins> {
+
+    Supplier<UserRole> userRoleProvider;
+
+    @Override
+    public Access evaluate(Location location, Class<?> navigationTarget, OnlyForAdmins annotation) {
+        
+        Log.info(annotation.someAdditionalInformation());
+        
+        return UserRole.ADMIN.equals(userRoleProvider.get()) 
+            ? Access.granted() 
+            : Access.restricted(UserNotInRoleException.class);
+    }
+}
+```
+
+##visibility
+
+visibility needs to be integrated into your cdi-framework of use in order to work, so the first step is 
+to decide for the integration you need:
+
+for Spring:
+
+```xml
+    <dependency>
+        <groupId>org.ilay</groupId>
+        <artifactId>ilay-navigation-spring</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+```
+
+for Guice:
+
+```xml
+    <dependency>
+        <groupId>org.ilay</groupId>
+        <artifactId>ilay-navigation-spring</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+```
+
+for manual ( no di-framework )
+
+```xml
+    <dependency>
+        <groupId>org.ilay</groupId>
+        <artifactId>ilay-navigation-manual</artifactId>
+        <version>3.0.0</version>
+    </dependency>
 ```
