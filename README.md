@@ -114,7 +114,7 @@ for Guice:
 ```xml
     <dependency>
         <groupId>org.ilay</groupId>
-        <artifactId>ilay-navigation-spring</artifactId>
+        <artifactId>ilay-navigation-guice</artifactId>
         <version>3.0.0</version>
     </dependency>
 ```
