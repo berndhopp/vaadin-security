@@ -24,7 +24,7 @@
   </properties>
 
   <modules>
-    <module>ilay-common-api</module>
+    <module>ilay-api</module>
     <module>ilay-navigation</module>
     <module>ilay-visibility-api</module>
     <module>ilay-visibility-manual</module>
