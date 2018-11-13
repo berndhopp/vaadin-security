@@ -17,7 +17,7 @@ import static org.ilay.visibility.VisibilityUtil.hasVisibilityAnnotation;
  *     <code>
  * Button button = new Button();
  *
- * VisibilityEvaluator evaluator = () -> {
+ * ManualVisibilityEvaluator evaluator = () -> {
  *      return VaadinSession.getCurrent().getAttribute(User.class) != null;
  * };
  *
@@ -25,6 +25,7 @@ import static org.ilay.visibility.VisibilityUtil.hasVisibilityAnnotation;
  *    </code>
  * </pre>
  */
+@SuppressWarnings("unused")
 public final class IlayVisibility {
     private IlayVisibility() {
     }
