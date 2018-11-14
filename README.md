@@ -96,8 +96,10 @@ class IsAdminAccessEvaluator implements AccessEvaluator<OnlyForAdmins> {
 
 ##visibility
 
-visibility needs to be integrated into your cdi-framework of use in order to work, so the first step is 
-to decide for the integration you need:
+Ilay-visibility is designed to be used in combination with a dependency-injection framework and with 
+a one-class-per-component-pattern, although it can be used without that ( see ilay-visibility-manual ).
+
+The first step is to decide for the integration you need:
 
 for Spring:
 
@@ -128,3 +130,115 @@ for manual ( no di-framework )
         <version>3.0.0</version>
     </dependency>
 ```
+
+The spring- and guice-integrations bring with them annotations called EnableIlay, that can be
+attached to the GuiceVaadinServlet or SpringConfiguration, to bootstrap ilay-visibility within Vaadin.
+
+###Guice
+
+```java
+    
+    @EnableIlay
+    //.. other annotations follow
+    public class MyServlet extends GuiceVaadinServlet{
+    }
+```
+
+###Spring
+
+```java     
+    @Configuration
+    @EnableIlay
+    public class MyConfiguration{
+    }
+```
+
+Now bootstrap is finished, let's create a new component that should only be visible to admins.
+
+We start with a VisibilityEvaluator, to decide whether a user is admin or not
+
+```java
+    public class IsAdminVisibilityEvaluator implements VisibilityEvalutor<VisibleForAdmins>{
+        boolean evaluateVisibility(VisibleForAdmins annotation){
+            User user = VaadinSession.getCurrent().getAttribute(User.class);
+            
+            return user != null && user.isAdmin();
+        }
+    }
+```
+
+Now the aforementioned annotation is needed, to connect the visibility-evaluator
+to the components
+
+```java
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(TYPE)
+    @VisibilityAnnotation(IsAdminVisibilityEvaluator.class)
+    public @interface VisibleForAdmins {
+    }
+```
+
+And that annotation can now be attached to the components
+
+```java
+    @VisibleForAdmins
+    public class AdminButton extends Button {
+    }
+```
+
+On creation of the AdminButton, the DI-framework will run the connected VisibilityEvaluator 
+and decide whether the button is visible or not. When permissions change, for example on login- or -out, 
+in order for the visibility of your components to be re-evaluated, you need to call 
+
+```java
+    class AuthController {
+    
+    public void onLogin(){
+        PermissionsChangedEvent.fire();
+    }
+}
+
+```
+
+###manual mode
+
+If you use ilay-visibility-manual, you need to register your components, yes, manually
+
+Either with a component without annotation:
+
+```java
+    public class MyView {
+        public void foo(){
+            Button adminButton = new Button("Admin", e -> doAdminThings());
+            
+            ManualVisibilityEvaluator isAdminEvaluator = new ManualVisibilityEvaluator(){
+                 boolean evaluateVisibility(VisibleForAdmins annotation){
+                     User user = VaadinSession.getCurrent().getAttribute(User.class);
+                     
+                     return user != null && user.isAdmin();
+                 }
+             };
+
+            IlayVisibility.register(adminButton, isAdminEvaluator);
+        }
+    }
+```
+
+Or with AdminButton that we used before ( see above for the VisibleForAdmins-annotation )
+
+```java
+    @VisibleForAdmins
+    public class AdminButton extends Button {
+    }
+        
+     public class MyView {
+         public void foo(){
+             Button adminButton = new AdminButton();
+             
+             IlayVisibility.register(adminButton);
+         }
+     }   
+```
+
+That's all, folks. We hope you enjoy working with ilay, if you have any suggestion, feel free to open
+a github-issue or PR. 
