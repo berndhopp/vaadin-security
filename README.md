@@ -94,7 +94,7 @@ class IsAdminAccessEvaluator implements AccessEvaluator<OnlyForAdmins> {
 }
 ```
 
-##visibility
+## visibility
 
 Ilay-visibility is designed to be used in combination with a dependency-injection framework and with 
 a one-class-per-component-pattern, although it can be used without that ( see ilay-visibility-manual ).
@@ -134,7 +134,7 @@ for manual ( no di-framework )
 The spring- and guice-integrations bring with them annotations called EnableIlay, that can be
 attached to the GuiceVaadinServlet or SpringConfiguration, to bootstrap ilay-visibility within Vaadin.
 
-###Guice
+### Guice
 
 ```java
     
@@ -144,7 +144,7 @@ attached to the GuiceVaadinServlet or SpringConfiguration, to bootstrap ilay-vis
     }
 ```
 
-###Spring
+### Spring
 
 ```java     
     @Configuration
@@ -200,7 +200,7 @@ in order for the visibility of your components to be re-evaluated, you need to c
 
 ```
 
-###manual mode
+### manual
 
 If you use ilay-visibility-manual, you need to register your components, yes, manually
 
@@ -240,5 +240,7 @@ Or with AdminButton that we used before ( see above for the VisibleForAdmins-ann
      }   
 ```
 
-That's all, folks. We hope you enjoy working with ilay, if you have any suggestion, feel free to open
+# notes
+
+We hope you enjoy working with ilay, if you have any suggestion, feel free to open
 a github-issue or PR. 
