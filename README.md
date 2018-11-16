@@ -212,7 +212,7 @@ Either with a component without annotation:
             Button adminButton = new Button("Admin", e -> doAdminThings());
             
             ManualVisibilityEvaluator isAdminEvaluator = new ManualVisibilityEvaluator(){
-                 boolean evaluateVisibility(VisibleForAdmins annotation){
+                 boolean evaluateVisibility(){
                      User user = VaadinSession.getCurrent().getAttribute(User.class);
                      
                      return user != null && user.isAdmin();
