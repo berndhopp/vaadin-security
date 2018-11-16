@@ -4,8 +4,7 @@
 # abstract
 
 Ilay is a simple-to-use authentication-framework for Vaadin. It does not incorporate frameworks like Spring-Security or Apache Shiro, but
-brings it's own api which is custom-tailored for the use with Vaadin. Ilay deals with navigation ( is the user allowed to see this view? ) 
-and visibility ( should this component be visible to the user? ). 
+brings it's own api which is custom-tailored for the use with Vaadin. Ilay deals with navigation ( 'is the user allowed to see this view' ) and visibility ( 'should this component be visible to the user' ). More features like enable/disable instead of in
 
 ## navigation
 
