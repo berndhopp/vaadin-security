@@ -14,11 +14,11 @@
     <Implementation-Title>ILAY - authorization for Vaadin</Implementation-Title>
     <Implementation-Vendor>Bernd Hopp</Implementation-Vendor>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.ilay</groupId>
       <artifactId>ilay-api</artifactId>
+      <version>3.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>
