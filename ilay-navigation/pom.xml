@@ -18,7 +18,7 @@
   <dependencies>
     <dependency>
       <groupId>org.ilay</groupId>
-      <artifactId>ilay-common-api</artifactId>
+      <artifactId>ilay-api</artifactId>
     </dependency>
   </dependencies>
   <build>
