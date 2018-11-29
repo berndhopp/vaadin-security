@@ -9,20 +9,15 @@
   <version>3.0.0-SNAPSHOT</version>
   <properties>
     <project-ilay.version>3.0.0-SNAPSHOT</project-ilay.version>
-
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
     <project.build.target>1.8</project.build.target>
     <project.build.source>1.8</project.build.source>
     <java-source.version>1.8</java-source.version>
     <java-target.version>1.8</java-target.version>
-
     <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
     <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
-
   </properties>
-
   <modules>
     <module>ilay-api</module>
     <module>ilay-navigation</module>
@@ -32,7 +27,6 @@
     <module>ilay-visibility-spring</module>
     <module>ilay-visibility-cdi</module>
   </modules>
-
   <repositories>
     <repository>
       <id>vaadin-addons</id>
@@ -44,7 +38,6 @@
       <url>https://maven.vaadin.com/vaadin-prereleases</url>
     </repository>
   </repositories>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -84,8 +77,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
-
   <dependencies>
     <dependency>
       <groupId>com.vaadin</groupId>
@@ -94,7 +85,6 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>

@@ -13,10 +13,12 @@
         <dependency>
             <groupId>org.ilay</groupId>
             <artifactId>ilay-visibility-api</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.ilay</groupId>
-            <artifactId>ilay-common-api</artifactId>
+            <artifactId>ilay-api</artifactId>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
