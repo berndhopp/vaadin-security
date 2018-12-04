@@ -106,7 +106,7 @@ for Spring:
 ```xml
     <dependency>
         <groupId>org.ilay</groupId>
-        <artifactId>ilay-navigation-spring</artifactId>
+        <artifactId>ilay-visibility-spring</artifactId>
         <version>3.0.0</version>
     </dependency>
 ```
@@ -116,7 +116,7 @@ for Guice:
 ```xml
     <dependency>
         <groupId>org.ilay</groupId>
-        <artifactId>ilay-navigation-guice</artifactId>
+        <artifactId>ilay-visibility-guice</artifactId>
         <version>3.0.0</version>
     </dependency>
 ```
@@ -126,7 +126,7 @@ for manual ( no di-framework )
 ```xml
     <dependency>
         <groupId>org.ilay</groupId>
-        <artifactId>ilay-navigation-manual</artifactId>
+        <artifactId>ilay-visibility-manual</artifactId>
         <version>3.0.0</version>
     </dependency>
 ```
