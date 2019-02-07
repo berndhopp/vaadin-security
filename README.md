@@ -18,7 +18,7 @@ add this maven-dependency to your pom.xml
     </dependency>
 ```
 
-#building blocks
+# building blocks
 
 Please note that thanks to the new API's in Vaadin 10+, no bootstrapping-code is necessary.
 
