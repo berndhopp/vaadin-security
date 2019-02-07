@@ -6,18 +6,19 @@
 Ilay is a simple-to-use authentication-framework for Vaadin. It does not incorporate frameworks like Spring-Security or Apache Shiro, but
 brings it's own api which is custom-tailored for the use with Vaadin. Ilay deals with navigation ( 'is the user allowed to see this view' ) and visibility ( 'should this component be visible to the user' ). 
 
+# installation
 
-## navigation
-
-Ilay-navigation comes as a separate dependency:
+add this maven-dependency to your pom.xml
 
 ```xml
     <dependency>
         <groupId>org.ilay</groupId>
-        <artifactId>ilay-navigation</artifactId>
+        <artifactId>ilay</artifactId>
         <version>3.0.0</version>
     </dependency>
 ```
+
+#building blocks
 
 Please note that thanks to the new API's in Vaadin 10+, no bootstrapping-code is necessary.
 
@@ -28,6 +29,14 @@ determines whether or not the current user has that role or not.
 ```java
 class IsAdminAccessEvaluator implements AccessEvaluator {
 
+    /*
+     *  instances of this class will be created by VaadinService, 
+     *  which will delegate construction to the configured 
+     *  DI-provider (CDI, Spring, Guice), if one is configured.
+     *  This is why @Autowired will work here, assuming
+     *  the Spring-Addon for Vaadin is being used.
+     */
+    @Autowired
     Supplier<UserRole> userRoleProvider;
 
     @Override
@@ -92,152 +101,6 @@ class IsAdminAccessEvaluator implements AccessEvaluator<OnlyForAdmins> {
             : Access.restricted(UserNotInRoleException.class);
     }
 }
-```
-
-## visibility
-
-Ilay-visibility is designed to be used in combination with a dependency-injection framework and with 
-a one-class-per-component-pattern, although it can be used without that ( see ilay-visibility-manual ).
-
-The first step is to decide for the integration you need:
-
-for Spring:
-
-```xml
-    <dependency>
-        <groupId>org.ilay</groupId>
-        <artifactId>ilay-visibility-spring</artifactId>
-        <version>3.0.0</version>
-    </dependency>
-```
-
-for Guice:
-
-```xml
-    <dependency>
-        <groupId>org.ilay</groupId>
-        <artifactId>ilay-visibility-guice</artifactId>
-        <version>3.0.0</version>
-    </dependency>
-```
-
-for manual ( no di-framework )
-
-```xml
-    <dependency>
-        <groupId>org.ilay</groupId>
-        <artifactId>ilay-visibility-manual</artifactId>
-        <version>3.0.0</version>
-    </dependency>
-```
-
-The spring- and guice-integrations bring with them annotations called EnableIlay, that can be
-attached to the GuiceVaadinServlet or SpringConfiguration, to bootstrap ilay-visibility within Vaadin.
-
-### Guice
-
-```java
-    
-    @EnableIlay
-    //.. other annotations follow
-    public class MyServlet extends GuiceVaadinServlet{
-    }
-```
-
-### Spring
-
-```java     
-    @Configuration
-    @EnableIlay
-    public class MyConfiguration{
-    }
-```
-
-Now bootstrap is finished, let's create a new component that should only be visible to admins.
-
-We start with a VisibilityEvaluator, to decide whether a user is admin or not
-
-```java
-    public class IsAdminVisibilityEvaluator implements VisibilityEvalutor<VisibleForAdmins>{
-        boolean evaluateVisibility(VisibleForAdmins annotation){
-            User user = VaadinSession.getCurrent().getAttribute(User.class);
-            
-            return user != null && user.isAdmin();
-        }
-    }
-```
-
-Now the aforementioned annotation is needed, to connect the visibility-evaluator
-to the components
-
-```java
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(TYPE)
-    @VisibilityAnnotation(IsAdminVisibilityEvaluator.class)
-    public @interface VisibleForAdmins {
-    }
-```
-
-And that annotation can now be attached to the components
-
-```java
-    @VisibleForAdmins
-    public class AdminButton extends Button {
-    }
-```
-
-On creation of the AdminButton, the DI-framework will run the connected VisibilityEvaluator 
-and decide whether the button is visible or not. When permissions change, for example on login- or -out, 
-in order for the visibility of your components to be re-evaluated, you need to call 
-
-```java
-    class AuthController {
-    
-    public void onLogin(){
-        PermissionsChangedEvent.fire();
-    }
-}
-
-```
-
-### manual
-
-If you use ilay-visibility-manual, you need to register your components, yes, manually
-
-Either with a component without annotation:
-
-```java
-    public class MyView {
-        public void foo(){
-            Button adminButton = new Button("Admin", e -> doAdminThings());
-            
-            ManualVisibilityEvaluator isAdminEvaluator = new ManualVisibilityEvaluator(){
-                 boolean evaluateVisibility(){
-                     User user = VaadinSession.getCurrent().getAttribute(User.class);
-                     
-                     return user != null && user.isAdmin();
-                 }
-             };
-
-            IlayVisibility.register(adminButton, isAdminEvaluator);
-        }
-    }
-```
-
-Or with AdminButton that we used before ( see above for the VisibleForAdmins-annotation )
-
-```java
-    @VisibleForAdmins
-    public class AdminButton extends Button {
-    }
-        
-     public class MyView {
-         public void foo(){
-             Button adminButton = new AdminButton();
-             
-             IlayVisibility.register(adminButton);
-         }
-     }   
 ```
 
 # notes

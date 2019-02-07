@@ -1,4 +1,4 @@
-package org.ilay.navigation;
+package org.ilay;
 
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.Location;

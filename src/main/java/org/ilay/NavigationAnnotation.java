@@ -1,4 +1,4 @@
-package org.ilay.navigation;
+package org.ilay;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -43,8 +43,8 @@ import java.lang.annotation.Target;
  * <pre>
  *     &#064;Route("adminview")
  *     &#064;VisibleTo(UserRole.Admin)
- *      public class AdminView extends Div {
- *      }
+ *     public class AdminView extends Div {
+ * }
  * </pre>
  */
 @Retention(RetentionPolicy.RUNTIME)

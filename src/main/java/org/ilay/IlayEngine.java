@@ -1,6 +1,5 @@
-package org.ilay.navigation;
+package org.ilay;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.router.ListenerPriority;
@@ -10,8 +9,6 @@ import com.vaadin.flow.server.UIInitListener;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 
-import org.ilay.PermissionsChangedEvent;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +16,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
-import static com.vaadin.flow.component.ComponentUtil.addListener;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -29,7 +25,7 @@ import static java.util.stream.Collectors.toList;
  */
 @SuppressWarnings("unused")
 @ListenerPriority(Integer.MAX_VALUE - 1)
-public class NavigationEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
+public class IlayEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
 
     private static final long serialVersionUID = 974589421761348380L;
     private final Map<Class<?>, Optional<AnnotationAccessEvaluatorTuple<?>>> cache = new ConcurrentHashMap<>();
@@ -43,11 +39,7 @@ public class NavigationEngine implements VaadinServiceInitListener, UIInitListen
 
     @Override
     public void uiInit(UIInitEvent event) {
-        final UI ui = event.getUI();
-
-        ui.addBeforeEnterListener(this);
-
-        addListener(ui, PermissionsChangedEvent.class, e -> ui.getPage().reload());
+        event.getUI().addBeforeEnterListener(this);
     }
 
     @Override
