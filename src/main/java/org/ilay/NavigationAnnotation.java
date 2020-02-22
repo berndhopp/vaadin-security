@@ -46,14 +46,18 @@ import java.lang.annotation.Target;
  *     public class AdminView extends Div {
  * }
  * </pre>
+ *
+ * if multiple AccessEvaluators are being set, they will be executed in the given order. If one AccessEvaluator
+ * in the chain returns anything but {@link Access#granted()}, this will prevent subsequent AccessEvaluators from
+ * being executed.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface NavigationAnnotation {
     /**
-     * The {@link AccessEvaluator} that is to be assigned to the annotation.
+     * The {@link AccessEvaluator}s that are to be assigned to the annotation.
      *
-     * @return the {@link AccessEvaluator}
+     * @return the {@link AccessEvaluator}s
      */
-    Class<? extends AccessEvaluator<?>> value();
+    Class<? extends AccessEvaluator>[] value();
 }

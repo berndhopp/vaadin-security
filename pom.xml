@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ilay</artifactId>
   <groupId>org.ilay</groupId>
-  <version>3.0-Final</version>
+  <version>2020.2</version>
   <properties>
     <Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
     <Implementation-Title>ILAY - authorization for Vaadin</Implementation-Title>

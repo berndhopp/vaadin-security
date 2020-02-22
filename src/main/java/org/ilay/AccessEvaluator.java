@@ -10,19 +10,14 @@ import java.lang.annotation.Annotation;
  * route-target or not. Instances of this class will be constructed by a dependency-injection
  * framework like spring or guice, if one is used.
  */
-public interface AccessEvaluator<T extends Annotation> {
+public interface AccessEvaluator {
 
     /**
      * evaluate what access the current user has to the route-target in question.
      *
-     * @param location         the {@link Location} to be navigated to, see {@link
-     *                         BeforeEnterEvent#getLocation()}
-     * @param navigationTarget the navigation-target to be navigated to, see {@link
-     *                         BeforeEnterEvent#getNavigationTarget()}
-     * @param annotation       the {@link Annotation} on the route-target that itself is annotated
-     *                         with a {@link NavigationAnnotation}. This annotation may carry
-     *                         additional data which can be used to evaluate the access.
+     * @param beforeEnterEvent the {@link BeforeEnterEvent} that is to be evaluated for access
+     *
      * @return the {@link Access}
      */
-    Access evaluate(Location location, Class<?> navigationTarget, T annotation);
+    Access evaluate(BeforeEnterEvent beforeEnterEvent);
 }

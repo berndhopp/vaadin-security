@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Determines the outcome of {@link AccessEvaluator#evaluate(Location, Class, Annotation)}. Access
+ * Determines the outcome of {@link AccessEvaluator#evaluate(BeforeEnterEvent)}. Access
  * can basically be either granted or restricted. Granted means that the route-target that is being
  * navigated to is available for the current user, a granted access is being returned by {@link
  * Access#granted()}. A restricted Access means that the current user is not allowed to navigate to
@@ -22,7 +22,14 @@ public abstract class Access implements Serializable {
 
     private static final long serialVersionUID = -5142617945164430893L;
 
-    private Access() {
+    private Access(boolean granted) {
+        this.granted = granted;
+    }
+    
+    private boolean granted;
+    
+    boolean isGranted(){
+        return granted;
     }
 
     /**
@@ -31,7 +38,7 @@ public abstract class Access implements Serializable {
      * @return the granted access
      */
     public static Access granted() {
-        return new Access() {
+        return new Access(true) {
             @Override
             void exec(BeforeEnterEvent enterEvent) {
             }
@@ -49,7 +56,7 @@ public abstract class Access implements Serializable {
     public static Access restricted(Exception errorTarget, String errorMessage) {
         Objects.requireNonNull(errorTarget, "errorTarget must not be null");
 
-        return new Access() {
+        return new Access(false) {
             @Override
             void exec(BeforeEnterEvent enterEvent) {
                 enterEvent.rerouteToError(errorTarget, errorMessage);
@@ -66,7 +73,7 @@ public abstract class Access implements Serializable {
     public static Access restricted(Class<? extends Exception> errorTarget) {
         Objects.requireNonNull(errorTarget, "errorTarget must not be null");
 
-        return new Access() {
+        return new Access(false) {
             @Override
             void exec(BeforeEnterEvent enterEvent) {
                 enterEvent.rerouteToError(errorTarget);
@@ -83,7 +90,7 @@ public abstract class Access implements Serializable {
     public static Access restricted(String rerouteTarget) {
         Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
 
-        return new Access() {
+        return new Access(false) {
             @Override
             void exec(BeforeEnterEvent enterEvent) {
                 enterEvent.rerouteTo(rerouteTarget);
@@ -102,7 +109,7 @@ public abstract class Access implements Serializable {
         Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
         Objects.requireNonNull(parameters, "parameters must not be null");
 
-        return new Access() {
+        return new Access(false) {
             @Override
             void exec(BeforeEnterEvent enterEvent) {
                 enterEvent.rerouteTo(rerouteTarget, parameters);
@@ -120,7 +127,7 @@ public abstract class Access implements Serializable {
         Objects.requireNonNull(rerouteTarget, "rerouteTarget must not be null");
         Objects.requireNonNull(parameter, "parameters must not be null");
 
-        return new Access() {
+        return new Access(false) {
             @Override
             void exec(BeforeEnterEvent enterEvent) {
                 enterEvent.rerouteTo(rerouteTarget, parameter);

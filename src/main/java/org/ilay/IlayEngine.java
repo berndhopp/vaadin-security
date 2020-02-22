@@ -12,7 +12,6 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
@@ -27,8 +26,11 @@ import static java.util.stream.Collectors.toList;
 @ListenerPriority(Integer.MAX_VALUE - 1)
 public class IlayEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener {
 
+    @SuppressWarnings("unchecked")
+    private static final Class<? extends AccessEvaluator>[] EMPTY = new Class[]{};
+
     private static final long serialVersionUID = 974589421761348380L;
-    private final Map<Class<?>, Optional<AnnotationAccessEvaluatorTuple<?>>> cache = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Class<? extends AccessEvaluator>[]> cache = new ConcurrentHashMap<>();
 
     @Override
     public void serviceInit(ServiceInitEvent event) {
@@ -44,32 +46,28 @@ public class IlayEngine implements VaadinServiceInitListener, UIInitListener, Be
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        checkAccessibility(event, event.getNavigationTarget());
-    }
+        Class<? extends AccessEvaluator>[] optionalTuple = cache.computeIfAbsent(event.getNavigationTarget(), this::getAccessEvaluators);
 
-    @SuppressWarnings("unchecked")
-    private <ANNOTATION extends Annotation> void checkAccessibility(BeforeEnterEvent event, Class<?> navigationTarget) {
-        Optional<AnnotationAccessEvaluatorTuple<?>> optionalTuple = cache.computeIfAbsent(navigationTarget, this::getOptionalTuple);
-
-        if (optionalTuple.isPresent()) {
-            final AnnotationAccessEvaluatorTuple<ANNOTATION> tuple = (AnnotationAccessEvaluatorTuple<ANNOTATION>) optionalTuple.get();
-
-            final AccessEvaluator<ANNOTATION> accessEvaluator = VaadinService
+        for (Class<? extends AccessEvaluator> aClass : optionalTuple) {
+            final AccessEvaluator accessEvaluator = VaadinService
                     .getCurrent()
                     .getInstantiator()
-                    .getOrCreate(tuple.getAccessEvaluatorClass());
+                    .getOrCreate(aClass);
 
             final Access access = requireNonNull(
-                    accessEvaluator.evaluate(event.getLocation(), navigationTarget, tuple.getAnnotation()),
-                    () -> tuple.getAccessEvaluatorClass() + "#checkAccess(BeforeEnterEvent) must not return null"
+                    accessEvaluator.evaluate(event),
+                    () -> aClass + "#checkAccess(BeforeEnterEvent) must not return null"
             );
 
             access.exec(event);
+
+            if(!access.isGranted()){
+                return;
+            }
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Optional<AnnotationAccessEvaluatorTuple<?>> getOptionalTuple(Class<?> classToCheck) {
+    private Class<? extends AccessEvaluator>[] getAccessEvaluators(Class<?> classToCheck) {
         Predicate<Annotation> hasRestrictionAnnotation = annotation -> annotation
                 .annotationType()
                 .isAnnotationPresent(NavigationAnnotation.class);
@@ -80,31 +78,12 @@ public class IlayEngine implements VaadinServiceInitListener, UIInitListener, Be
 
         switch (list.size()) {
             case 0:
-                return Optional.empty();
+                return EMPTY;
             case 1:
                 final Annotation annotation = list.get(0);
-                return Optional.of(new AnnotationAccessEvaluatorTuple(annotation, annotation.annotationType().getAnnotation(NavigationAnnotation.class).value()));
+                return annotation.annotationType().getAnnotation(NavigationAnnotation.class).value();
             default:
                 throw new IllegalStateException("more than one NavigationAnnotation not allowed at " + classToCheck);
-        }
-    }
-
-    private static class AnnotationAccessEvaluatorTuple<ANNOTATION extends Annotation> {
-
-        private ANNOTATION annotation;
-        private Class<? extends AccessEvaluator<ANNOTATION>> accessEvaluatorClass;
-
-        AnnotationAccessEvaluatorTuple(ANNOTATION annotation, Class<? extends AccessEvaluator<ANNOTATION>> accessEvaluatorClass) {
-            this.annotation = annotation;
-            this.accessEvaluatorClass = accessEvaluatorClass;
-        }
-
-        ANNOTATION getAnnotation() {
-            return annotation;
-        }
-
-        Class<? extends AccessEvaluator<ANNOTATION>> getAccessEvaluatorClass() {
-            return accessEvaluatorClass;
         }
     }
 }
